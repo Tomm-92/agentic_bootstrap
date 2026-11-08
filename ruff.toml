@@ -1,0 +1,48 @@
+line-length = 100
+target-version = "py314"
+indent-width = 2
+extend-exclude = ["output"]
+
+[format]
+quote-style = "single"
+exclude = ["*.md"]   # ruff formats Python blocks in Markdown; docs keep their own samples
+
+[lint]
+select = [
+    "E", "F", "W", "I", "B", "UP",
+    "SIM", "RET", "PIE", "C4",   # needlessly roundabout code
+    "ERA",                       # commented-out code
+    "ARG",                       # unused arguments
+    "BLE", "TRY",                # blind or over-wide exception handling
+    "C90", "PLR",                # complexity and size limits
+    "TID251",                    # banned APIs, listed below
+    "PGH004", "RUF100",          # noqa must name codes, and stale ones go
+    "ANN",                       # type hints on every function
+    "T20",                       # print(); CLAUDE.md bans prints
+    "S",                         # security (Bandit)
+]
+ignore = [
+    "TRY003",    # a custom exception class per message is more code, not less
+]
+
+[lint.mccabe]
+max-complexity = 8
+
+[lint.pylint]
+max-args = 5
+max-statements = 30
+
+[lint.per-file-ignores]
+"tests/**" = ["PLR2004", "ANN", "S101"]   # literal expected values and asserts are how tests check; annotating tests and fixtures adds noise
+"app/__init__.py" = ["F401"]   # ADK loads the agent through this import
+
+# Deprecated or discouraged framework APIs, each with the replacement.
+[lint.flake8-tidy-imports.banned-api]
+"google.adk.agents.SequentialAgent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.agents.ParallelAgent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.agents.LoopAgent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.agents.sequential_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.agents.parallel_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.agents.loop_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
+"google.adk.tools.AgentTool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
+"google.adk.tools.agent_tool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."

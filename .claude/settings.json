@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/settings.local.json)",
+      "Edit(/.claude/hooks/**)",
+      "Edit(/ruff.toml)",
+      "Edit(/pytest.ini)",
+      "Edit(/mypy.ini)",
+      "Edit(/.github/workflows/**)",
+      "Read(**/.env)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint_on_edit.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/checks_on_stop.sh",
+            "timeout": 300,
+            "statusMessage": "Running lint, format, dead-code, type and tests"
+          }
+        ]
+      }
+    ]
+  }
+}
