@@ -70,8 +70,7 @@ owner's review of the whole branch is the human check on them.
 - **Git.** Work on the branch from Stage 1. Never commit on `main`, never push,
   never use `--no-verify`, and never set `core.hooksPath`.
 - **Secrets.** Never read, print or commit `.env` files.
-- **Cost.** No paid-model call unless the run inputs approve it (COST-001).
-  Use a free local model.
+- **Cost.** No paid-model call beyond what the run inputs approve (COST-001).
 - **Rules.** Copy the catalogue exactly. Never set a control to `active`, lower
   a tier, remove a control or widen an allowlist beyond the run inputs. Extra
   rules go under `proposals/0001/`.
@@ -115,9 +114,9 @@ the conversation.
 
 | Situation | What to do |
 | --- | --- |
-| A check needs something the run doesn't have, such as a container runtime, a local model or a GitHub secret | Record it as `deferred`, with the exact command or action the owner needs. Continue. |
+| A check needs something the run doesn't have, such as a container runtime, an Anthropic API key or a GitHub secret | Record it as `deferred`, with the exact command or action the owner needs. Continue. |
 | A stage is `blocked` or fails after a reasonable attempt | Record it. Mark stages that depend on it as `blocked`. Continue with the stages that don't. |
-| Finishing seems to need a weaker control, an invented value or a paid call | Don't do it. Stop that stage, record why, and raise it in the final report. |
+| Finishing seems to need a weaker control, an invented value or a paid call the run inputs don't approve | Don't do it. Stop that stage, record why, and raise it in the final report. |
 
 A control with no passing evidence stays `planned`. A run that reports what it
 couldn't do has succeeded; one that hides it has not.
@@ -141,24 +140,24 @@ The owner does these before the run, because the assistant must not:
       quality's owner actions complete, so `main` has both and its working tree is
       clean.
 - [ ] The assumptions below hold, or are changed here first.
-- [ ] Python 3.14, `jq` and `git` are installed. Install a free local model and a
-      container runtime too, or the checks that need them will be `deferred`.
+- [ ] Python 3.14, `jq` and `git` are installed. Install a container runtime too,
+      and set `ANTHROPIC_API_KEY`, or the checks that need them will be `deferred`.
 - [ ] The run inputs below are filled in.
 
 ## Run inputs
 
-Answer these in one file, or in the opening message. Stage 1 asks once, in a
-single batch, for anything missing. Nothing here depends on the agent's purpose.
+The Value column holds this project's answers. Stage 1 asks once, in a single
+batch, for anything missing. Nothing here depends on the agent's purpose.
 
-| Input | Goes to | Notes |
-| --- | --- | --- |
-| Project name | `profile.project` | |
-| Agent package path | `profile.product_agent.path` | |
-| Framework and pinned version | `profile.product_agent.framework` | |
-| Output folder | `profile.product_agent.output_root` | |
-| Exact model IDs for planner, executor and reviewer | `models.yaml`, `services.yaml` | The reviewer's must differ. |
-| Telemetry backend | `ops/observability/`, `services.yaml` | The local stack, or the owner's choice. |
-| Paid-model approval | The plan | Default: none. |
+| Input | Goes to | Value | Notes |
+| --- | --- | --- | --- |
+| Project name | `profile.project` | `agentic_tools_v2` | |
+| Agent package path | `profile.product_agent.path` | `app` | |
+| Framework and pinned version | `profile.product_agent.framework` | `google-adk==2.14.0` | |
+| Output folder | `profile.product_agent.output_root` | `output` | |
+| Exact model IDs for planner, executor and reviewer | `models.yaml`, `services.yaml` | Planner and executor: `claude-haiku-5-5`. Reviewer: `claude-sonnet-5-5`. All use `AnthropicLlm` with the Anthropic API. | The reviewer's ID must differ, but it may be the same family (see "Known gaps"). |
+| Telemetry backend | `ops/observability/`, `services.yaml` | Local stack | The local stack, or the owner's choice. |
+| Paid-model approval | The plan | Approved for the Claude API, only for the Stage 6 manual run and integration tests. | Any other paid call needs new owner approval. |
 
 ---
 
@@ -239,7 +238,8 @@ governance file is written.
    `docs/agent_governance_implementation.md` builds. `Owner check` is what only a human can
    confirm, or `none`.
 6. **Prerequisites.** Check for Python 3.14, `jq`, `git`, a container runtime
-   and a free local model. Record what's missing in the plan.
+   and `ANTHROPIC_API_KEY`. Record what's missing in the plan, without printing
+   the key.
 
 ### Acceptance criteria
 
@@ -527,9 +527,11 @@ on push to `main`, with separate jobs:
    plus `osv-scanner`. SARIF or JSON output.
 
 `proposals/0001/.github/workflows/ai-review.yml`: an LLM pre-review of each PR, on a different
-model family from the one that wrote the code. It checks plan compliance, files
-changed outside the plan's `scope_paths`, and security patterns that SAST
-misses. It posts findings only; the human decides the merge.
+model ID from the one that wrote the code. It may be the same family (see "Known
+gaps"). It checks plan compliance, files changed outside the plan's `scope_paths`,
+and security patterns that SAST misses. It posts findings only; the human decides
+the merge. The paid-model approval doesn't cover this workflow, so don't call the
+model to test it.
 
 Upload all reports as artifacts and keep them for `retention_days`. Every
 job is advisory: on GitHub Free with a private repo, required status checks
@@ -538,7 +540,8 @@ are unavailable.
 ### Acceptance criteria
 
 - [ ] Both workflows pass `actionlint`, or are otherwise validated locally.
-- [ ] Each job's command runs successfully locally.
+- [ ] Each job's command runs successfully locally, apart from `ai-review.yml`'s
+      paid model call.
 
 ### Ledger
 
@@ -564,8 +567,10 @@ what the agent does.
 
 1. **Product agent.** If `<profile.product_agent.path>` has no agent yet,
    create a root agent there with no tools. Keep any agent that already
-   exists. Either way, its model is an exact ID from
-   `governance/allowlists/models.yaml`, held in one shared variable.
+   exists. Either way, its model is an `AnthropicLlm` with an exact ID from
+   `governance/allowlists/models.yaml`, held in one shared variable. The
+   approval covers only the Claude API, so don't run the integration tests until
+   this replaces the placeholder's `gemini-3.5-flash`.
 2. **Governance layer.** One component, attached globally at the hook points
    in "Runtime hook points": `GovernancePlugin(BasePlugin)`, attached with
    `App(plugins=[...])`.
@@ -588,9 +593,8 @@ what the agent does.
      counter. Treat missing usage as an error, never as zero.
 3. **Session store.** A durable session log is the evidence record (EVID-001).
    Turn off any compaction or summarisation that would rewrite stored
-   events. `DatabaseSessionService` needs ADK's `db` extra, and running a local
-   model through LiteLLM needs `litellm`. Add what you use to `requirements.txt`,
-   with version ranges, and re-lock.
+   events. `DatabaseSessionService` needs ADK's `db` extra. Add it to
+   `requirements.txt`, with a version range, and re-lock.
 4. **`ARCHITECTURE.md`.** Describe:
    - The agent tree as it stands (phase A03 of
      `docs/agent_governance_implementation.md` replaces it)
@@ -613,8 +617,8 @@ what the agent does.
 ### Acceptance criteria
 
 - [ ] All tests pass with no real model calls.
-- [ ] One manual run against a free local model works. Paid models need
-      owner approval (COST-001).
+- [ ] One manual run against `claude-haiku-5-5` works, under the run inputs'
+      paid-model approval (COST-001).
 
 ### Ledger
 
@@ -716,7 +720,8 @@ set and decision, and any failure can be attributed without shell access.
 ### Acceptance criteria
 
 - [ ] The span test passes.
-- [ ] One local session shows up as a complete trace in the chosen backend.
+- [ ] One local session, using the fake model because the paid-model approval
+      doesn't cover this stage, shows up as a complete trace in the chosen backend.
 
 ### Ledger
 
@@ -905,7 +910,9 @@ them. Every earlier per-phase owner action is here.
 
    Run the tests, whose defaults now read the applied files, and commit with the
    trailers.
-3. **Add the reviewer model's API key** as a repo secret.
+3. **Add the reviewer model's API key** as a repo secret. This starts paid calls
+   on every PR, which the run's paid-model approval doesn't cover, so decide it
+   separately (COST-001).
 4. **Push the branch and open a pull request** as the test PR. Confirm the jobs
    run, then set the GOV-004 CI, SEC-002 CI and DEP-001 CI controls to `active`
    in that PR.
@@ -953,6 +960,11 @@ Change these before the run if they don't hold:
   provide the deterministic build-time controls. `AGENTS.md` carries the
   same rules for other agents as instructions only, so for those agents the
   controls are ND, plus CI and human review.
+- **Claude-only dev mode.** Every model is a Claude model, called through the
+  Anthropic API. Paid Claude models are allowed with the owner's approval, recorded
+  in the run inputs. No free local model is needed. The reviewer must have a
+  different model ID from the planner and executor, but may be the same family;
+  "Known gaps" records this to fix before production.
 - **Repository:** GitHub, private, on GitHub Free, with one person (`Tomm-92`)
   authoring and reviewing. Branch protection, required checks and code-owner
   review are therefore unavailable. CI runs but is advisory, and the coding
@@ -1338,10 +1350,11 @@ severity_gate:                 # VER-001: per-severity outcome of verification
 
 ```yaml
 # MODEL-001 and REV-001. Exact model IDs only; aliases are not allowed.
-# Reviewer models must differ from planner and executor models.
+# Reviewer models must have a different ID from planner and executor models.
+# They may be the same family until production (see Known gaps).
 models:
-  - {id: <exact model id>, use: [planner, executor], paid: false}
-  - {id: <different exact model id>, use: [reviewer], paid: false}
+  - {id: <exact model id>, use: [planner, executor], paid: true}
+  - {id: <different exact model id>, use: [reviewer], paid: true}
 ```
 
 `governance/allowlists/packages.yaml`:
@@ -1494,6 +1507,9 @@ project now uses 3.14, so re-check any you rely on.
     Don't rely on it: isolate eval output yourself.
   - A base install has no `sqlalchemy` or `mcp`. `DatabaseSessionService` needs the
     `db` extra, `McpToolset` the `mcp` extra, and OTLP export the `otel` extra.
+  - `AnthropicLlm` (`google.adk.models.anthropic_llm`) calls the Anthropic API and
+    needs the `anthropic` package. Pass an instance as the model: a `claude-*`
+    string resolves to `Claude`, its Vertex AI subclass.
 - **Models:** some models, such as `claude-haiku-5-5`, reject temperature 0,
   so report evals as pass rates over several runs.
 - **LiteLLM:** use `ollama_chat/`, not `ollama/`, or tool calls can loop.
@@ -1511,6 +1527,7 @@ Seed `docs/exec-plans/tech-debt-tracker.md` with these:
 | The prompt hook restates the governance hash and plan, not the rules' text, and nothing limits a coding session's length. | GOV-006 | Stage 9 evidence review: tighten if transcripts show drift late in sessions |
 | Coding agents other than Claude Code get the rules as instructions only. | GOV-001, GOV-002, GOV-006, SCOPE-001 | CI checks (Stage 5) and owner review |
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
+| In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
 | All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/agent_governance_implementation.md` |
 
 ## When the repo changes
