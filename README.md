@@ -1,4 +1,4 @@
-# agentic-ai-v3
+# agentic_tools_v2
 
 A Google ADK agent project. `app/` currently holds a placeholder agent, to be
 replaced with the real one.

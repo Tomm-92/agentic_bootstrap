@@ -1,1 +1,2 @@
 google-adk>=2.14,<3
+anthropic>=2.6,<3
