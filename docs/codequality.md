@@ -27,7 +27,8 @@ Put this file at `docs/codequality.md` in the new repo.
   opened from a parent folder runs none of the hooks.
 - **Ask, don't guess.** Ask the owner for anything this file marks
   `<like this>`: the source package, the language, the framework and any
-  generated-output folder.
+  generated-output folder. Use the same folder for `output_root` in
+  `docs/governance_implementation.md`.
 - **Verify before use.** Check every tool flag against its installed version,
   and every hook behaviour against https://code.claude.com/docs. "Verified
   facts" lists what has already been checked.
@@ -299,6 +300,7 @@ extend-exclude = ["<generated output folder>"]   # or remove
 
 [format]
 quote-style = "<single or double>"
+exclude = ["*.md"]   # ruff formats Python blocks in Markdown; docs keep their own samples
 
 [lint]
 select = [
@@ -745,11 +747,15 @@ async def test_weather(fake_llm):
   session = await runner.session_service.create_session(app_name=runner.app_name, user_id='u')
   msg = types.Content(role='user', parts=[types.Part(text='Weather in Paris?')])
   events = [e async for e in runner.run_async(user_id='u', session_id=session.id, new_message=msg)]
-  assert events[-1].content.parts[0].text == 'Sunny in Paris.'
+  reply = events[-1].content
+  assert reply and reply.parts
+  assert reply.parts[0].text == 'Sunny in Paris.'
 ```
 
 pytest-asyncio runs in strict mode by default, so every async test needs
-`@pytest.mark.asyncio`.
+`@pytest.mark.asyncio`. An event's `content` and `parts` can be `None`, so
+assert them before indexing, or mypy fails. To read a tool's result, use
+`event.get_function_responses()`.
 
 **Convention tests (`tests/unittests/test_adk_conventions.py`):**
 
@@ -891,6 +897,14 @@ https://code.claude.com/docs (the hooks and settings pages).
   list, `indent-width = 2` and `quote-style = "single"`: ruff prints no
   conflict warning. Ruff has no separate continuation indent, so call
   arguments get the same 2-space indent as blocks. Checked with ruff 0.17.3.
+- **`ruff format` also formats Python blocks in Markdown files**, and skips
+  blocks that don't parse, such as samples with `<placeholders>`. Without
+  `exclude = ["*.md"]` under `[format]`, one unformatted sample in a doc fails
+  the Stop hook and CI, and `ruff format .` rewrites the doc. `ruff check` does
+  not lint Markdown. Checked with ruff 0.17.4.
+- **`event.content` and `content.parts` are optional in ADK's types**, so
+  `events[-1].content.parts[0].text` fails mypy with `union-attr` and `index`
+  under `check_untyped_defs`. Checked with mypy 2.4.1 and ADK 2.14.0.
 - **mypy was chosen over pyright, ty and Pyrefly** after a trial on this
   repo on 2026-11-04 (mypy 2.4.1, pyright 1.1.414, ty 0.0.97, Pyrefly
   1.4.0). mypy, pyright and ty each caught a misspelt `Agent` parameter, an

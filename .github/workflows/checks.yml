@@ -1,0 +1,16 @@
+name: checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - run: python -m venv .venv && .venv/bin/pip install -r requirements-dev.lock
+      # Runs the Stop hook itself, so CI and Claude Code check the same things.
+      - run: echo '{}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh

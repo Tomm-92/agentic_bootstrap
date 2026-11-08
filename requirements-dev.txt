@@ -1,0 +1,6 @@
+-r requirements.txt
+mypy>=2.4,<3
+pytest>=9,<10
+pytest-asyncio>=1.4,<2
+ruff>=0.17,<0.18
+vulture>=2.16,<3
