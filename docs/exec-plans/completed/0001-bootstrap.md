@@ -84,7 +84,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - [x] Stage 8: span test passes; one fake-model session shows as a complete trace, or `deferred`.
 - [x] Stage 9: QUAL-001 test passes; evidence report runs against real evidence.
 - [x] Stage 10: `check_activation.py` passes; `test_settings.py` passes; everything committed; dry run of the apply step passes.
-- [ ] Stage 11: settings and hook suites pass against the proposal; final report lists every item not `pass`.
+- [x] Stage 11: settings and hook suites pass against the proposal; final report lists every item not `pass`.
 
 ## Assumptions, decisions and risks
 
