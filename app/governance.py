@@ -1,6 +1,7 @@
 """The runtime governance layer: fail closed, stamp evidence, re-inject rules, enforce budgets."""
 
 import subprocess
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, override
@@ -17,11 +18,20 @@ from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
+from opentelemetry import metrics, trace
+from opentelemetry.trace import Span
 
 SHA_KEY = 'governance_sha'
 TOKENS_KEY = 'governance_tokens'
 # One state key per decision: parallel tool calls would overwrite each other's shared list.
 DECISION_PREFIX = 'governance_log:'
+
+_tracer = trace.get_tracer('governance')
+_meter = metrics.get_meter('governance')
+_blocked_tools = _meter.create_counter('governance.tool_calls.blocked')
+_confirmations = _meter.create_counter('governance.confirmations')
+_budget_refusals = _meter.create_counter('governance.budget_refusals')
+_session_tokens = _meter.create_gauge('governance.session_tokens')
 
 
 class GovernanceError(RuntimeError):
@@ -93,6 +103,19 @@ class GovernancePlugin(BasePlugin):
       if 'runtime' in r['applies_to']
     ]
     self.rules_text = f'Governance rules in effect ({self.sha}):\n' + '\n'.join(runtime_rules)
+    self.model_calls: dict[tuple[str, str], tuple[Span, float]] = {}
+
+  def _identity(self, context: CallbackContext) -> dict[str, str]:
+    return {
+      'session.id': context.session.id,
+      'user.id': context.user_id,
+      'governance.sha': self.sha,
+    }
+
+  def _end_model_call(self, context: CallbackContext, **attributes: str | int) -> None:
+    span, started = self.model_calls.pop((context.invocation_id, context.agent_name))
+    span.set_attributes({**attributes, 'latency.ms': (time.monotonic() - started) * 1000})
+    span.end()
 
   @override
   async def before_run_callback(
@@ -120,8 +143,25 @@ class GovernancePlugin(BasePlugin):
   async def before_model_callback(
     self, *, callback_context: CallbackContext, llm_request: LlmRequest
   ) -> LlmResponse | None:
+    # Not current: nothing is entered here, because the after and error callbacks end it.
+    span = _tracer.start_span(
+      'governance.model_call',
+      attributes={
+        **self._identity(callback_context),
+        'model.id': llm_request.model or '',
+        'tokens.input': 0,
+        'tokens.output': 0,
+        'guardrail.result': 'allowed',
+      },
+    )
+    key = (callback_context.invocation_id, callback_context.agent_name)
+    self.model_calls[key] = (span, time.monotonic())
     tokens = callback_context.state.get(TOKENS_KEY, 0)
     if tokens >= self.budget:
+      _budget_refusals.add(1)
+      self._end_model_call(
+        callback_context, **{'guardrail.result': 'refused', 'failure.source': 'policy'}
+      )
       message = f'COST-001: refused, the session used {tokens} of {self.budget} tokens.'
       return LlmResponse(content=_refusal(message))
     llm_request.append_instructions([self.rules_text])
@@ -135,9 +175,26 @@ class GovernancePlugin(BasePlugin):
       return None
     usage = llm_response.usage_metadata
     if usage is None or usage.total_token_count is None:
+      self._end_model_call(callback_context, **{'failure.source': 'harness'})
       raise GovernanceError('COST-001: the model response has no token count')
     tokens = callback_context.state.get(TOKENS_KEY, 0) + usage.total_token_count
     callback_context.state[TOKENS_KEY] = tokens
+    _session_tokens.set(tokens, {'session.id': callback_context.session.id})
+    self._end_model_call(
+      callback_context,
+      **{
+        'tokens.input': usage.prompt_token_count or 0,
+        'tokens.output': usage.candidates_token_count or 0,
+      },
+    )
+    return None
+
+  @override
+  async def on_model_error_callback(
+    self, *, callback_context: CallbackContext, llm_request: LlmRequest, error: Exception
+  ) -> LlmResponse | None:
+    del llm_request, error  # Required by BasePlugin's signature.
+    self._end_model_call(callback_context, **{'failure.source': 'model'})
     return None
 
   def _path_allowed(self, value: object, work_item: object) -> bool:
@@ -182,21 +239,45 @@ class GovernancePlugin(BasePlugin):
     self, *, tool: BaseTool, tool_args: dict[str, Any], tool_context: ToolContext
   ) -> dict[str, Any] | None:
     tier = self.tools.get(tool.name, {}).get('tier', 'unlisted')
+    # ADK's execute_tool span is current here.
+    span = trace.get_current_span()
+    span.set_attributes({**self._identity(tool_context), 'tool.name': tool.name, 'tool.tier': tier})
 
     def log(result: str, rule: str) -> None:
       key = f'{DECISION_PREFIX}{tool_context.function_call_id}:{result}'
       tool_context.state[key] = {'tool': tool.name, 'tier': tier, 'result': result, 'rule': rule}
+      span.set_attribute('guardrail.result', result)
 
     denial = self._denial(tool, tool_args, tool_context)
     if denial:
       log('denied', denial[0])
+      span.set_attribute('failure.source', 'policy')
+      _blocked_tools.add(1, {'tool.name': tool.name, 'rule': denial[0]})
       return {'status': 'error', 'error': f'{denial[0]}: {denial[1]}'}
     confirmation = tool_context.tool_confirmation
     if confirmation:
       log('confirmed' if confirmation.confirmed else 'rejected', 'TOOL-001')
-    elif not (
-      isinstance(tool, GovernedTool)
-      and await tool.check_require_confirmation(tool_args, tool_context)
+      _confirmations.add(1, {'outcome': 'approved' if confirmation.confirmed else 'rejected'})
+      return None
+    # A call waiting on a human has no decision yet: its answer comes back through here.
+    if isinstance(tool, GovernedTool) and await tool.check_require_confirmation(
+      tool_args, tool_context
     ):
-      log('allowed', 'TOOL-001')
+      span.set_attribute('guardrail.result', 'waiting')
+      _confirmations.add(1, {'outcome': 'asked'})
+      return None
+    log('allowed', 'TOOL-001')
+    return None
+
+  @override
+  async def on_tool_error_callback(
+    self,
+    *,
+    tool: BaseTool,
+    tool_args: dict[str, Any],
+    tool_context: ToolContext,
+    error: Exception,
+  ) -> dict[str, Any] | None:
+    del tool, tool_args, tool_context, error  # Required by BasePlugin's signature.
+    trace.get_current_span().set_attribute('failure.source', 'tool')
     return None

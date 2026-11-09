@@ -1,0 +1,24 @@
+groups:
+  - name: governance
+    rules:
+      - alert: BlockedToolCallsRising
+        expr: sum(increase(governance_tool_calls_blocked_total[1h])) > 2 * sum(increase(governance_tool_calls_blocked_total[1h] offset 1d)) and sum(increase(governance_tool_calls_blocked_total[1h])) > 5
+        labels:
+          severity: warning
+        annotations:
+          summary: Blocked tool calls more than doubled compared with this time yesterday.
+      - alert: ApprovalRateNearTotal
+        expr: |
+          sum(increase(governance_confirmations_total{outcome="approved"}[1d]))
+            / sum(increase(governance_confirmations_total{outcome=~"approved|rejected"}[1d])) > 0.95
+          and sum(increase(governance_confirmations_total{outcome=~"approved|rejected"}[1d])) >= 20
+        labels:
+          severity: warning
+        annotations:
+          summary: Nearly every confirmation is approved, which suggests consent fatigue.
+      - alert: SessionTokenSpike
+        expr: max(governance_session_tokens) > 150000
+        labels:
+          severity: warning
+        annotations:
+          summary: A session has used over 75% of the session_token_budget of 200000.

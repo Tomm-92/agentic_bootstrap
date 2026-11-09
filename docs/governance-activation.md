@@ -24,7 +24,7 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | EVID-001 | evidence review each sprint (S09) | S09 | not built yet | pending | none |
 | SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
-| DATA-001 | test that collector exporters match the allowlist (S08) | S08 | not built yet | pending | none |
+| DATA-001 | test that collector exporters match the allowlist (S08) | S08 | tests/governance/test_observability.py::test_collector_exporters_match_the_allowlist | pass | none |
 | DATA-001 | sandbox containers run without a TTY or exec access (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | ORR data-handling sign-off (S09) | S09 | not built yet | pending | none |
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
@@ -41,5 +41,5 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | VER-001 | verify gate blocks delivery (A02, A03) | A02, A03 | phase A02, A03 builds this | pending | none |
 | VER-001 | user acknowledges high findings (A03) | A03 | phase A03 builds this | pending | none |
 | REV-001 | test that reviewer and executor model IDs differ (A03) | A03 | phase A03 builds this | pending | none |
-| OBS-001 | in-memory span exporter test (S08) | S08 | not built yet | pending | none |
+| OBS-001 | in-memory span exporter test (S08) | S08 | tests/unittests/test_telemetry.py::test_session_emits_every_invariant_attribute; a --fake session showed as a complete trace in Tempo with every attribute | pass | none |
 | QUAL-001 | test that every score above 1 links to an existing file or test (S09) | S09 | not built yet | pending | none |

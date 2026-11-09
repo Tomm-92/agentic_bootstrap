@@ -1,2 +1,2 @@
-google-adk[db]>=2.14,<3
+google-adk[db,otel]>=2.14,<3
 anthropic>=2.6,<3

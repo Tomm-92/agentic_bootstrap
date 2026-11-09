@@ -11,7 +11,12 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.models.llm_response import LlmResponse
 from google.adk.runners import Runner
 from google.adk.sessions.database_session_service import DatabaseSessionService
+from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import types
+from opentelemetry import metrics, trace
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
 
 from app import agent
 
@@ -51,6 +56,10 @@ async def run(prompt: str) -> None:
       if part.text:
         sys.stdout.write(f'{part.text}\n')
   await runner.close()
+  # The batch exporters would otherwise lose whatever hasn't been sent when this exits.
+  for provider in (trace.get_tracer_provider(), metrics.get_meter_provider()):
+    if isinstance(provider, TracerProvider | MeterProvider):
+      provider.force_flush()
 
 
 if __name__ == '__main__':
@@ -60,4 +69,5 @@ if __name__ == '__main__':
   args = parser.parse_args()
   if args.fake:
     agent.root_agent.model = ScriptedLlm()
+  maybe_set_otel_providers(otel_resource=Resource.create({'service.name': agent.app.name}))
   asyncio.run(run(args.prompt))

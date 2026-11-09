@@ -11,6 +11,12 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.models.llm_response import LlmResponse
 from google.adk.runners import InMemoryRunner
 from google.genai import types
+from opentelemetry import metrics, trace
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from app import agent
 from app.governance import GovernancePlugin
@@ -54,6 +60,18 @@ def fake_llm(monkeypatch):
   monkeypatch.setattr(agent.root_agent, 'model', llm)
   yield llm
   assert not llm.script, f'The agent stopped before using: {llm.script}'
+
+
+@pytest.fixture(scope='session')
+def telemetry():
+  """Global providers can be set only once, so every test shares these."""
+  exporter = InMemorySpanExporter()
+  tracer_provider = TracerProvider()
+  tracer_provider.add_span_processor(SimpleSpanProcessor(exporter))
+  trace.set_tracer_provider(tracer_provider)
+  reader = InMemoryMetricReader()
+  metrics.set_meter_provider(MeterProvider(metric_readers=[reader]))
+  return exporter, reader
 
 
 class GovernedRepo:
