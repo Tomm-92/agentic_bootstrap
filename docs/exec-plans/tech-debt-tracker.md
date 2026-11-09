@@ -4,7 +4,6 @@ Gaps deferred on purpose, and what closes them.
 
 | Gap | Rule | Close by |
 | --- | --- | --- |
-| --- | --- | --- |
 | The bootstrap run itself isn't gated by these controls: its rules are instructions until the owner applies the proposal, and a long run works against short sessions. Code quality's locks and gates do apply. | GOV-001, GOV-002, GOV-006, SCOPE-001, SCOPE-002 | The owner reviews the whole branch before merging. Closes for later sessions when the owner applies the proposal |
 | Deny rules don't stop scripts that write files themselves. | GOV-002 | Stage 4 sandbox, live once the owner applies it |
 | The plan check proves a plan exists, not that edits stay in scope. | SCOPE-002 | Stage 4, live once the owner applies it |

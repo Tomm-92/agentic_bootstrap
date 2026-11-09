@@ -1,0 +1,4 @@
+# TOOL-001. Every product-agent tool, with its tier. `paths` and `targets` name the
+# arguments that hold a path or an external target. Phase A01 adds the real tools.
+tools:
+  get_project_status: {tier: free, rules: [TOOL-001], paths: [], targets: []}
