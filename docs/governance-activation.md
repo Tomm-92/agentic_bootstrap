@@ -2,6 +2,10 @@
 
 One row per control the catalogue marks `planned`. Only the owner moves a control to `active`.
 
+`Result` is `pass`, `deferred`, `blocked`, `failed` or `pending`. `scripts/check_activation.py`
+accepts an activation only with result `pass`, and an owner check of `none` or one the owner has
+rewritten to start with `Confirmed`.
+
 | Rule | Control | Stage | Evidence | Result | Owner check |
 | --- | --- | --- | --- | --- | --- |
 | GOV-001 | UserPromptSubmit hook blocks prompts (S04) | S04 | tests/governance/test_hooks.py::test_prompt_blocked_and_session_start_fails_when_spoiled | pass | none |

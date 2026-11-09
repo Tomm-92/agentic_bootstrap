@@ -49,6 +49,16 @@ the hooks or deny rules.
 git config core.hooksPath .githooks
 ```
 
+**Runtime.** `app/governance.py` is the governance layer. To run one session against
+the durable log at `.sessions/sessions.db`, with `--fake` to spend nothing:
+
+```bash
+.venv/bin/python -m scripts.local_session --fake "What is the status of demo?"
+```
+
+`ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
+scripts.evidence_report` summarises the evidence for `docs/REVIEW.md`.
+
 ## Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
@@ -75,7 +85,7 @@ What the checks cover:
   and size limits, type hints, `print`, security (Bandit), and `noqa` comments
   that are bare or stale. It also bans ADK's deprecated `SequentialAgent`,
   `ParallelAgent`, `LoopAgent` and `AgentTool`.
-- mypy.ini: strict type checks on `app` and `tests`. Every `type: ignore` must
+- mypy.ini: strict type checks on `app`, `tests` and `scripts`. Every `type: ignore` must
   name its code, and stale ones fail.
 - tests/unittests/: free tests that use a scripted fake model, plus ADK
   convention tests in `test_adk_conventions.py`.
@@ -119,7 +129,7 @@ Run the checks by hand:
 
 ```bash
 .venv/bin/ruff check . && .venv/bin/ruff format --check .
-.venv/bin/vulture app tests --min-confidence 80 && .venv/bin/mypy
+.venv/bin/vulture app tests scripts --min-confidence 80 && .venv/bin/mypy
 .venv/bin/pytest
 ```
 

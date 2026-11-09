@@ -105,3 +105,32 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - **Decision (Stage 8):** Stage 8's own acceptance criterion starts the local stack, so it's the stated exception to "never start services".
 - **Decision (Stage 8):** Tempo's config comes from the v3.1.1 single-binary example, without its metrics generator (a remote-write path) and MCP server. Collector exporters use `otlp_grpc` and `otlp_http`, because the collector warns that `otlp` and `otlphttp` are deprecated aliases.
 - **DEP-001 for review (Stage 8):** `google-adk[otel]` added these to the lock: opentelemetry-exporter-http-transport==0.66b2 opentelemetry-exporter-otlp-common==0.66b2 opentelemetry-exporter-otlp-proto-common==1.45.2 opentelemetry-exporter-otlp-proto-http==1.45.2 opentelemetry-instrumentation==0.66b2 opentelemetry-instrumentation-google-genai==1.3b0 opentelemetry-instrumentation-grpc==0.66b2 opentelemetry-instrumentation-httpx==0.66b2 opentelemetry-proto==1.45.2 opentelemetry-util-genai==1.3b0 opentelemetry-util-http==0.66b2 wrapt==2.5.2 
+
+## Close-out
+
+### Deferred checks
+
+| Check | Why | Clears at |
+| --- | --- | --- |
+| Stage 6 manual run and integration tests; COST-001 runtime owner check | `ANTHROPIC_API_KEY` unset | "After the run" step 8 |
+| GOV-002 sandbox | Only a session started under the settings can prove it | Step 7 |
+| GOV-004 CI, SEC-002 CI, DEP-001 CI | They run only on a real pull request | Step 4 |
+| GOV-004 commit-msg, EVID-001 trailers | Tested, but do nothing until `core.hooksPath` is set | Step 6 |
+| EVID-001 review | Needs the first review | Step 9 |
+| DATA-001 ORR | Needs the owner's sign-off | Step 10 |
+
+Stage 5's local tools and Stage 8's complete trace ran in this run, so step 8 needs only the
+Stage 6 row. No stage was blocked.
+
+### Open owner actions
+
+1. Review the branch, including the DEP-001 lists above.
+2. Check and apply the proposal, on the branch.
+3. Decide whether to add the reviewer key as a repo secret (paid calls on every PR).
+4. Push the base branch, then this branch, and open a PR into the base branch. Set GOV-004 CI, SEC-002 CI and DEP-001 CI to `active` once the jobs run.
+5. Merge that PR, then merge the base branch to `main`.
+6. `git config core.hooksPath .githooks`, then set GOV-004 commit-msg and EVID-001 trailers to `active`.
+7. Start a new session at the repo root and confirm the refusals, then set the GOV-002 sandbox to `active`.
+8. Run the Stage 6 commands, then set COST-001 runtime to `active` when they pass.
+9. Hold the first evidence review, then set EVID-001 review to `active`.
+10. Sign off `docs/SECURITY.md`, then set DATA-001 ORR to `active`.
