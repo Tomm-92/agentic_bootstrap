@@ -21,8 +21,8 @@ The owner does these before the run, because the assistant must not:
       "After the run" in that file is done.
 - [ ] The purpose inputs below are filled in. The owner can say what the agent
       is for.
-- [ ] A container runtime and a free local model are installed and reachable
-      from the session. Without them, their checks will be `deferred`.
+- [ ] A container runtime is reachable from the session, and `ANTHROPIC_API_KEY`
+      is set. Without them, their checks will be `deferred`.
 
 ## How to run this file
 
@@ -40,7 +40,7 @@ throughout. The run still needs no help from the owner until it ends:
 1. **Protected changes are proposals.** Every change to a protected path goes
    under `proposals/A00/` at the same relative path, in this order of need:
    `governance/profile.yaml`, `governance/tools.yaml`,
-   `governance/allowlists/`, `.github/workflows/evals.yml`,
+   `governance/allowlists/`, `CLAUDE.md`, `.github/workflows/evals.yml`,
    `governance/rules-additions.yaml` and, last, `governance/rules.yaml`.
 2. **The governance hash doesn't change.** Nothing here commits to
    `governance/`, so the session's pin stays valid (GOV-006) and one session can
@@ -66,7 +66,7 @@ catalogue, `(A0N)` names the part of this file that builds a planned control.
   denied write is the control working: use the proposal.
 - **Rules.** Propose `active` only as A06 describes. Never lower a tier, remove a
   control or widen an allowlist beyond the purpose inputs.
-- **Cost.** No paid-model call unless the purpose inputs approve it (COST-001).
+- **Cost.** No paid-model call beyond what the purpose inputs approve (COST-001).
 - **Inputs.** If the profile or purpose inputs lack something a part needs, ask
   the owner when someone can answer, or record it in the ledger as `blocked`.
   Don't guess.
@@ -86,9 +86,9 @@ the trailers `Governance: <git rev-parse HEAD:governance>` and `Plan: A00`.
 
 | Situation | What to do |
 | --- | --- |
-| A check needs something the session can't reach, such as a container runtime or local model blocked by the sandbox | Record it as `deferred`, with the exact command for the owner. Continue. Don't ask to loosen the sandbox as part of the run. |
+| A check needs something the session can't reach, such as a container runtime blocked by the sandbox, an Anthropic API key or a paid-model approval | Record it as `deferred`, with the exact command for the owner. Continue. Don't ask to loosen the sandbox as part of the run. |
 | A part is `blocked` or fails after a reasonable attempt | Record it. Mark parts that depend on it as `blocked`. Continue with the parts that don't. |
-| Finishing seems to need a weaker control, an invented value or a paid call | Don't do it. Stop that part, record why, and raise it in the final report. |
+| Finishing seems to need a weaker control, an invented value or a paid call the purpose inputs don't approve | Don't do it. Stop that part, record why, and raise it in the final report. |
 
 A control with no passing evidence stays `planned`.
 
@@ -106,8 +106,8 @@ batch, for anything missing. The appendices show two complete examples.
 | Verification stages | `profile.product_agent.verification` | Only those that apply to the output type. |
 | Package ecosystems and allowed packages | `profile.product_agent.package_ecosystems`, `packages.yaml` | |
 | External targets | `profile.product_agent.external_targets`, `services.yaml` | |
-| Reviewer model | `models.yaml` | Must differ from the executor's. |
-| Paid-model approval | The plan | Default: none. |
+| Reviewer model | `models.yaml` | Its ID must differ from the executor's, but it may be the same family (see "Known gaps" in `docs/governance_implementation.md`). |
+| Paid-model approval | The plan | Default: none. In Claude-only dev mode, A03's end-to-end runs and A04's eval gate are paid calls, so say whether each is approved. A04 costs `eval_runs` runs per eval case. Without approval, those checks are `deferred`. |
 
 ---
 
@@ -266,7 +266,8 @@ SBX-001, SEC-002 runtime, DEP-001 CI (SCA), DATA-001 sandbox, VER-001 gate
 in use.
 
 **Scope paths:** `<profile.product_agent.path>/**`, `tests/**`,
-`docs/output-specs/**`, `ARCHITECTURE.md`.
+`docs/output-specs/**`, `ARCHITECTURE.md`, `.claude/skills/**`,
+`proposals/A00/**`.
 
 ### Build
 
@@ -302,6 +303,17 @@ in use.
    - **Reviewer.** Read-only. Runs on a different model, taken from
      `allowlists/models.yaml` with `use: reviewer`. Checks the output against
      the approved intent, its scope and security patterns (REV-001).
+     Code quality's convention lets only the root agent set a model, so REV-001
+     needs this one exception. Narrow the convention, and no further:
+     - **`proposals/A00/CLAUDE.md`.** Only the root agent and the reviewer set
+       `model`. Other sub-agents inherit it.
+     - **`test_only_the_root_sets_a_model`.** Rename it, and allow exactly the root
+       agent and the reviewer. It still fails if any other sub-agent sets a model,
+       or if the reviewer's ID isn't listed with `use: reviewer`.
+     - **`fake_llm`.** Replace the reviewer's model as well as the root's. Otherwise
+       unit tests would call the real, paid model.
+     - **`.claude/skills/adk-review/SKILL.md`.** Update its list of conventions that
+       tests enforce.
 3. **`<profile.output_root>/<work item>/RUN_RECORD.md`.** Records:
    - The approved intent, `intent_sha` and governance hash
    - Assumptions and decisions
@@ -320,6 +332,9 @@ in use.
    - The executor cannot run before approval.
    - The executor's input carries no chat text.
    - The reviewer's model differs from the executor's.
+   - The convention test fails when another sub-agent sets a model, and when the
+     reviewer's ID isn't listed with `use: reviewer`.
+   - No unit test reaches a real model through the reviewer.
    - The fix loop stops at `max_fix_iterations`.
    - An `acknowledge` gate requires confirmation.
    - The run record contains all its fields.
@@ -329,8 +344,8 @@ in use.
 
 - [ ] All unit tests pass.
 - [ ] One end-to-end integration run per output type, in the proving repo,
-      produces an output that passes `verify.sh`, using a free local model. Paid
-      models need owner approval. Keep these run records for A05.
+      produces an output that passes `verify.sh`, under the purpose inputs'
+      paid-model approval (COST-001). Keep these run records for A05.
 
 ### Ledger
 
@@ -370,7 +385,8 @@ degrade quality, and every trace carries the intent it served.
 3. **`proposals/A00/.github/workflows/evals.yml`.** Runs the eval gate
    nightly, and when a PR changes the product agent's prompts,
    `governance/**`, `docs/output-specs/**` or `allowlists/models.yaml`. It is
-   advisory.
+   advisory. The paid-model approval doesn't cover this workflow, so don't call the
+   model to test it.
 4. **Capability-rule review.** A job summary that lists every
    `kind: capability` rule whenever `allowlists/models.yaml` changes.
 5. **Intent telemetry.** Make `intent.sha`, `work_item` and `verify.gate`
@@ -381,9 +397,9 @@ degrade quality, and every trace carries the intent it served.
 
 ### Acceptance criteria
 
-- [ ] The eval gate runs in the proving repo against a free local model and
-      reports a pass rate for each case.
-- [ ] The workflow validates.
+- [ ] The eval gate runs in the proving repo, under the purpose inputs' paid-model
+      approval (COST-001), and reports a pass rate for each case.
+- [ ] The workflow validates, without running its paid model calls.
 - [ ] The extended span test passes.
 
 ### Ledger
@@ -495,15 +511,20 @@ them. Every per-part owner action is here.
    cp -R proposals/A00/. . && rm -rf proposals/A00
    ```
 
-4. **Push, open a pull request and merge.** Confirm the evals workflow validates
-   and runs. Running sessions stop at their next prompt once the hash changes
+4. **Decide the evals workflow's spending.** It makes paid calls every night and on
+   matching PRs, which the run's paid-model approval doesn't cover. Add the API key
+   as a repo secret only if you approve that (COST-001). Without it, the MODEL-001 eval
+   gate control stays `planned`, and running the gate by hand when a model changes is
+   the check.
+5. **Push, open a pull request and merge.** Confirm the evals workflow validates,
+   and runs if you added the key. Running sessions stop at their next prompt once the hash changes
    (GOV-006); that is the gate working.
-5. **Start a new session** and rerun the real-tree tests. New tools now have
+6. **Start a new session** and rerun the real-tree tests. New tools now have
    tiers, so they run under the policy.
-6. **Clear what was deferred.** Run each deferred ledger check. Set a control to
+7. **Clear what was deferred.** Run each deferred ledger check. Set a control to
    `active`, in a governance commit, only when its check passes.
-7. **Hold an evidence review** that covers a product-agent run.
-8. **Sign off the updated `SECURITY.md`** before the first release.
+8. **Hold an evidence review** that covers a product-agent run.
+9. **Sign off the updated `SECURITY.md`** before the first release.
 
 After that, normal working applies: **one plan per session**, and every change
 to a protected path goes through `proposals/<plan ID>/`. A plan that amends a
