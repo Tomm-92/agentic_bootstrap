@@ -76,7 +76,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 
 - [x] Stage 1: on `governance_bootstrap`; `main` and the base branch unchanged; plan and ledger exist, every input recorded.
 - [x] Stage 2: `governance/` committed; every value traces to the inputs or the instructions.
-- [ ] Stage 3: the rule catalogue and profile pass `test_rules.py`.
+- [x] Stage 3: the rule catalogue and profile pass `test_rules.py`.
 - [ ] Stage 4: `pytest tests/governance` and existing checks pass; all hook cases pass; `test_settings.py` passes against the proposal; sandbox proof or tech-debt entry; locked files unchanged.
 - [ ] Stage 5: workflows pass `actionlint`; each job's command runs locally, apart from the paid call.
 - [ ] Stage 6: tests pass with no real model calls; one manual run, or `deferred` without the key.

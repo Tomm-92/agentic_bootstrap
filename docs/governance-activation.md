@@ -10,13 +10,13 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | GOV-002 | Claude Code permission deny on git push (S04) | S04 | not built yet | pending | none |
 | GOV-002 | PreToolUse hook denies git commit on main (S04) | S04 | not built yet | pending | none |
 | GOV-002 | Claude Code sandbox blocks indirect writes to protected paths (S04) | S04 | not built yet | pending | none |
-| GOV-003 | tests/governance/test_rules.py (S03) | S03 | not built yet | pending | none |
-| GOV-004 | AGENTS.md instruction (S03) | S03 | not built yet | pending | none |
+| GOV-003 | tests/governance/test_rules.py (S03) | S03 | tests/governance/test_rules.py | pass | none |
+| GOV-004 | AGENTS.md instruction (S03) | S03 | AGENTS.md, Git section | pass | none |
 | GOV-004 | .githooks/commit-msg (S04) | S04 | not built yet | pending | none |
 | GOV-004 | governance workflow trailer check (S05) | S05 | not built yet | pending | none |
 | GOV-005 | governance layer fails closed at startup and halts on hash change (S06) | S06 | not built yet | pending | none |
 | GOV-006 | UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04) | S04 | not built yet | pending | none |
-| GOV-006 | AGENTS.md instruction to start a new session per plan (S03) | S03 | not built yet | pending | none |
+| GOV-006 | AGENTS.md instruction to start a new session per plan (S03) | S03 | AGENTS.md, While working section | pass | none |
 | SCOPE-001 | PreToolUse hook denies edits (S04) | S04 | not built yet | pending | none |
 | SCOPE-002 | PreToolUse hook checks scope_paths (S04) | S04 | not built yet | pending | none |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | not built yet | pending | none |

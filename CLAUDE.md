@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Project instructions
 
 ## Code style
@@ -55,7 +57,12 @@ output/                 generated output, excluded from lint, format and checks
 tests/                  not a package: no `__init__.py` here or in subfolders
   unittests/            free tests using the fake model; conftest.py holds the fake
   integration/          real-model tests; spend credits
-docs/                   project setup instructions
+  governance/           rule catalogue and profile tests; also free
+docs/                   project setup instructions, plans and the activation ledger
+governance/             rules, profile, thresholds, allowlists and tool tiers
+scripts/                local session, evidence report and activation check; not a package
+ops/                    observability stack
+proposals/              owner-applied changes to protected paths
 ```
 
 ### Agents

@@ -3,6 +3,52 @@
 A Google ADK agent project. `app/` currently holds a placeholder agent, to be
 replaced with the real one.
 
+## Governance
+
+The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
+agent. See `governance/README.md` for the rule format and change process.
+
+**The gate.** No governance, no agent: a session's prompts are blocked while
+`governance/` is missing, uncommitted or dirty, and once its hash differs from the
+one the session started with. Edits need exactly one active plan, and must stay inside
+that plan's `scope_paths`. The product agent fails closed the same way at startup.
+
+**Protected paths.** Agents can't edit `governance/`,
+`docs/governance_implementation.md`, `docs/agent_governance_implementation.md`,
+`.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.github/`,
+`.githooks/`, `AGENTS.md` or `CLAUDE.md`.
+
+**Proposals.** To change a protected path, an agent writes the new version to
+`proposals/<plan ID>/` at the same relative path. The owner reviews it, copies it into
+place and commits.
+
+**Execution plans.** Each session after the bootstrap run writes a plan at
+`docs/exec-plans/active/<plan ID>-<name>.md`, starting with this front matter:
+
+```yaml
+---
+id: '0002'
+rules: [SCOPE-001]
+scope_paths:
+  - app/**
+---
+```
+
+The session records its work there, lists its owner actions at the end, and moves the
+plan to `docs/exec-plans/completed/`. The edit gate allows plan files, so this is always
+possible. "Owner actions" are for the human: a session lists them and does not attempt
+them.
+
+**Open sessions at the repo root.** Claude Code loads `.claude/settings.json` only from
+the folder it was launched in, so a session opened from a parent folder runs none of
+the hooks or deny rules.
+
+**Setup.** Turn on the git hooks once in each clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
