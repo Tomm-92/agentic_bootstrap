@@ -74,7 +74,8 @@ owner's review of the whole branch is the human check on them.
   Stage 1, inside its `scope_paths` (principle 7). That list is the only bound: a
   stage's "Scope paths" names that stage's build outputs, and every stage also
   updates the plan, the ledger and the tech-debt tracker under `docs/`.
-- **Git.** Work on the branch from Stage 1. Never commit on `main`, never push,
+- **Git.** Work on the branch from Stage 1. Never commit on `main` or the base branch,
+  never push,
   never use `--no-verify`, and never set `core.hooksPath`.
 - **Secrets.** Never read, print or commit `.env` files.
 - **Cost.** No paid-model call beyond what the run inputs approve (COST-001).
@@ -159,14 +160,35 @@ itself. Anything missing never stops it: the check is `deferred`, and step 8 of
 
 - [ ] The run inputs below are filled in, and the assumptions below hold or are
       changed here first.
-- [ ] Python 3.14, `jq` and `git` are installed.
-- [ ] A container runtime is installed **and running**.
+- [ ] The tools from step 1 of `docs/initial_install.md` are installed: Python 3.14,
+      `jq`, `git` 2.32 or newer, `shasum`, and:
+      `brew install actionlint gitleaks osv-scanner`.
+- [ ] A container runtime with Compose is installed **and running**.
+- [ ] On Linux or WSL2, `bubblewrap` and `socat` are installed. The run doesn't need
+      them, but the proposed sandbox settings do: without them, no session starts
+      once governance is armed.
 - [ ] `ANTHROPIC_API_KEY` is visible to the session's shell. Check with
       `[ -n "$ANTHROPIC_API_KEY" ] && echo set`.
-- [ ] `actionlint`, `gitleaks` and `osv-scanner` are installed:
-      `brew install actionlint gitleaks osv-scanner`.
 
-Uncommitted changes on `main` don't stop the run either: Stage 1 carries them onto
+The key is optional, and setting it has costs beyond the Stage 6 calls:
+
+- **Billing.** In the terminal CLI, the key outranks a Claude subscription.
+  Interactive `claude` asks once whether to use it, so decline. `claude -p` always
+  uses it. Using it bills the whole coding session at API rates, far more than the
+  Stage 6 calls. The docs say the desktop app ignores the variable and uses OAuth.
+  `/status` shows the credential in use.
+- **Exposure.** Every process in the session can read the key: the agent, tests,
+  hooks and installed packages. Not printing it is only an instruction, and
+  transcripts are kept as evidence.
+- **Persistence.** An export in a shell profile reaches every project and every later
+  `claude -p` until it's removed.
+
+So use a new key made for this run, in a Console workspace with a small spend limit.
+Add it to the shell profile only for the run, then remove it and revoke the key.
+Never put it in `.env` or in a file in the repo. To keep it out of the session
+entirely, leave it unset and run the Stage 6 checks at step 8 of "After the run".
+
+Uncommitted changes on the base branch don't stop the run either: Stage 1 carries them onto
 the branch for the owner's review.
 
 ## Run inputs
@@ -178,6 +200,7 @@ Nothing here depends on the agent's purpose.
 | Input | Goes to | Value | Notes |
 | --- | --- | --- | --- |
 | Project name | `profile.project` | `agentic_tools_v2` | |
+| Base branch | Stage 1 | `governance_implementation` | The branch holding the reworked instruction files. It isn't `main` here, so "After the run" steps 4 and 5 go through it. |
 | Branch | Stage 1 | `governance_bootstrap` | |
 | Agent package path | `profile.product_agent.path` | `app` | |
 | Framework and pinned version | `profile.product_agent.framework` | `google-adk==2.14.0` | |
@@ -221,7 +244,8 @@ governance file is written.
 
 1. **Inputs.** Read the run inputs. Record anything missing in the plan as
    `blocked`, with the stages that depend on it.
-2. **Branch.** `git switch -c governance_bootstrap` from `main`. If the tree isn't
+2. **Branch.** From the base branch in the run inputs, `git switch governance_implementation`,
+   then `git switch -c governance_bootstrap`. If the tree isn't
    clean, the changes come with you: leave them unchanged, include them in the
    Stage 1 checkpoint commit, and list them in the plan for the owner's review.
 3. **`docs/exec-plans/active/`, `completed/` and `tech-debt-tracker.md`.** Put a
@@ -272,14 +296,16 @@ governance file is written.
    `deferred`, `blocked` or `failed`, or `pending` for controls that
    `docs/agent_governance_implementation.md` builds. `Owner check` is what only a human can
    confirm, or `none`.
-6. **Prerequisites.** Check for Python 3.14, `jq`, `git`, a running container
-   runtime (`docker info`, not just `which docker`), `ANTHROPIC_API_KEY`,
-   `actionlint`, `gitleaks` and `osv-scanner`. Record what's missing in the plan,
-   without printing the key.
+6. **Prerequisites.** Check for Python 3.14, `jq`, `git` 2.32 or newer, `shasum`, a
+   running container runtime with Compose (`docker info` and `docker compose version`,
+   not just `which docker`), `ANTHROPIC_API_KEY`, `actionlint`, `gitleaks` and
+   `osv-scanner`. On Linux or WSL2, also check for `bwrap` and `socat`. Record what's
+   missing in the plan, without printing the key, and list it in the final report.
 
 ### Acceptance criteria
 
-- [ ] The session is on `governance_bootstrap`, and `main` is unchanged.
+- [ ] The session is on `governance_bootstrap`, and `main` and the base branch are
+      unchanged.
 - [ ] The plan and ledger exist, and every run input is recorded.
 
 ---
@@ -586,7 +612,7 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
       proposed sandbox settings, or a tech-debt entry explains why it can't
       be. Only a session started under those settings can prove it, so expect the
       entry, and a `deferred` ledger row.
-- [ ] `git diff main -- .claude/settings.json .claude/hooks .github/workflows
+- [ ] `git diff governance_implementation -- .claude/settings.json .claude/hooks .github/workflows
       ruff.toml mypy.ini pytest.ini` prints nothing.
 
 ### Ledger
@@ -1106,11 +1132,13 @@ none is needed before the final report.
 3. **Add the reviewer model's API key** as a repo secret. This starts paid calls
    on every PR, which the run's paid-model approval doesn't cover, so decide it
    separately (COST-001).
-4. **Push the branch and open a pull request** as the test PR. Confirm the jobs
-   run, then set the GOV-004 CI, SEC-002 CI and DEP-001 CI controls to `active`
-   in that PR.
-5. **Merge to `main`.** Until governance is committed and clean, every prompt is
-   blocked; that is the gate working.
+4. **Push the base branch, then the branch, and open a pull request into the base
+   branch** as the test PR. Confirm the jobs run, then set the GOV-004 CI, SEC-002 CI
+   and DEP-001 CI controls to `active` in that PR.
+5. **Merge that PR, then merge the base branch to `main`.** The second PR's trailer
+   check flags the base branch's own commits, which predate the rule and have no
+   trailers. It's advisory, and nothing else should be flagged. Until governance is
+   committed and clean, every prompt is blocked; that is the gate working.
 6. **Turn on the git hooks.** Then set GOV-004 commit-msg and EVID-001 trailers to
    `active` in a governance commit, which from now on needs the trailers:
 
@@ -1118,7 +1146,8 @@ none is needed before the final report.
    git config core.hooksPath .githooks
    ```
 
-7. **Start a new session at the repo root and confirm:**
+7. **Start a new session at the repo root and confirm.** On Linux or WSL2, install
+   `bubblewrap` and `socat` first, or the session won't start:
    - The session start shows the governance hash.
    - Editing `governance/README.md` is refused.
    - `git push` is refused.
