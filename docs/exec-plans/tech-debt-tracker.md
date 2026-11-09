@@ -19,3 +19,4 @@ Gaps deferred on purpose, and what closes them.
 | ADK stores the user's message without calling plugins, so that one stored event has no governance stamp. | GOV-005, EVID-001 | Accept, or wrap the session service to stamp in `append_event` |
 | Nothing expires evidence after `retention_days`, and session logs hold prompts unredacted. | EVID-001, DATA-001 | `docs/SECURITY.md` sign-off |
 | FS-001 checks a path when the tool is called, so a symlink made afterwards can still escape. | FS-001 | Phase A02's sandbox |
+| `commit-msg` compares the trailer with `HEAD`, which during `git commit --amend` is the commit being amended, not its parent. Amending a commit that changed `governance/` needs the new hash locally, and `check_trailers.sh` then flags it in CI. | GOV-004 | Avoid amending governance commits; CI check and owner review |

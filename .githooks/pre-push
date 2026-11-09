@@ -1,0 +1,13 @@
+#!/bin/bash
+# GOV-004: re-check the trailers on every commit being pushed.
+problems=0
+while read -r _ local _ remote; do
+  [[ $local =~ ^0+$ ]] && continue # A branch deletion.
+  if [[ $remote =~ ^0+$ ]]; then
+    range=("$local" --not --remotes) # A new remote branch.
+  else
+    range=("$remote..$local")
+  fi
+  "$(dirname "$0")/check_trailers.sh" "${range[@]}" || problems=1
+done
+exit "$problems"

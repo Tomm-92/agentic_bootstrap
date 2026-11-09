@@ -77,7 +77,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - [x] Stage 1: on `governance_bootstrap`; `main` and the base branch unchanged; plan and ledger exist, every input recorded.
 - [x] Stage 2: `governance/` committed; every value traces to the inputs or the instructions.
 - [x] Stage 3: the rule catalogue and profile pass `test_rules.py`.
-- [ ] Stage 4: `pytest tests/governance` and existing checks pass; all hook cases pass; `test_settings.py` passes against the proposal; sandbox proof or tech-debt entry; locked files unchanged.
+- [x] Stage 4: `pytest tests/governance` and existing checks pass; all hook cases pass; `test_settings.py` passes against the proposal; sandbox proof or tech-debt entry; locked files unchanged.
 - [ ] Stage 5: workflows pass `actionlint`; each job's command runs locally, apart from the paid call.
 - [ ] Stage 6: tests pass with no real model calls; one manual run, or `deferred` without the key.
 - [ ] Stage 7: tests pass, no network in unit tests.
@@ -89,3 +89,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 ## Assumptions, decisions and risks
 
 - **Decision (Stage 1):** the ledger is generated from the catalogue so `Control` text matches exactly.
+- **Decision (Stage 2):** `.gitignore` uses `.venv` without the trailing slash. `.venv/` matches only directories, so a symlinked `.venv` (the temporary repos and the Stage 10 clone) would be committed by `git add -A`.
+- **Decision (Stage 4):** `commit-msg` passes the message file to `check_trailers.sh --message`, because a commit being made isn't in any range.
+- **Check (Stage 4):** hook tests were mutation-checked by hand: disabling the hash-change block, path normalising, the push denial, the no-verify denial and per-commit parent comparison each made tests fail.
+- **Risk (Stage 4):** the sandbox can't be proven inside this run. Its configuration is tested; the behaviour is step 7's check.
