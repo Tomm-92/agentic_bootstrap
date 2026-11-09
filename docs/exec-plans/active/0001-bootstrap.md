@@ -83,7 +83,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - [x] Stage 7: tests pass, no network in unit tests.
 - [x] Stage 8: span test passes; one fake-model session shows as a complete trace, or `deferred`.
 - [x] Stage 9: QUAL-001 test passes; evidence report runs against real evidence.
-- [ ] Stage 10: `check_activation.py` passes; `test_settings.py` passes; everything committed; dry run of the apply step passes.
+- [x] Stage 10: `check_activation.py` passes; `test_settings.py` passes; everything committed; dry run of the apply step passes.
 - [ ] Stage 11: settings and hook suites pass against the proposal; final report lists every item not `pass`.
 
 ## Assumptions, decisions and risks
@@ -105,6 +105,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - **Decision (Stage 8):** Stage 8's own acceptance criterion starts the local stack, so it's the stated exception to "never start services".
 - **Decision (Stage 8):** Tempo's config comes from the v3.1.1 single-binary example, without its metrics generator (a remote-write path) and MCP server. Collector exporters use `otlp_grpc` and `otlp_http`, because the collector warns that `otlp` and `otlphttp` are deprecated aliases.
 - **DEP-001 for review (Stage 8):** `google-adk[otel]` added these to the lock: opentelemetry-exporter-http-transport==0.66b2 opentelemetry-exporter-otlp-common==0.66b2 opentelemetry-exporter-otlp-proto-common==1.45.2 opentelemetry-exporter-otlp-proto-http==1.45.2 opentelemetry-instrumentation==0.66b2 opentelemetry-instrumentation-google-genai==1.3b0 opentelemetry-instrumentation-grpc==0.66b2 opentelemetry-instrumentation-httpx==0.66b2 opentelemetry-proto==1.45.2 opentelemetry-util-genai==1.3b0 opentelemetry-util-http==0.66b2 wrapt==2.5.2 
+- **Check (Stage 10):** "After the run" step 2 was dry-run in a temporary clone with `.venv` symlinked: `check_activation.py` passed, the apply commit's trailers passed, 272 tests passed, and the Stop hook's full checks passed with the applied `mypy.ini` and `checks_on_stop.sh`. There, the armed gate and guard also refused an out-of-scope edit, `git push`, `git -C . push` and `git commit -nm`, and with `governance/` dirty the gate blocked the prompt and importing the agent raised `GovernanceError`. The clone was deleted.
 
 ## Close-out
 
