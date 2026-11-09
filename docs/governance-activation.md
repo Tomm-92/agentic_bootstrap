@@ -13,7 +13,7 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | GOV-003 | tests/governance/test_rules.py (S03) | S03 | tests/governance/test_rules.py | pass | none |
 | GOV-004 | AGENTS.md instruction (S03) | S03 | AGENTS.md, Git section | pass | none |
 | GOV-004 | .githooks/commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | After the run step 6 |
-| GOV-004 | governance workflow trailer check (S05) | S05 | not built yet | pending | none |
+| GOV-004 | governance workflow trailer check (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; .githooks/check_trailers.sh ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
 | GOV-005 | governance layer fails closed at startup and halts on hash change (S06) | S06 | not built yet | pending | none |
 | GOV-006 | UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04) | S04 | tests/governance/test_hooks.py::test_prompt_blocked_after_hash_change_until_clear | pass | none |
 | GOV-006 | AGENTS.md instruction to start a new session per plan (S03) | S03 | AGENTS.md, While working section | pass | none |
@@ -22,14 +22,14 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | After the run step 6 |
 | EVID-001 | durable session log with compaction off (S06) | S06 | not built yet | pending | none |
 | EVID-001 | evidence review each sprint (S09) | S09 | not built yet | pending | none |
-| SEC-002 | gitleaks in the governance workflow (S05) | S05 | not built yet | pending | none |
+| SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | test that collector exporters match the allowlist (S08) | S08 | not built yet | pending | none |
 | DATA-001 | sandbox containers run without a TTY or exec access (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | ORR data-handling sign-off (S09) | S09 | not built yet | pending | none |
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
-| DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | not built yet | pending | none |
+| DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | deferred | Jobs run on the test PR, After the run step 4 |
 | COST-001 | governance layer enforces session_token_budget (S06) | S06 | not built yet | pending | none |
 | MODEL-001 | test that configured model IDs are allowlisted (S06) | S06 | not built yet | pending | none |
 | MODEL-001 | eval pass-rate gate on model change (A04) | A04 | phase A04 builds this | pending | none |

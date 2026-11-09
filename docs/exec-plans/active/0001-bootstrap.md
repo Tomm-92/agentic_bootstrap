@@ -78,7 +78,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - [x] Stage 2: `governance/` committed; every value traces to the inputs or the instructions.
 - [x] Stage 3: the rule catalogue and profile pass `test_rules.py`.
 - [x] Stage 4: `pytest tests/governance` and existing checks pass; all hook cases pass; `test_settings.py` passes against the proposal; sandbox proof or tech-debt entry; locked files unchanged.
-- [ ] Stage 5: workflows pass `actionlint`; each job's command runs locally, apart from the paid call.
+- [x] Stage 5: workflows pass `actionlint`; each job's command runs locally, apart from the paid call.
 - [ ] Stage 6: tests pass with no real model calls; one manual run, or `deferred` without the key.
 - [ ] Stage 7: tests pass, no network in unit tests.
 - [ ] Stage 8: span test passes; one fake-model session shows as a complete trace, or `deferred`.
@@ -93,3 +93,6 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - **Decision (Stage 4):** `commit-msg` passes the message file to `check_trailers.sh --message`, because a commit being made isn't in any range.
 - **Check (Stage 4):** hook tests were mutation-checked by hand: disabling the hash-change block, path normalising, the push denial, the no-verify denial and per-commit parent comparison each made tests fail.
 - **Risk (Stage 4):** the sandbox can't be proven inside this run. Its configuration is tested; the behaviour is step 7's check.
+- **Decision (Stage 5):** `ai-review.yml` skips every step while `ANTHROPIC_API_KEY` isn't a repo secret, so merging the proposal alone starts no paid calls. The review logic is `scripts/ai_review.py`, tested with a stub client. Its model comes from `allowlists/models.yaml`. The model was never called, because the paid-model approval doesn't cover this workflow.
+- **Decision (Stage 5):** no refusal fallback, although the Anthropic API guidance recommends one by default. The instructions forbid it (MODEL-001).
+- **Risk (Stage 5):** `ai-review.yml` runs the PR's own `scripts/ai_review.py` with the API key available. GitHub withholds secrets from forks, and there's one author, so this is acceptable until the repo gains collaborators.

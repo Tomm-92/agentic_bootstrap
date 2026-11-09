@@ -1,0 +1,42 @@
+# REV-001 on pull requests: posts findings only, and the human decides the merge. Advisory.
+# It runs only once the owner adds ANTHROPIC_API_KEY as a repo secret, which starts paid calls
+# on every pull request (COST-001).
+name: ai-review
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v7
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        with:
+          python-version: '3.14'
+      - if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: pip install -r requirements-dev.lock
+      - name: Review
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: python -m scripts.ai_review "$BASE_SHA" "$HEAD_SHA" >review.md
+      - name: Post findings
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: gh pr comment "$PR_NUMBER" --body-file review.md
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && env.ANTHROPIC_API_KEY != '' }}
+        with:
+          name: ai-review
+          path: review.md
+          retention-days: 90
