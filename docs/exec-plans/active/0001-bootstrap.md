@@ -79,7 +79,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - [x] Stage 3: the rule catalogue and profile pass `test_rules.py`.
 - [x] Stage 4: `pytest tests/governance` and existing checks pass; all hook cases pass; `test_settings.py` passes against the proposal; sandbox proof or tech-debt entry; locked files unchanged.
 - [x] Stage 5: workflows pass `actionlint`; each job's command runs locally, apart from the paid call.
-- [ ] Stage 6: tests pass with no real model calls; one manual run, or `deferred` without the key.
+- [x] Stage 6: tests pass with no real model calls; one manual run, or `deferred` without the key.
 - [ ] Stage 7: tests pass, no network in unit tests.
 - [ ] Stage 8: span test passes; one fake-model session shows as a complete trace, or `deferred`.
 - [ ] Stage 9: QUAL-001 test passes; evidence report runs against real evidence.
@@ -96,3 +96,7 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 - **Decision (Stage 5):** `ai-review.yml` skips every step while `ANTHROPIC_API_KEY` isn't a repo secret, so merging the proposal alone starts no paid calls. The review logic is `scripts/ai_review.py`, tested with a stub client. Its model comes from `allowlists/models.yaml`. The model was never called, because the paid-model approval doesn't cover this workflow.
 - **Decision (Stage 5):** no refusal fallback, although the Anthropic API guidance recommends one by default. The instructions forbid it (MODEL-001).
 - **Risk (Stage 5):** `ai-review.yml` runs the PR's own `scripts/ai_review.py` with the API key available. GitHub withholds secrets from forks, and there's one author, so this is acceptable until the repo gains collaborators.
+- **Decision (Stage 6):** the layer is `app/governance.py`, attached with `App(plugins=[...])` in `app/agent.py`. Token counts live in session state through `callback_context.state`, so they land on the model response event and persist across runs.
+- **Deployment without git (Stage 6):** `governance_hash` needs `git` and a checkout. A deployment without them must compute `git rev-parse HEAD:governance` at image build, bake it into the image with `governance/`, and change `governance_hash` to return that value. Not built: nothing deploys yet.
+- **Deferred (Stage 6):** `ANTHROPIC_API_KEY` is unset, so the manual run and integration tests didn't run: `.venv/bin/python -m scripts.local_session "What is the status of demo?"`, then `.venv/bin/pytest -m integration`. Token counting has only seen ADK's offline conversion of an Anthropic `Message`.
+- **DEP-001 for review (Stage 6):** `google-adk[db]` added these to the lock: alembic==1.20.1 google-api-core==2.44.0 google-cloud-core==2.8.0 google-cloud-monitoring==2.32.0 google-cloud-spanner==3.71.0 googleapis-common-protos==1.76.0 greenlet==3.5.6 grpc-google-iam-v1==0.14.6 grpc-interceptor==0.15.4 grpcio==1.85.1 grpcio-status==1.85.1 Mako==1.4.3 MarkupSafe==3.0.4 mmh3==5.3.1 opentelemetry-resourcedetector-gcp==1.14.0 proto-plus==1.29.0 protobuf==7.36.2 SQLAlchemy==2.1.8 sqlalchemy-spanner==1.20.1 sqlparse==0.6.1 

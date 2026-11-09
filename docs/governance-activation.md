@@ -14,13 +14,13 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | GOV-004 | AGENTS.md instruction (S03) | S03 | AGENTS.md, Git section | pass | none |
 | GOV-004 | .githooks/commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | After the run step 6 |
 | GOV-004 | governance workflow trailer check (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; .githooks/check_trailers.sh ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
-| GOV-005 | governance layer fails closed at startup and halts on hash change (S06) | S06 | not built yet | pending | none |
+| GOV-005 | governance layer fails closed at startup and halts on hash change (S06) | S06 | tests/unittests/test_governance_plugin.py::test_startup_fails_when_governance_is_dirty, tests/unittests/test_governance_plugin.py::test_run_halts_on_a_hash_change, tests/unittests/test_governance_plugin.py::test_every_event_carries_the_hash | pass | none |
 | GOV-006 | UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04) | S04 | tests/governance/test_hooks.py::test_prompt_blocked_after_hash_change_until_clear | pass | none |
 | GOV-006 | AGENTS.md instruction to start a new session per plan (S03) | S03 | AGENTS.md, While working section | pass | none |
 | SCOPE-001 | PreToolUse hook denies edits (S04) | S04 | tests/governance/test_hooks.py::test_edit_needs_exactly_one_plan | pass | none |
 | SCOPE-002 | PreToolUse hook checks scope_paths (S04) | S04 | tests/governance/test_hooks.py::test_scope_outside_denied | pass | none |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | After the run step 6 |
-| EVID-001 | durable session log with compaction off (S06) | S06 | not built yet | pending | none |
+| EVID-001 | durable session log with compaction off (S06) | S06 | tests/unittests/test_governance_plugin.py::test_compaction_is_off; .venv/bin/python -m scripts.local_session --fake wrote stamped events to .sessions/sessions.db | pass | none |
 | EVID-001 | evidence review each sprint (S09) | S09 | not built yet | pending | none |
 | SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
@@ -30,8 +30,8 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | deferred | Jobs run on the test PR, After the run step 4 |
-| COST-001 | governance layer enforces session_token_budget (S06) | S06 | not built yet | pending | none |
-| MODEL-001 | test that configured model IDs are allowlisted (S06) | S06 | not built yet | pending | none |
+| COST-001 | governance layer enforces session_token_budget (S06) | S06 | tests/unittests/test_governance_plugin.py::test_session_is_refused_once_over_budget, tests/unittests/test_governance_plugin.py::test_missing_token_count_is_an_error | pass | The Stage 6 manual run, After the run step 8 |
+| MODEL-001 | test that configured model IDs are allowlisted (S06) | S06 | tests/unittests/test_governance_plugin.py::test_every_configured_model_is_allowlisted | pass | none |
 | MODEL-001 | eval pass-rate gate on model change (A04) | A04 | phase A04 builds this | pending | none |
 | TOOL-001 | before-tool policy default-deny (S07) | S07 | not built yet | pending | none |
 | SPEC-001 | confirmation on approve_intent (A03) | A03 | phase A03 builds this | pending | none |

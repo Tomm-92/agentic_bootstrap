@@ -21,3 +21,4 @@ Gaps deferred on purpose, and what closes them.
 | FS-001 checks a path when the tool is called, so a symlink made afterwards can still escape. | FS-001 | Phase A02's sandbox |
 | `commit-msg` compares the trailer with `HEAD`, which during `git commit --amend` is the commit being amended, not its parent. Amending a commit that changed `governance/` needs the new hash locally, and `check_trailers.sh` then flags it in CI. | GOV-004 | Avoid amending governance commits; CI check and owner review |
 | `ai-review.yml` runs the PR's own copy of `scripts/ai_review.py` with the API key available. | REV-001, SEC-002 | When the repo gains a collaborator, run the script from the base branch |
+| The manual run and integration tests against `claude-haiku-5-5` haven't run, because `ANTHROPIC_API_KEY` was unset. Token counting hasn't seen a real response. | COST-001 | "After the run" step 8 |
