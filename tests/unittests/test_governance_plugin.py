@@ -125,7 +125,7 @@ async def test_session_is_refused_once_over_budget(governed_repo):
 @pytest.mark.asyncio
 async def test_tokens_are_counted_across_calls_and_persist(governed_repo):
   _, stored, _, _ = await run_governed(governed_repo, [call('nope'), say('done')], message='Go')
-  assert stored.state[TOKENS_KEY] == 2 * USAGE.total_token_count
+  assert stored.state[TOKENS_KEY] == 30
 
 
 @pytest.mark.asyncio

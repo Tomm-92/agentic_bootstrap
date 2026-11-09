@@ -33,10 +33,10 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | COST-001 | governance layer enforces session_token_budget (S06) | S06 | tests/unittests/test_governance_plugin.py::test_session_is_refused_once_over_budget, tests/unittests/test_governance_plugin.py::test_missing_token_count_is_an_error | pass | The Stage 6 manual run, After the run step 8 |
 | MODEL-001 | test that configured model IDs are allowlisted (S06) | S06 | tests/unittests/test_governance_plugin.py::test_every_configured_model_is_allowlisted | pass | none |
 | MODEL-001 | eval pass-rate gate on model change (A04) | A04 | phase A04 builds this | pending | none |
-| TOOL-001 | before-tool policy default-deny (S07) | S07 | not built yet | pending | none |
+| TOOL-001 | before-tool policy default-deny (S07) | S07 | tests/unittests/test_tool_policy.py::test_unlisted_tool_on_the_agent_is_denied, tests/unittests/test_tool_policy.py::test_deny_tier_tool_is_denied, tests/unittests/test_tool_policy.py::test_non_allowlisted_target_is_denied, tests/unittests/test_tool_policy.py::test_confirm_tool_not_built_with_governed_tool_is_denied | pass | none |
 | SPEC-001 | confirmation on approve_intent (A03) | A03 | phase A03 builds this | pending | none |
 | SPEC-001 | executor input schema accepts only ApprovedIntent (A03) | A03 | phase A03 builds this | pending | none |
-| FS-001 | before-tool path check (S07) | S07 | not built yet | pending | none |
+| FS-001 | before-tool path check (S07) | S07 | tests/unittests/test_tool_policy.py::test_path_escape_is_denied, tests/unittests/test_tool_policy.py::test_symlink_escape_is_denied, tests/unittests/test_tool_policy.py::test_work_item_that_escapes_the_output_root_is_denied | pass | none |
 | SBX-001 | verification sandbox container (A02) | A02 | phase A02 builds this | pending | none |
 | VER-001 | verify gate blocks delivery (A02, A03) | A02, A03 | phase A02, A03 builds this | pending | none |
 | VER-001 | user acknowledges high findings (A03) | A03 | phase A03 builds this | pending | none |

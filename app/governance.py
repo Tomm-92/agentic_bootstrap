@@ -1,8 +1,10 @@
 """The runtime governance layer: fail closed, stamp evidence, re-inject rules, enforce budgets."""
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, override
+from urllib.parse import urlsplit
 
 import yaml
 from google.adk.agents.callback_context import CallbackContext
@@ -11,10 +13,15 @@ from google.adk.events.event import Event
 from google.adk.models.llm_request import LlmRequest
 from google.adk.models.llm_response import LlmResponse
 from google.adk.plugins.base_plugin import BasePlugin
+from google.adk.tools.base_tool import BaseTool
+from google.adk.tools.function_tool import FunctionTool
+from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 SHA_KEY = 'governance_sha'
 TOKENS_KEY = 'governance_tokens'
+# One state key per decision: parallel tool calls would overwrite each other's shared list.
+DECISION_PREFIX = 'governance_log:'
 
 
 class GovernanceError(RuntimeError):
@@ -51,6 +58,20 @@ def _refusal(text: str) -> types.Content:
   return types.Content(role='model', parts=[types.Part(text=text)])
 
 
+class GovernedTool(FunctionTool):
+  """A tool whose confirmation comes from its tier, so the policy can tell it was built so."""
+
+
+def governed_tool(
+  repo: Path, func: Callable[..., Any], condition: Callable[..., bool] | None = None
+) -> FunctionTool:
+  """Wraps a function so a `confirm` tier needs human confirmation, or `condition` decides."""
+  tier = _load(repo, 'tools.yaml')['tools'][func.__name__]['tier']
+  return GovernedTool(
+    func, require_confirmation=(condition or True) if tier == 'confirm' else False
+  )
+
+
 class GovernancePlugin(BasePlugin):
   """Attached to the App, so it covers every agent in the tree."""
 
@@ -59,7 +80,13 @@ class GovernancePlugin(BasePlugin):
     self.repo = repo
     self.sha = governance_hash(repo)
     self.budget: int = _load(repo, 'thresholds.yaml')['session_token_budget']
-    self.profile = _load(repo, 'profile.yaml')
+    self.output_root = repo / _load(repo, 'profile.yaml')['product_agent']['output_root']
+    self.tools: dict[str, dict[str, Any]] = _load(repo, 'tools.yaml')['tools']
+    self.services = {
+      service
+      for services in _load(repo, 'allowlists/services.yaml').values()
+      for service in services
+    }
     runtime_rules = [
       f'{r["id"]}: {r["rule"]}. Because: {r["because"]}'
       for r in _load(repo, 'rules.yaml')['rules']
@@ -111,4 +138,65 @@ class GovernancePlugin(BasePlugin):
       raise GovernanceError('COST-001: the model response has no token count')
     tokens = callback_context.state.get(TOKENS_KEY, 0) + usage.total_token_count
     callback_context.state[TOKENS_KEY] = tokens
+    return None
+
+  def _path_allowed(self, value: object, work_item: object) -> bool:
+    if not (isinstance(value, str) and isinstance(work_item, str)):
+      return False
+    if '\0' in value + work_item:
+      return False
+    root = self.output_root.resolve()
+    folder = (root / work_item).resolve()
+    return folder.parent == root and (self.repo / value).resolve().is_relative_to(folder)
+
+  def _target_allowed(self, value: object) -> bool:
+    if not isinstance(value, str):
+      return False
+    try:
+      host = urlsplit(value).hostname
+    except ValueError:
+      return False
+    return value in self.services or host in self.services
+
+  def _denial(
+    self, tool: BaseTool, tool_args: dict[str, Any], tool_context: ToolContext
+  ) -> tuple[str, str] | None:
+    entry = self.tools.get(tool.name)
+    if entry is None:
+      return 'TOOL-001', f'{tool.name} has no tier in governance/tools.yaml'
+    if entry['tier'] == 'deny':
+      return 'TOOL-001', f'{tool.name} is a deny-tier tool'
+    if entry['tier'] == 'confirm' and not isinstance(tool, GovernedTool):
+      return 'TOOL-001', f'{tool.name} is confirm-tier but was not built with governed_tool'
+    work_item = tool_context.state.get('work_item')
+    for arg in entry['paths']:
+      if not self._path_allowed(tool_args.get(arg), work_item):
+        return 'FS-001', f'{arg} is not inside {self.output_root.name}/<work item>/'
+    for arg in entry['targets']:
+      if not self._target_allowed(tool_args.get(arg)):
+        return 'TOOL-001', f'{arg} is not in governance/allowlists/services.yaml'
+    return None
+
+  @override
+  async def before_tool_callback(
+    self, *, tool: BaseTool, tool_args: dict[str, Any], tool_context: ToolContext
+  ) -> dict[str, Any] | None:
+    tier = self.tools.get(tool.name, {}).get('tier', 'unlisted')
+
+    def log(result: str, rule: str) -> None:
+      key = f'{DECISION_PREFIX}{tool_context.function_call_id}:{result}'
+      tool_context.state[key] = {'tool': tool.name, 'tier': tier, 'result': result, 'rule': rule}
+
+    denial = self._denial(tool, tool_args, tool_context)
+    if denial:
+      log('denied', denial[0])
+      return {'status': 'error', 'error': f'{denial[0]}: {denial[1]}'}
+    confirmation = tool_context.tool_confirmation
+    if confirmation:
+      log('confirmed' if confirmation.confirmed else 'rejected', 'TOOL-001')
+    elif not (
+      isinstance(tool, GovernedTool)
+      and await tool.check_require_confirmation(tool_args, tool_context)
+    ):
+      log('allowed', 'TOOL-001')
     return None
