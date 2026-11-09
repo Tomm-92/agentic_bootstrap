@@ -23,3 +23,4 @@ Gaps deferred on purpose, and what closes them.
 | `ai-review.yml` runs the PR's own copy of `scripts/ai_review.py` with the API key available. | REV-001, SEC-002 | When the repo gains a collaborator, run the script from the base branch |
 | The manual run and integration tests against `claude-haiku-5-5` haven't run, because `ANTHROPIC_API_KEY` was unset. Token counting hasn't seen a real response. | COST-001 | "After the run" step 8 |
 | The `governance.session_tokens` gauge is labelled per session, so its cardinality grows with sessions. Fine locally; a shared backend needs a different approach. | COST-001, OBS-001 | Before moving to a shared backend |
+| ADK captures prompts and responses in spans by default, so traces hold them. | DATA-001 | `docs/SECURITY.md` sign-off |

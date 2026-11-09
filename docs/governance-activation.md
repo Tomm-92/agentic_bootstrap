@@ -21,12 +21,12 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | SCOPE-002 | PreToolUse hook checks scope_paths (S04) | S04 | tests/governance/test_hooks.py::test_scope_outside_denied | pass | none |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | After the run step 6 |
 | EVID-001 | durable session log with compaction off (S06) | S06 | tests/unittests/test_governance_plugin.py::test_compaction_is_off; .venv/bin/python -m scripts.local_session --fake wrote stamped events to .sessions/sessions.db | pass | none |
-| EVID-001 | evidence review each sprint (S09) | S09 | not built yet | pending | none |
+| EVID-001 | evidence review each sprint (S09) | S09 | docs/REVIEW.md; .venv/bin/python -m scripts.evidence_report ran against this run | deferred | Hold the first review, After the run step 9 |
 | SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | deferred | Jobs run on the test PR, After the run step 4 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | test that collector exporters match the allowlist (S08) | S08 | tests/governance/test_observability.py::test_collector_exporters_match_the_allowlist | pass | none |
 | DATA-001 | sandbox containers run without a TTY or exec access (A02) | A02 | phase A02 builds this | pending | none |
-| DATA-001 | ORR data-handling sign-off (S09) | S09 | not built yet | pending | none |
+| DATA-001 | ORR data-handling sign-off (S09) | S09 | docs/SECURITY.md | deferred | Sign off docs/SECURITY.md, After the run step 10 |
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | deferred | Jobs run on the test PR, After the run step 4 |
@@ -42,4 +42,4 @@ One row per control the catalogue marks `planned`. Only the owner moves a contro
 | VER-001 | user acknowledges high findings (A03) | A03 | phase A03 builds this | pending | none |
 | REV-001 | test that reviewer and executor model IDs differ (A03) | A03 | phase A03 builds this | pending | none |
 | OBS-001 | in-memory span exporter test (S08) | S08 | tests/unittests/test_telemetry.py::test_session_emits_every_invariant_attribute; a --fake session showed as a complete trace in Tempo with every attribute | pass | none |
-| QUAL-001 | test that every score above 1 links to an existing file or test (S09) | S09 | not built yet | pending | none |
+| QUAL-001 | test that every score above 1 links to an existing file or test (S09) | S09 | tests/governance/test_quality_score.py::test_every_score_above_one_has_existing_evidence | pass | none |
