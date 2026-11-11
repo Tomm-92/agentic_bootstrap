@@ -155,7 +155,7 @@ rules:
     kind: safety
     controls:
       - {type: H, at: session, by: coding agent asks before paid-model runs, status: active}
-      - {type: D, at: runtime, by: governance layer enforces session_token_budget (S06), status: planned}
+      - {type: D, at: runtime, by: governance layer enforces session_token_budget (S06), status: active}
 
   - id: MODEL-001
     applies_to: [runtime]

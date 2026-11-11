@@ -8,6 +8,10 @@ replaced with the real one.
 The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
 agent. See `governance/README.md` for the rule format and change process.
 
+![Governance controls: each rule, why it exists, and where it is enforced](docs/images/governance-controls.svg)
+
+The graphic is a snapshot of `governance/rules.yaml`, which wins if they differ.
+
 **The gate.** No governance, no agent: a session's prompts are blocked while
 `governance/` is missing, uncommitted or dirty, and once its hash differs from the
 one the session started with. Edits need exactly one active plan, and must stay inside

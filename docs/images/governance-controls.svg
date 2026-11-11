@@ -1,0 +1,262 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1892" viewBox="0 0 1100 1892" role="img" aria-label="Governance controls: each rule, why it exists, and where it is enforced">
+<style>
+svg{--bg:#ffffff;--fg:#1f2328;--mut:#59636e;--line:#d1d9e0;--band:#f6f8fa;--col:#eef1f4;
+--d:#0969da;--dbg:#ddf4ff;--nd:#9a6700;--ndbg:#fff8c5;--h:#1a7f37;--hbg:#dafbe1;--pl:#6e7781}
+@media (prefers-color-scheme:dark){svg{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#3d444d;--band:#151b23;--col:#1b222c;
+--d:#4493f8;--dbg:#0c2d6b;--nd:#d29922;--ndbg:#3b2e00;--h:#3fb950;--hbg:#0f3d1c;--pl:#8b949e}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--fg)}
+.bg{fill:var(--bg)}.band{fill:var(--band)}.colbg{fill:var(--col)}.ln{stroke:var(--line);fill:none}
+.h1{font-size:26px;font-weight:700}.sub{font-size:14px;fill:var(--mut)}
+.ch{font-size:14px;font-weight:700}.cs{font-size:11.5px;fill:var(--mut)}
+.grp{font-size:11.5px;font-weight:700;letter-spacing:.08em;fill:var(--mut)}
+.id{font-size:11.5px;font-weight:700;fill:var(--mut);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.ti{font-size:13.5px;font-weight:600}.why{font-size:12px;fill:var(--mut);font-style:italic}
+.c{font-size:12px}.cp{font-size:12px;fill:var(--pl)}
+.D{fill:var(--dbg);stroke:var(--d)}.ND{fill:var(--ndbg);stroke:var(--nd)}.H{fill:var(--hbg);stroke:var(--h)}
+.P{fill:var(--bg);stroke:var(--pl);stroke-dasharray:3 3}
+.big{font-size:24px;font-weight:700}
+</style>
+<rect class="bg" width="1100" height="1892" rx="12"/>
+<text x="24" y="54" class="h1">Governance controls</text>
+<text x="24" y="78" class="sub">No governance, no agent. Every rule states why it exists, and every control where it is enforced.</text>
+<text x="24" y="124" class="big">23</text>
+<text x="24" y="142" class="cs">rules</text>
+<text x="154" y="124" class="big">33</text>
+<text x="154" y="142" class="cs">controls active</text>
+<text x="284" y="124" class="big">13</text>
+<text x="284" y="142" class="cs">controls planned</text>
+<rect x="444" y="106" width="30" height="13" rx="4" class="D"/>
+<text x="484" y="117" class="cs">Deterministic: a hook, test or setting blocks it</text>
+<rect x="444" y="124" width="30" height="13" rx="4" class="ND"/>
+<text x="484" y="135" class="cs">Instruction the agent is told to follow</text>
+<rect x="444" y="142" width="30" height="13" rx="4" class="H"/>
+<text x="484" y="153" class="cs">Human approval or review</text>
+<rect x="444" y="160" width="30" height="13" rx="4" class="P"/>
+<text x="484" y="171" class="cs">Planned: built in a later stage or phase</text>
+<rect x="396" y="174" width="131" height="1678" rx="8" class="colbg"/>
+<text x="404" y="192" class="ch">1. Session</text>
+<text x="404" y="207" class="cs">Claude Code hooks,</text>
+<text x="404" y="220" class="cs">permissions, sandbox</text>
+<rect x="533" y="174" width="131" height="1678" rx="8" class="colbg"/>
+<text x="541" y="192" class="ch">2. Commit</text>
+<text x="541" y="207" class="cs">git hooks and</text>
+<text x="541" y="220" class="cs">governance tests</text>
+<rect x="670" y="174" width="131" height="1678" rx="8" class="colbg"/>
+<text x="678" y="192" class="ch">3. CI</text>
+<text x="678" y="207" class="cs">GitHub workflows on</text>
+<text x="678" y="220" class="cs">every PR</text>
+<rect x="807" y="174" width="131" height="1678" rx="8" class="colbg"/>
+<text x="815" y="192" class="ch">4. Review</text>
+<text x="815" y="207" class="cs">owner and reviewer</text>
+<text x="815" y="220" class="cs">sign-off</text>
+<rect x="944" y="174" width="131" height="1678" rx="8" class="colbg"/>
+<text x="952" y="192" class="ch">5. Runtime</text>
+<text x="952" y="207" class="cs">the product agent</text>
+<text x="952" y="220" class="cs">itself</text>
+<text x="28" y="192" class="ch">Rule, and why it exists</text>
+<text x="28" y="208" class="cs">Columns show where each control acts</text>
+<text x="28" y="241" class="grp">GOVERNANCE ITSELF</text>
+<rect x="24" y="250" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="269" class="id">GOV-001</text>
+<text x="112" y="269" class="ti">Committed governance before any prompt</text>
+<text x="34" y="287" class="why">Work done under missing or unreviewed rules cannot be</text>
+<text x="34" y="303" class="why">audited.</text>
+<rect x="401" y="254" width="121" height="22" rx="5" class="D"><title>UserPromptSubmit hook blocks prompts (S04)</title></rect>
+<text x="409" y="269" class="c">Prompts blocked</text>
+<rect x="401" y="280" width="121" height="22" rx="5" class="ND"><title>SessionStart hook injects the governance hash (S04)</title></rect>
+<text x="409" y="295" class="c">Hash injected</text>
+<rect x="24" y="316" width="366" height="112" rx="8" class="band"/>
+<text x="34" y="335" class="id">GOV-002</text>
+<text x="112" y="335" class="ti">Only the owner changes governance</text>
+<text x="34" y="353" class="why">An agent that can edit its own rules is ungoverned.</text>
+<rect x="401" y="320" width="121" height="22" rx="5" class="D"><title>Claude Code permission deny on protected paths (S04)</title></rect>
+<text x="409" y="335" class="c">Paths denied</text>
+<rect x="401" y="346" width="121" height="22" rx="5" class="D"><title>Claude Code permission deny on git push (S04)</title></rect>
+<text x="409" y="361" class="c">git push denied</text>
+<rect x="401" y="372" width="121" height="22" rx="5" class="D"><title>PreToolUse hook denies git commit on main (S04)</title></rect>
+<text x="409" y="387" class="c">No commit on main</text>
+<rect x="401" y="398" width="121" height="22" rx="5" class="D"><title>Claude Code sandbox blocks indirect writes to protected paths (S04)</title></rect>
+<text x="409" y="413" class="c">Sandboxed writes</text>
+<rect x="812" y="320" width="121" height="22" rx="5" class="H"><title>owner review</title></rect>
+<text x="820" y="335" class="c">Owner PR review</text>
+<rect x="24" y="434" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="453" class="id">GOV-003</text>
+<text x="112" y="453" class="ti">Every rule has a reason and a control</text>
+<text x="34" y="471" class="why">A rule without a reason is bypassed at the first friction.</text>
+<rect x="538" y="438" width="121" height="22" rx="5" class="D"><title>tests/governance/test_rules.py (S03)</title></rect>
+<text x="546" y="453" class="c">Catalogue test</text>
+<rect x="24" y="484" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="503" class="id">GOV-004</text>
+<text x="112" y="503" class="ti">Commits name their rules and plan</text>
+<text x="34" y="521" class="why">Every change must trace to the rules and intent it was</text>
+<text x="34" y="537" class="why">made under.</text>
+<rect x="401" y="488" width="121" height="22" rx="5" class="ND"><title>AGENTS.md instruction (S03)</title></rect>
+<text x="409" y="503" class="c">AGENTS.md rule</text>
+<rect x="538" y="488" width="121" height="22" rx="5" class="D"><title>.githooks/commit-msg (S04)</title></rect>
+<text x="546" y="503" class="c">commit-msg hook</text>
+<rect x="675" y="488" width="121" height="22" rx="5" class="D"><title>governance workflow trailer check (S05)</title></rect>
+<text x="683" y="503" class="c">Trailer check</text>
+<rect x="24" y="550" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="569" class="id">GOV-005</text>
+<text x="112" y="569" class="ti">Product agent fails closed on governance</text>
+<text x="34" y="587" class="why">A runtime session must prove which rules it ran under.</text>
+<rect x="949" y="554" width="121" height="22" rx="5" class="D"><title>governance layer fails closed at startup and halts on hash change (S06)</title></rect>
+<text x="957" y="569" class="c">Fails closed</text>
+<rect x="24" y="600" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="619" class="id">GOV-006</text>
+<text x="112" y="619" class="ti">A session is pinned to its starting rules</text>
+<text x="34" y="637" class="why">Rules injected once fade as the context grows.</text>
+<rect x="401" y="604" width="121" height="22" rx="5" class="D"><title>UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04)</title></rect>
+<text x="409" y="619" class="c">Hash every prompt</text>
+<rect x="401" y="630" width="121" height="22" rx="5" class="ND"><title>AGENTS.md instruction to start a new session per plan (S03)</title></rect>
+<text x="409" y="645" class="c">Session per plan</text>
+<text x="28" y="683" class="grp">SCOPE</text>
+<rect x="24" y="692" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="711" class="id">SCOPE-001</text>
+<text x="112" y="711" class="ti">No edits without one active plan</text>
+<text x="34" y="729" class="why">Without declared intent, agents change more than anyone</text>
+<text x="34" y="745" class="why">reviewed.</text>
+<rect x="401" y="696" width="121" height="22" rx="5" class="D"><title>PreToolUse hook denies edits (S04)</title></rect>
+<text x="409" y="711" class="c">Edits need a plan</text>
+<rect x="812" y="696" width="121" height="22" rx="5" class="H"><title>reviewer checks the diff against the plan scope</title></rect>
+<text x="820" y="711" class="c">Diff vs plan</text>
+<rect x="24" y="758" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="777" class="id">SCOPE-002</text>
+<text x="112" y="777" class="ti">Edits stay inside the plan scope</text>
+<text x="34" y="795" class="why">Unbounded sessions leave side effects for review to find</text>
+<text x="34" y="811" class="why">by hand.</text>
+<rect x="401" y="762" width="121" height="22" rx="5" class="D"><title>PreToolUse hook checks scope_paths (S04)</title></rect>
+<text x="409" y="777" class="c">Scope check</text>
+<rect x="812" y="762" width="121" height="22" rx="5" class="H"><title>reviewer checks the diff against the plan scope</title></rect>
+<text x="820" y="777" class="c">Diff vs scope</text>
+<text x="28" y="841" class="grp">EVIDENCE</text>
+<rect x="24" y="850" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="869" class="id">EVID-001</text>
+<text x="112" y="869" class="ti">Evidence is kept, never summarised away</text>
+<text x="34" y="887" class="why">Otherwise the only record is the agent&#x27;s own account.</text>
+<rect x="538" y="854" width="121" height="22" rx="5" class="D"><title>Governance and Plan trailers enforced by commit-msg (S04)</title></rect>
+<text x="546" y="869" class="c">Trailers enforced</text>
+<rect x="812" y="854" width="121" height="22" rx="5" class="P"><title>evidence review each sprint (S09)</title></rect>
+<text x="820" y="869" class="cp">Sprint review</text>
+<rect x="949" y="854" width="121" height="22" rx="5" class="D"><title>durable session log with compaction off (S06)</title></rect>
+<text x="957" y="869" class="c">Durable log</text>
+<text x="28" y="917" class="grp">SECRETS AND DATA</text>
+<rect x="24" y="926" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="945" class="id">SEC-001</text>
+<text x="112" y="945" class="ti">Agents never touch .env files</text>
+<text x="34" y="963" class="why">Secrets read into a session end up in retained</text>
+<text x="34" y="979" class="why">transcripts.</text>
+<rect x="401" y="930" width="121" height="22" rx="5" class="D"><title>Claude Code permission deny on .env</title></rect>
+<text x="409" y="945" class="c">.env reads denied</text>
+<rect x="538" y="930" width="121" height="22" rx="5" class="D"><title>.gitignore</title></rect>
+<text x="546" y="945" class="c">.gitignore</text>
+<rect x="24" y="992" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="1011" class="id">SEC-002</text>
+<text x="112" y="1011" class="ti">No hard-coded secrets</text>
+<text x="34" y="1029" class="why">A credential in code or output is exposed to every reader.</text>
+<rect x="675" y="996" width="121" height="22" rx="5" class="D"><title>gitleaks in the governance workflow (S05)</title></rect>
+<text x="683" y="1011" class="c">gitleaks</text>
+<rect x="949" y="996" width="121" height="22" rx="5" class="P"><title>secrets stage of verify.sh (A02)</title></rect>
+<text x="957" y="1011" class="cp">Output scan</text>
+<rect x="24" y="1042" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1061" class="id">DATA-001</text>
+<text x="112" y="1061" class="ti">Data goes only to allowlisted services</text>
+<text x="34" y="1079" class="why">User content may be confidential; a shell bypasses the</text>
+<text x="34" y="1095" class="why">audit trail.</text>
+<rect x="675" y="1046" width="121" height="22" rx="5" class="D"><title>test that collector exporters match the allowlist (S08)</title></rect>
+<text x="683" y="1061" class="c">Exporter allowlist</text>
+<rect x="812" y="1046" width="121" height="22" rx="5" class="P"><title>ORR data-handling sign-off (S09)</title></rect>
+<text x="820" y="1061" class="cp">Data sign-off</text>
+<rect x="949" y="1046" width="121" height="22" rx="5" class="P"><title>sandbox containers run without a TTY or exec access (A02)</title></rect>
+<text x="957" y="1061" class="cp">No shell access</text>
+<text x="28" y="1125" class="grp">DEPENDENCIES, COST AND MODELS</text>
+<rect x="24" y="1134" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1153" class="id">DEP-001</text>
+<text x="112" y="1153" class="ti">New dependencies need approval</text>
+<text x="34" y="1171" class="why">Every library is a liability, and agents hallucinate</text>
+<text x="34" y="1187" class="why">package names.</text>
+<rect x="675" y="1138" width="121" height="22" rx="5" class="D"><title>vulnerability audit and osv-scanner (S05, A02)</title></rect>
+<text x="683" y="1153" class="c">pip-audit, osv</text>
+<rect x="812" y="1138" width="121" height="22" rx="5" class="H"><title>owner review of dependency manifests</title></rect>
+<text x="820" y="1153" class="c">Manifest review</text>
+<rect x="949" y="1138" width="121" height="22" rx="5" class="P"><title>allowlist and registry existence check (A01)</title></rect>
+<text x="957" y="1153" class="cp">Registry check</text>
+<rect x="949" y="1164" width="121" height="22" rx="5" class="P"><title>confirmation on non-allowlisted dependencies (A01)</title></rect>
+<text x="957" y="1179" class="cp">Confirm unlisted</text>
+<rect x="24" y="1200" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="1219" class="id">COST-001</text>
+<text x="112" y="1219" class="ti">Paid runs approved, sessions budgeted</text>
+<text x="34" y="1237" class="why">Unbounded sessions spend credits nobody approved.</text>
+<rect x="401" y="1204" width="121" height="22" rx="5" class="H"><title>coding agent asks before paid-model runs</title></rect>
+<text x="409" y="1219" class="c">Ask before paid</text>
+<rect x="949" y="1204" width="121" height="22" rx="5" class="D"><title>governance layer enforces session_token_budget (S06)</title></rect>
+<text x="957" y="1219" class="c">Token budget</text>
+<rect x="24" y="1250" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1269" class="id">MODEL-001</text>
+<text x="112" y="1269" class="ti">Exact, allowlisted model IDs</text>
+<text x="34" y="1287" class="why">An alias silently shifts behaviour the evals were tuned</text>
+<text x="34" y="1303" class="why">on.</text>
+<rect x="538" y="1254" width="121" height="22" rx="5" class="D"><title>test that configured model IDs are allowlisted (S06)</title></rect>
+<text x="546" y="1269" class="c">Allowlist test</text>
+<rect x="675" y="1254" width="121" height="22" rx="5" class="P"><title>eval pass-rate gate on model change (A04)</title></rect>
+<text x="683" y="1269" class="cp">Eval gate</text>
+<text x="28" y="1333" class="grp">RUNTIME BEHAVIOUR</text>
+<rect x="24" y="1342" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1361" class="id">TOOL-001</text>
+<text x="112" y="1361" class="ti">Unlisted tools and targets are refused</text>
+<text x="34" y="1379" class="why">An unclassified tool gets whatever autonomy the model</text>
+<text x="34" y="1395" class="why">gives it.</text>
+<rect x="949" y="1346" width="121" height="22" rx="5" class="D"><title>before-tool policy default-deny (S07)</title></rect>
+<text x="957" y="1361" class="c">Default deny</text>
+<rect x="24" y="1408" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1427" class="id">SPEC-001</text>
+<text x="112" y="1427" class="ti">User approves the intent first</text>
+<text x="34" y="1445" class="why">The approved artifact is the boundary against prompt</text>
+<text x="34" y="1461" class="why">injection.</text>
+<rect x="949" y="1412" width="121" height="22" rx="5" class="P"><title>confirmation on approve_intent (A03)</title></rect>
+<text x="957" y="1427" class="cp">Approve intent</text>
+<rect x="949" y="1438" width="121" height="22" rx="5" class="P"><title>executor input schema accepts only ApprovedIntent (A03)</title></rect>
+<text x="957" y="1453" class="cp">Executor schema</text>
+<rect x="24" y="1474" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1493" class="id">FS-001</text>
+<text x="112" y="1493" class="ti">Writes only under output/&lt;work item&gt;/</text>
+<text x="34" y="1511" class="why">A stray write can change another user&#x27;s output or the</text>
+<text x="34" y="1527" class="why">agent.</text>
+<rect x="949" y="1478" width="121" height="22" rx="5" class="D"><title>before-tool path check (S07)</title></rect>
+<text x="957" y="1493" class="c">Path check</text>
+<rect x="24" y="1540" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1559" class="id">SBX-001</text>
+<text x="112" y="1559" class="ti">Generated code runs only in a sandbox</text>
+<text x="34" y="1577" class="why">Injected content reaches whatever is reachable where it</text>
+<text x="34" y="1593" class="why">runs.</text>
+<rect x="949" y="1544" width="121" height="22" rx="5" class="P"><title>verification sandbox container (A02)</title></rect>
+<text x="957" y="1559" class="cp">Sandboxed runs</text>
+<rect x="24" y="1606" width="366" height="60" rx="8" class="band"/>
+<text x="34" y="1625" class="id">VER-001</text>
+<text x="112" y="1625" class="ti">Outputs verified before hand-over</text>
+<text x="34" y="1643" class="why">Passing tests confirm behaviour, not safety.</text>
+<rect x="949" y="1610" width="121" height="22" rx="5" class="P"><title>verify gate blocks delivery (A02, A03)</title></rect>
+<text x="957" y="1625" class="cp">Verify gate</text>
+<rect x="949" y="1636" width="121" height="22" rx="5" class="P"><title>user acknowledges high findings (A03)</title></rect>
+<text x="957" y="1651" class="cp">Ack high findings</text>
+<rect x="24" y="1672" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="1691" class="id">REV-001</text>
+<text x="112" y="1691" class="ti">Reviewer runs on a different model</text>
+<text x="34" y="1709" class="why">Same-model review confirms rather than checks.</text>
+<rect x="538" y="1676" width="121" height="22" rx="5" class="P"><title>test that reviewer and executor model IDs differ (A03)</title></rect>
+<text x="546" y="1691" class="cp">Model-differ test</text>
+<text x="28" y="1739" class="grp">OBSERVABILITY AND QUALITY</text>
+<rect x="24" y="1748" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="1767" class="id">OBS-001</text>
+<text x="112" y="1767" class="ti">Every model and tool call is traced</text>
+<text x="34" y="1785" class="why">A failure nobody can attribute is debugged by guessing.</text>
+<rect x="538" y="1752" width="121" height="22" rx="5" class="D"><title>in-memory span exporter test (S08)</title></rect>
+<text x="546" y="1767" class="c">Span attribute test</text>
+<rect x="24" y="1798" width="366" height="44" rx="8" class="band"/>
+<text x="34" y="1817" class="id">QUAL-001</text>
+<text x="112" y="1817" class="ti">Quality scores need evidence</text>
+<text x="34" y="1835" class="why">Scores without evidence declare victory early.</text>
+<rect x="538" y="1802" width="121" height="22" rx="5" class="D"><title>test that every score above 1 links to an existing file or test (S09)</title></rect>
+<text x="546" y="1817" class="c">Evidence-link test</text>
+<text x="24" y="1876" class="cs">Source of truth: governance/rules.yaml. Evidence for each control: docs/governance-activation.md.</text>
+</svg>
