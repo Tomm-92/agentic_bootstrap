@@ -4,7 +4,7 @@
 # attempt, tell the user instead, and don't re-check until something changes again.
 active=$(jq -r '.stop_hook_active // false')
 cd "$CLAUDE_PROJECT_DIR" || exit 0
-src=(app tests)          # vulture targets
+src=(app tests scripts)          # vulture targets
 paths=(. ':!output')
 saved=.claude/.checks_fingerprint
 now=$({

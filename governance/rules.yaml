@@ -14,8 +14,8 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: session, by: UserPromptSubmit hook blocks prompts (S04), status: planned}
-      - {type: ND, at: session, by: SessionStart hook injects the governance hash (S04), status: planned}
+      - {type: D, at: session, by: UserPromptSubmit hook blocks prompts (S04), status: active}
+      - {type: ND, at: session, by: SessionStart hook injects the governance hash (S04), status: active}
 
   - id: GOV-002
     applies_to: [build, runtime]
@@ -24,9 +24,9 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: session, by: Claude Code permission deny on protected paths (S04), status: planned}
-      - {type: D, at: session, by: Claude Code permission deny on git push (S04), status: planned}
-      - {type: D, at: session, by: PreToolUse hook denies git commit on main (S04), status: planned}
+      - {type: D, at: session, by: Claude Code permission deny on protected paths (S04), status: active}
+      - {type: D, at: session, by: Claude Code permission deny on git push (S04), status: active}
+      - {type: D, at: session, by: PreToolUse hook denies git commit on main (S04), status: active}
       - {type: D, at: session, by: Claude Code sandbox blocks indirect writes to protected paths (S04), status: planned}
       - {type: H, at: merge, by: owner review, status: active}
 
@@ -37,7 +37,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: commit, by: tests/governance/test_rules.py (S03), status: planned}
+      - {type: D, at: commit, by: tests/governance/test_rules.py (S03), status: active}
 
   - id: GOV-004
     applies_to: [build]
@@ -46,7 +46,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: ND, at: session, by: AGENTS.md instruction (S03), status: planned}
+      - {type: ND, at: session, by: AGENTS.md instruction (S03), status: active}
       - {type: D, at: commit, by: .githooks/commit-msg (S04), status: planned}
       - {type: D, at: ci, by: governance workflow trailer check (S05), status: planned}
 
@@ -57,7 +57,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: runtime, by: governance layer fails closed at startup and halts on hash change (S06), status: planned}
+      - {type: D, at: runtime, by: governance layer fails closed at startup and halts on hash change (S06), status: active}
 
   - id: GOV-006
     applies_to: [build]
@@ -66,8 +66,8 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: session, by: UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04), status: planned}
-      - {type: ND, at: session, by: AGENTS.md instruction to start a new session per plan (S03), status: planned}
+      - {type: D, at: session, by: UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04), status: active}
+      - {type: ND, at: session, by: AGENTS.md instruction to start a new session per plan (S03), status: active}
 
   # --- Scope -------------------------------------------------------------
   - id: SCOPE-001
@@ -77,7 +77,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: session, by: PreToolUse hook denies edits (S04), status: planned}
+      - {type: D, at: session, by: PreToolUse hook denies edits (S04), status: active}
       - {type: H, at: merge, by: reviewer checks the diff against the plan scope, status: active}
 
   - id: SCOPE-002
@@ -87,7 +87,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: session, by: PreToolUse hook checks scope_paths (S04), status: planned}
+      - {type: D, at: session, by: PreToolUse hook checks scope_paths (S04), status: active}
       - {type: H, at: merge, by: reviewer checks the diff against the plan scope, status: active}
 
   # --- Evidence ----------------------------------------------------------
@@ -99,7 +99,7 @@ rules:
     kind: safety
     controls:
       - {type: D, at: commit, by: Governance and Plan trailers enforced by commit-msg (S04), status: planned}
-      - {type: D, at: runtime, by: durable session log with compaction off (S06), status: planned}
+      - {type: D, at: runtime, by: durable session log with compaction off (S06), status: active}
       - {type: H, at: review, by: evidence review each sprint (S09), status: planned}
 
   # --- Secrets and data --------------------------------------------------
@@ -130,7 +130,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: ci, by: test that collector exporters match the allowlist (S08), status: planned}
+      - {type: D, at: ci, by: test that collector exporters match the allowlist (S08), status: active}
       - {type: D, at: runtime, by: sandbox containers run without a TTY or exec access (A02), status: planned}
       - {type: H, at: review, by: ORR data-handling sign-off (S09), status: planned}
 
@@ -164,7 +164,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: commit, by: test that configured model IDs are allowlisted (S06), status: planned}
+      - {type: D, at: commit, by: test that configured model IDs are allowlisted (S06), status: active}
       - {type: D, at: ci, by: eval pass-rate gate on model change (A04), status: planned}
 
   # --- Runtime behaviour -------------------------------------------------
@@ -175,7 +175,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: runtime, by: before-tool policy default-deny (S07), status: planned}
+      - {type: D, at: runtime, by: before-tool policy default-deny (S07), status: active}
 
   - id: SPEC-001
     applies_to: [runtime]
@@ -194,7 +194,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: runtime, by: before-tool path check (S07), status: planned}
+      - {type: D, at: runtime, by: before-tool path check (S07), status: active}
 
   - id: SBX-001
     applies_to: [runtime]
@@ -232,7 +232,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: commit, by: in-memory span exporter test (S08), status: planned}
+      - {type: D, at: commit, by: in-memory span exporter test (S08), status: active}
 
   - id: QUAL-001
     applies_to: [build, runtime]
@@ -241,4 +241,4 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: commit, by: test that every score above 1 links to an existing file or test (S09), status: planned}
+      - {type: D, at: commit, by: test that every score above 1 links to an existing file or test (S09), status: active}
