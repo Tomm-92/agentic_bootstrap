@@ -47,8 +47,8 @@ rules:
     kind: safety
     controls:
       - {type: ND, at: session, by: AGENTS.md instruction (S03), status: active}
-      - {type: D, at: commit, by: .githooks/commit-msg (S04), status: planned}
-      - {type: D, at: ci, by: governance workflow trailer check (S05), status: planned}
+      - {type: D, at: commit, by: .githooks/commit-msg (S04), status: active}
+      - {type: D, at: ci, by: governance workflow trailer check (S05), status: active}
 
   - id: GOV-005
     applies_to: [runtime]
@@ -98,7 +98,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: commit, by: Governance and Plan trailers enforced by commit-msg (S04), status: planned}
+      - {type: D, at: commit, by: Governance and Plan trailers enforced by commit-msg (S04), status: active}
       - {type: D, at: runtime, by: durable session log with compaction off (S06), status: active}
       - {type: H, at: review, by: evidence review each sprint (S09), status: planned}
 
@@ -120,7 +120,7 @@ rules:
     tier: deny
     kind: safety
     controls:
-      - {type: D, at: ci, by: gitleaks in the governance workflow (S05), status: planned}
+      - {type: D, at: ci, by: gitleaks in the governance workflow (S05), status: active}
       - {type: D, at: runtime, by: secrets stage of verify.sh (A02), status: planned}
 
   - id: DATA-001
@@ -145,7 +145,7 @@ rules:
       - {type: H, at: merge, by: owner review of dependency manifests, status: active}
       - {type: D, at: runtime, by: allowlist and registry existence check (A01), status: planned}
       - {type: H, at: runtime, by: confirmation on non-allowlisted dependencies (A01), status: planned}
-      - {type: D, at: ci, by: 'vulnerability audit and osv-scanner (S05, A02)', status: planned}
+      - {type: D, at: ci, by: 'vulnerability audit and osv-scanner (S05, A02)', status: active}
 
   - id: COST-001
     applies_to: [build, runtime]
