@@ -1,0 +1,11 @@
+# Numeric limits enforced in code. Change process: governance/README.md.
+session_token_budget: 200000   # COST-001: total tokens per product-agent session
+max_fix_iterations: 3          # A03: executor retries after a failed verify
+retention_days: 90             # EVID-001: keep transcripts, sessions, traces, reports
+eval_runs: 5                   # A04: runs per eval case (temperature is often not 0)
+eval_pass_rate_floor: 0.8      # A04: minimum pass rate across eval_runs
+severity_gate:                 # VER-001: per-severity outcome of verification
+  critical: block
+  high: acknowledge
+  medium: track
+  low: track

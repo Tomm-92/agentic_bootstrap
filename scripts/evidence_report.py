@@ -1,0 +1,101 @@
+"""Summarises the available evidence for the evidence review in docs/REVIEW.md (EVID-001)."""
+
+import json
+import re
+import sqlite3
+import subprocess
+import sys
+from collections import Counter
+from pathlib import Path
+
+DECISION_PREFIX = 'governance_log:'  # Mirrors app.governance, whose import fails while dirty.
+
+
+def _commits(repo: Path) -> list[str]:
+  trailer = '%(trailers:key={},valueonly,separator=)'
+  log_format = '%h%x09' + trailer.format('Governance') + '%x09' + trailer.format('Plan')
+  log = subprocess.run(  # noqa: S603 - fixed git command
+    ['git', '-C', str(repo), 'log', f'--format={log_format}'],  # noqa: S607 - git from PATH
+    capture_output=True,
+    text=True,
+    check=True,
+  ).stdout.splitlines()
+  rows = [line.split('\t') for line in log]
+  plans = Counter(row[2] for row in rows if row[2])
+  hashes = {row[1] for row in rows if row[1]}
+  return [
+    f'Commits: {len(rows)}, of which {sum(bool(r[2]) for r in rows)} have a Plan trailer.',
+    f'Governance hashes recorded: {len(hashes)}.',
+    f'Commits per plan: {dict(plans)}.',
+  ]
+
+
+def _plans(repo: Path) -> list[str]:
+  exec_plans = repo / 'docs/exec-plans'
+  active = sorted(p.name for p in exec_plans.glob('active/*.md'))
+  completed = sorted(p.name for p in exec_plans.glob('completed/*.md'))
+  tracker = exec_plans / 'tech-debt-tracker.md'
+  gaps = tracker.read_text().count('\n| ') - 2 if tracker.exists() else 0
+  return [
+    f'Active plans: {active}.',
+    f'Completed plans: {completed}.',
+    f'Tech-debt entries: {gaps}.',
+  ]
+
+
+def _ledger(repo: Path) -> list[str]:
+  ledger = repo / 'docs/governance-activation.md'
+  if not ledger.exists():
+    return ['No activation ledger.']
+  rows = [line.split(' | ') for line in ledger.read_text().splitlines() if line.startswith('| ')]
+  return [f'Ledger results: {dict(Counter(row[4] for row in rows[2:]))}.']
+
+
+def _transcripts(repo: Path) -> list[str]:
+  folder = Path.home() / '.claude/projects' / re.sub(r'[^a-zA-Z0-9]', '-', str(repo.resolve()))
+  return [f'Coding-agent transcripts: {len(list(folder.glob("*.jsonl")))} in {folder}.']
+
+
+def _sessions(repo: Path) -> list[str]:
+  database = repo / '.sessions/sessions.db'
+  if not database.exists():
+    return ['No session log at .sessions/sessions.db.']
+  with sqlite3.connect(f'file:{database}?mode=ro', uri=True) as connection:
+    rows = connection.execute('SELECT session_id, event_data FROM events').fetchall()
+  events = [json.loads(data) for _, data in rows]
+  decisions = [
+    value
+    for event in events
+    for key, value in event.get('actions', {}).get('state_delta', {}).items()
+    if key.startswith(DECISION_PREFIX)
+  ]
+  results = Counter(d['result'] for d in decisions)
+  answered = results['confirmed'] + results['rejected']
+  approval = f'{results["confirmed"] / answered:.0%}' if answered else 'no confirmations yet'
+  stamped = [e for e in events if (e.get('custom_metadata') or {}).get('governance_sha')]
+  return [
+    f'Sessions: {len({session for session, _ in rows})}, with {len(events)} stored events.',
+    f'Events stamped with a governance hash: {len(stamped)} (user messages are not stamped).',
+    f'Tool decisions by result: {dict(results)}.',
+    f'Tool decisions by rule: {dict(Counter(d["rule"] for d in decisions))}.',
+    f'Approval rate: {approval}.',
+  ]
+
+
+def report(repo: Path) -> str:
+  sections = {
+    'Commits': _commits,
+    'Plans': _plans,
+    'Ledger': _ledger,
+    'Transcripts': _transcripts,
+    'Product-agent sessions': _sessions,
+  }
+  lines = [
+    f'{title}:\n' + '\n'.join(f'- {line}' for line in section(repo))
+    for title, section in sections.items()
+  ]
+  return '\n\n'.join(lines) + '\n\nTraces and alerts: see ops/observability/ and Grafana.\n'
+
+
+if __name__ == '__main__':
+  sys.stdout.write(report(Path(__file__).parent.parent))

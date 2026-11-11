@@ -1,0 +1,15 @@
+# Describes this project's agentic product. Rules and phases refer to these
+# keys as <profile.key>. Change process: governance/README.md.
+project: 'agentic_tools_v2'
+product_agent:                 # one ADK agent tree: a root agent and its sub-agents
+  path: 'app'
+  framework: 'google-adk==2.14.0'
+  output_root: 'output'
+  # Purpose keys: null or empty until phase A01.
+  purpose: null                # one sentence on what the agent does for its users
+  output: null                 # what it produces, for example REST API source code
+  intent_artifact: null        # what users approve first, for example an OpenAPI 3 document
+  tools: []                    # '<tool name>': '<what it does>'; tiers are set in tools.yaml
+  verification: []             # stages from: secrets, sast, sca, iac, policy, structure, functional, conformance, content
+  package_ecosystems: []       # registries the output may depend on, for example [go, pypi, npm]
+  external_targets: []         # systems the agent may act on beyond files
