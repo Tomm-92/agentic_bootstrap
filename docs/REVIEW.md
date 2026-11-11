@@ -27,3 +27,4 @@ and outcome of each review below.
 
 | Date | Reviewer | Outcome |
 | --- | --- | --- |
+| 2026-11-11 | Tom Wilkinson (owner) | First review, covering 2 real claude-haiku-5-5 runs. No escalations, no confirmations, no rule changes. Two gaps found: the answer misreported the tool status, and one tool call ran without a logged decision. |

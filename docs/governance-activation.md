@@ -25,7 +25,7 @@ rewritten to start with `Confirmed`.
 | SCOPE-002 | PreToolUse hook checks scope_paths (S04) | S04 | tests/governance/test_hooks.py::test_scope_outside_denied | pass | none |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | Confirmed by the owner, 2026-11-11 |
 | EVID-001 | durable session log with compaction off (S06) | S06 | tests/unittests/test_governance_plugin.py::test_compaction_is_off; .venv/bin/python -m scripts.local_session --fake wrote stamped events to .sessions/sessions.db | pass | none |
-| EVID-001 | evidence review each sprint (S09) | S09 | docs/REVIEW.md; .venv/bin/python -m scripts.evidence_report ran against this run | deferred | Hold the first review, After the run step 8 in docs/agent_governance_implementation.md |
+| EVID-001 | evidence review each sprint (S09) | S09 | docs/REVIEW.md, review of 2026-11-11 (.venv/bin/python -m scripts.evidence_report and .sessions/sessions.db) | pass | Confirmed by the owner, 11-11-2026 |
 | SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | pass | Confirmed by the owner, 2026-11-11 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | test that collector exporters match the allowlist (S08) | S08 | tests/governance/test_observability.py::test_collector_exporters_match_the_allowlist | pass | none |
