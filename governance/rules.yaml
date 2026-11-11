@@ -100,7 +100,7 @@ rules:
     controls:
       - {type: D, at: commit, by: Governance and Plan trailers enforced by commit-msg (S04), status: active}
       - {type: D, at: runtime, by: durable session log with compaction off (S06), status: active}
-      - {type: H, at: review, by: evidence review each sprint (S09), status: planned}
+      - {type: H, at: review, by: evidence review each sprint (S09), status: active}
 
   # --- Secrets and data --------------------------------------------------
   - id: SEC-001
