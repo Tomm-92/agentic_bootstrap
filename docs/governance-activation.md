@@ -13,7 +13,7 @@ rewritten to start with `Confirmed`.
 | GOV-002 | Claude Code permission deny on protected paths (S04) | S04 | tests/governance/test_settings.py::test_protected_path_has_a_deny_rule | pass | none |
 | GOV-002 | Claude Code permission deny on git push (S04) | S04 | tests/governance/test_settings.py::test_other_deny_rules_are_kept, tests/governance/test_hooks.py::test_guard_denies_on_any_branch | pass | none |
 | GOV-002 | PreToolUse hook denies git commit on main (S04) | S04 | tests/governance/test_hooks.py::test_guard_denies_commit_on_main | pass | none |
-| GOV-002 | Claude Code sandbox blocks indirect writes to protected paths (S04) | S04 | tests/governance/test_settings.py::test_sandbox_has_no_escape proves the config only; a session under it must show the refusal | deferred | After the run step 3 |
+| GOV-002 | Claude Code sandbox blocks indirect writes to protected paths (S04) | S04 | tests/governance/test_settings.py::test_sandbox_has_no_escape proves the config only; a session under it must show the refusal | pass | Confirmed by the owner, 2026-11-11 |
 | GOV-003 | tests/governance/test_rules.py (S03) | S03 | tests/governance/test_rules.py | pass | none |
 | GOV-004 | AGENTS.md instruction (S03) | S03 | AGENTS.md, Git section | pass | none |
 | GOV-004 | .githooks/commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | Confirmed by the owner, 2026-11-11 |

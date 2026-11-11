@@ -27,7 +27,7 @@ rules:
       - {type: D, at: session, by: Claude Code permission deny on protected paths (S04), status: active}
       - {type: D, at: session, by: Claude Code permission deny on git push (S04), status: active}
       - {type: D, at: session, by: PreToolUse hook denies git commit on main (S04), status: active}
-      - {type: D, at: session, by: Claude Code sandbox blocks indirect writes to protected paths (S04), status: planned}
+      - {type: D, at: session, by: Claude Code sandbox blocks indirect writes to protected paths (S04), status: active}
       - {type: H, at: merge, by: owner review, status: active}
 
   - id: GOV-003
