@@ -1,0 +1,95 @@
+"""GOV-002: the settings deny every protected path, keep code quality's controls and sandbox."""
+
+import json
+import os
+import re
+from pathlib import Path
+
+import pytest
+
+PROJECT = Path(__file__).parent.parent.parent
+PROPOSED = PROJECT / 'proposals/0001/.claude/settings.json'
+DEFAULT = PROPOSED if PROPOSED.exists() else PROJECT / '.claude/settings.json'
+SETTINGS = json.loads(Path(os.environ.get('SETTINGS_PATH', DEFAULT)).read_text())
+
+PROTECTED = {
+  'Edit(/governance/**)': './governance',
+  'Edit(/docs/governance_implementation.md)': './docs/governance_implementation.md',
+  'Edit(/docs/agent_governance_implementation.md)': './docs/agent_governance_implementation.md',
+  'Edit(/.claude/settings.json)': './.claude/settings.json',
+  'Edit(/.claude/settings.local.json)': './.claude/settings.local.json',
+  'Edit(/.claude/hooks/**)': './.claude/hooks',
+  'Edit(/.github/**)': './.github',
+  'Edit(/.githooks/**)': './.githooks',
+  'Edit(/AGENTS.md)': './AGENTS.md',
+  'Edit(/CLAUDE.md)': './CLAUDE.md',
+}
+CODE_QUALITY_DENY = [
+  'Edit(/ruff.toml)',
+  'Edit(/pytest.ini)',
+  'Edit(/mypy.ini)',
+  'Edit(/.github/workflows/**)',
+  'Read(**/.env)',
+]
+
+
+def _commands(event):
+  return [hook['command'] for group in SETTINGS['hooks'][event] for hook in group['hooks']]
+
+
+def _matched(event, matcher):
+  return [
+    hook['command']
+    for group in SETTINGS['hooks'][event]
+    if group.get('matcher') == matcher
+    for hook in group['hooks']
+  ]
+
+
+@pytest.mark.parametrize('rule', PROTECTED)
+def test_protected_path_has_a_deny_rule(rule):
+  assert rule in SETTINGS['permissions']['deny']
+
+
+@pytest.mark.parametrize('path', PROTECTED.values())
+def test_protected_path_is_denied_by_the_sandbox(path):
+  assert path in SETTINGS['sandbox']['filesystem']['denyWrite']
+
+
+def test_sandbox_paths_are_relative_to_the_project():
+  assert all(p.startswith('./') for p in SETTINGS['sandbox']['filesystem']['denyWrite'])
+
+
+def test_sandbox_has_no_escape():
+  sandbox = SETTINGS['sandbox']
+  assert sandbox['enabled'] is True
+  assert sandbox['failIfUnavailable'] is True
+  assert sandbox['allowUnsandboxedCommands'] is False
+  assert 'excludedCommands' not in sandbox
+
+
+@pytest.mark.parametrize('rule', [*CODE_QUALITY_DENY, 'Bash(git push:*)'])
+def test_other_deny_rules_are_kept(rule):
+  assert rule in SETTINGS['permissions']['deny']
+
+
+def test_code_quality_hooks_are_kept():
+  assert any('lint_on_edit.sh' in c for c in _matched('PostToolUse', 'Edit|Write'))
+  assert any('checks_on_stop.sh' in c for c in _commands('Stop'))
+
+
+def test_governance_hooks_are_wired():
+  assert any('governance_gate.sh' in c for c in _commands('SessionStart'))
+  assert any('governance_gate.sh' in c for c in _commands('UserPromptSubmit'))
+  assert any('governance_gate.sh' in c for c in _matched('PreToolUse', 'Edit|Write|NotebookEdit'))
+  assert any('branch_guard.sh' in c for c in _matched('PreToolUse', 'Bash'))
+
+
+def test_every_hook_script_exists():
+  commands = [c for event in SETTINGS['hooks'] for c in _commands(event)]
+  assert commands
+  for command in commands:
+    name = re.fullmatch(r'"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/(\S+\.sh)', command)
+    assert name, command
+    folders = (PROJECT / 'proposals/0001/.claude/hooks', PROJECT / '.claude/hooks')
+    assert any((folder / name[1]).exists() for folder in folders), command

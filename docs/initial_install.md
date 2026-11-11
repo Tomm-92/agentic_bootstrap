@@ -44,7 +44,12 @@ or a dependency won't install on it, stop and ask the owner.
 
 Run these from the repo root.
 
-1. **Check the tools.**
+1. **Check the tools.** Install nothing yet: run every check, then ask the owner
+   once about everything that's missing.
+
+   These are needed by this file and every later one. Git must be 2.32 or newer,
+   because the owner's last step in `docs/governance_implementation.md` uses
+   `git commit --trailer`.
 
    ```bash
    python3.14 --version
@@ -58,8 +63,51 @@ Run these from the repo root.
    git --version
    ```
 
-   If one is missing, ask the owner before installing it. On macOS with Homebrew
-   that is `brew install python@3.14`, `brew install jq` or `brew install git`.
+   ```bash
+   shasum --version
+   ```
+
+   On macOS with Homebrew that is `brew install python@3.14`, `brew install jq` or
+   `brew install git`. `shasum` comes with macOS, and with Perl on Linux.
+
+   These let the governance run prove its own checks instead of leaving them to the
+   owner afterwards. Its CI workflows, local telemetry stack and verification sandbox
+   use them:
+
+   ```bash
+   actionlint --version
+   ```
+
+   ```bash
+   gitleaks version
+   ```
+
+   ```bash
+   osv-scanner --version
+   ```
+
+   ```bash
+   docker compose version
+   ```
+
+   On macOS with Homebrew the first three are
+   `brew install actionlint gitleaks osv-scanner`. The last needs a container runtime
+   with Compose, such as Docker Desktop. This file doesn't need it running, but the
+   governance run does.
+
+   On Linux or WSL2, also check these. Claude Code's sandbox needs them, and once
+   governance is armed, a session won't start without them:
+
+   ```bash
+   bwrap --version
+   ```
+
+   ```bash
+   socat -V
+   ```
+
+   If the owner declines to install one of the governance tools, carry on and report
+   it. The governance run defers whatever depends on it.
 
 2. **Check the git identity.** The first commit uses it.
 
@@ -165,9 +213,11 @@ Run these from the repo root.
       files in `docs/`.
 - [ ] `.venv/bin/python --version` reports Python 3.14.
 - [ ] `.venv/bin/adk --version` reports the same version as PyPI's latest.
+- [ ] Every tool in step 1 reports a version, or the owner declined it.
 
 ## When you finish
 
-Report the Python and ADK versions and the commit hash, then stop. Tell the owner
+Report the Python and ADK versions, the commit hash and any tool from step 1 that's
+still missing, then stop. Tell the owner
 the next step is a new session at the repo root, started with: *"Implement
 docs/codequality.md."*

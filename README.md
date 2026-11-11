@@ -3,6 +3,62 @@
 A Google ADK agent project. `app/` currently holds a placeholder agent, to be
 replaced with the real one.
 
+## Governance
+
+The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
+agent. See `governance/README.md` for the rule format and change process.
+
+**The gate.** No governance, no agent: a session's prompts are blocked while
+`governance/` is missing, uncommitted or dirty, and once its hash differs from the
+one the session started with. Edits need exactly one active plan, and must stay inside
+that plan's `scope_paths`. The product agent fails closed the same way at startup.
+
+**Protected paths.** Agents can't edit `governance/`,
+`docs/governance_implementation.md`, `docs/agent_governance_implementation.md`,
+`.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.github/`,
+`.githooks/`, `AGENTS.md` or `CLAUDE.md`.
+
+**Proposals.** To change a protected path, an agent writes the new version to
+`proposals/<plan ID>/` at the same relative path. The owner reviews it, copies it into
+place and commits.
+
+**Execution plans.** Each session after the bootstrap run writes a plan at
+`docs/exec-plans/active/<plan ID>-<name>.md`, starting with this front matter:
+
+```yaml
+---
+id: '0002'
+rules: [SCOPE-001]
+scope_paths:
+  - app/**
+---
+```
+
+The session records its work there, lists its owner actions at the end, and moves the
+plan to `docs/exec-plans/completed/`. The edit gate allows plan files, so this is always
+possible. "Owner actions" are for the human: a session lists them and does not attempt
+them.
+
+**Open sessions at the repo root.** Claude Code loads `.claude/settings.json` only from
+the folder it was launched in, so a session opened from a parent folder runs none of
+the hooks or deny rules.
+
+**Setup.** Turn on the git hooks once in each clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+**Runtime.** `app/governance.py` is the governance layer. To run one session against
+the durable log at `.sessions/sessions.db`, with `--fake` to spend nothing:
+
+```bash
+.venv/bin/python -m scripts.local_session --fake "What is the status of demo?"
+```
+
+`ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
+scripts.evidence_report` summarises the evidence for `docs/REVIEW.md`.
+
 ## Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
@@ -29,7 +85,7 @@ What the checks cover:
   and size limits, type hints, `print`, security (Bandit), and `noqa` comments
   that are bare or stale. It also bans ADK's deprecated `SequentialAgent`,
   `ParallelAgent`, `LoopAgent` and `AgentTool`.
-- mypy.ini: strict type checks on `app` and `tests`. Every `type: ignore` must
+- mypy.ini: strict type checks on `app`, `tests` and `scripts`. Every `type: ignore` must
   name its code, and stale ones fail.
 - tests/unittests/: free tests that use a scripted fake model, plus ADK
   convention tests in `test_adk_conventions.py`.
@@ -73,7 +129,7 @@ Run the checks by hand:
 
 ```bash
 .venv/bin/ruff check . && .venv/bin/ruff format --check .
-.venv/bin/vulture app tests --min-confidence 80 && .venv/bin/mypy
+.venv/bin/vulture app tests scripts --min-confidence 80 && .venv/bin/mypy
 .venv/bin/pytest
 ```
 

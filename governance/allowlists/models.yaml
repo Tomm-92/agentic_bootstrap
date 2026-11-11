@@ -1,0 +1,6 @@
+# MODEL-001 and REV-001. Exact model IDs only; aliases are not allowed.
+# Reviewer models must have a different ID from planner and executor models.
+# They may be the same family until production (see Known gaps).
+models:
+  - {id: claude-haiku-5-5, use: [planner, executor], paid: true}
+  - {id: claude-sonnet-5-5, use: [reviewer], paid: true}

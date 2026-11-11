@@ -1,0 +1,7 @@
+# DATA-001 and TOOL-001. The only external services that may receive prompts,
+# sessions, traces or outputs, or that the agent may act on.
+model_providers: [api.anthropic.com]
+telemetry_exporters: ['tempo:4317', 'http://prometheus:9090/api/v1/otlp', 'http://loki:3100/otlp']
+package_registries: []
+external_targets: []
+mcp_servers: []
