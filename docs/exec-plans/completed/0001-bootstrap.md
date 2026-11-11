@@ -113,25 +113,25 @@ The tree was clean at the start, so no uncommitted changes were carried over.
 
 | Check | Why | Clears at |
 | --- | --- | --- |
-| Stage 6 manual run and integration tests; COST-001 runtime owner check | `ANTHROPIC_API_KEY` unset | "After the run" step 8 |
-| GOV-002 sandbox | Only a session started under the settings can prove it | Step 7 |
-| GOV-004 CI, SEC-002 CI, DEP-001 CI | They run only on a real pull request | Step 4 |
-| GOV-004 commit-msg, EVID-001 trailers | Tested, but do nothing until `core.hooksPath` is set | Step 6 |
-| EVID-001 review | Needs the first review | Step 9 |
-| DATA-001 ORR | Needs the owner's sign-off | Step 10 |
+| Stage 6 manual run and integration tests; COST-001 runtime owner check | `ANTHROPIC_API_KEY` unset | "After the run" step 4 |
+| GOV-002 sandbox | Only a session started under the settings can prove it | Step 3 |
+| GOV-004 CI, SEC-002 CI, DEP-001 CI | They run only on a real pull request | Step 2 |
+| GOV-004 commit-msg, EVID-001 trailers | Tested, but do nothing until `core.hooksPath` is set | Step 2 |
+| EVID-001 review | Needs a product agent's evidence | `docs/agent_governance_implementation.md`, "After the run" step 8 |
+| DATA-001 ORR | Needs the owner's sign-off, once the agent's data handling is known | `docs/agent_governance_implementation.md`, "After the run" step 9 |
 
-Stage 5's local tools and Stage 8's complete trace ran in this run, so step 8 needs only the
+Stage 5's local tools and Stage 8's complete trace ran in this run, so step 4 needs only the
 Stage 6 row. No stage was blocked.
 
 ### Open owner actions
 
-1. Review the branch, including the DEP-001 lists above.
-2. Check and apply the proposal, on the branch.
-3. Decide whether to add the reviewer key as a repo secret (paid calls on every PR).
-4. Push the base branch, then this branch, and open a PR into the base branch. Set GOV-004 CI, SEC-002 CI and DEP-001 CI to `active` once the jobs run.
-5. Merge that PR, then merge the base branch to `main`.
-6. `git config core.hooksPath .githooks`, then set GOV-004 commit-msg and EVID-001 trailers to `active`.
-7. Start a new session at the repo root and confirm the refusals, then set the GOV-002 sandbox to `active`.
-8. Run the Stage 6 commands, then set COST-001 runtime to `active` when they pass.
-9. Hold the first evidence review, then set EVID-001 review to `active`.
-10. Sign off `docs/SECURITY.md`, then set DATA-001 ORR to `active`.
+After the run, the owner's ten actions were folded into `scripts/arm_governance.py`, and the
+instructions were changed to match:
+
+1. Review the branch, including the DEP-001 lists above and `scripts/arm_governance.py`.
+2. Run `.venv/bin/python -m scripts.arm_governance arm`. To add the reviewer key, which starts
+   paid calls on every PR, set `REVIEWER_API_KEY` in that terminal.
+3. Start a new session at the repo root and confirm the refusals, then run
+   `.venv/bin/python -m scripts.arm_governance sandbox`.
+4. With `ANTHROPIC_API_KEY` set in your terminal, run
+   `.venv/bin/python -m scripts.arm_governance paid`.

@@ -129,7 +129,7 @@ the conversation.
 
 | Situation | What to do |
 | --- | --- |
-| A check needs something the run doesn't have, such as a running container runtime, an Anthropic API key, a tool or a GitHub secret | Record it as `deferred`, with the exact command or action the owner needs. Continue. The stage still counts as finished: step 8 of "After the run" clears it. |
+| A check needs something the run doesn't have, such as a running container runtime, an Anthropic API key, a tool or a GitHub secret | Record it as `deferred`, with the exact command or action the owner needs. Continue. The stage still counts as finished: step 4 of "After the run" clears it. |
 | A stage is `blocked` or fails after a reasonable attempt | Record it. Mark stages that depend on it as `blocked`. Continue with the stages that don't. |
 | Finishing seems to need a weaker control, an invented value or a paid call the run inputs don't approve | Don't do it. Stop that stage, record why, and raise it in the final report. |
 
@@ -155,7 +155,7 @@ this is still one run with one proposal at the end:
 
 Only the run inputs are needed to start, and `docs/initial_install.md` and
 `docs/codequality.md` must be done. The rest decides how much the run can prove
-itself. Anything missing never stops it: the check is `deferred`, and step 8 of
+itself. Anything missing never stops it: the check is `deferred`, and step 4 of
 "After the run" clears it.
 
 - [ ] The run inputs below are filled in, and the assumptions below hold or are
@@ -186,7 +186,7 @@ The key is optional, and setting it has costs beyond the Stage 6 calls:
 So use a new key made for this run, in a Console workspace with a small spend limit.
 Add it to the shell profile only for the run, then remove it and revoke the key.
 Never put it in `.env` or in a file in the repo. To keep it out of the session
-entirely, leave it unset and run the Stage 6 checks at step 8 of "After the run".
+entirely, leave it unset and run the Stage 6 checks at step 4 of "After the run".
 
 Uncommitted changes on the base branch don't stop the run either: Stage 1 carries them onto
 the branch for the owner's review.
@@ -200,7 +200,7 @@ Nothing here depends on the agent's purpose.
 | Input | Goes to | Value | Notes |
 | --- | --- | --- | --- |
 | Project name | `profile.project` | `agentic_tools_v2` | |
-| Base branch | Stage 1 | `governance_implementation` | The branch holding the reworked instruction files. It isn't `main` here, so "After the run" steps 4 and 5 go through it. |
+| Base branch | Stage 1 | `governance_implementation` | The branch holding the reworked instruction files. It isn't `main` here, so "After the run" step 2 merges through it. |
 | Branch | Stage 1 | `governance_bootstrap` | |
 | Agent package path | `profile.product_agent.path` | `app` | |
 | Framework and pinned version | `profile.product_agent.framework` | `google-adk==2.14.0` | |
@@ -208,6 +208,7 @@ Nothing here depends on the agent's purpose.
 | Exact model IDs for planner, executor and reviewer | `models.yaml`, `services.yaml` | Planner and executor: `claude-haiku-5-5`. Reviewer: `claude-sonnet-5-5`. All use `AnthropicLlm` with the Anthropic API. | The reviewer's ID must differ, but it may be the same family (see "Known gaps"). |
 | Telemetry backend | `ops/observability/`, `services.yaml` | Local stack | The local stack is the collector, Tempo, Prometheus, Loki and Grafana, as Stage 2 and Stage 8 spell out. Another backend needs its own exporter values here. |
 | Paid-model approval | The plan | Approved for the Claude API, only for the Stage 6 manual run and integration tests. | Any other paid call needs new owner approval. |
+| Reviewer key in CI | "After the run" step 2 | No | Yes starts paid `claude-sonnet-5-5` calls on every PR, which the approval above doesn't cover (COST-001). For yes, also set `REVIEWER_API_KEY` in the terminal that runs step 2. The answer can change later with `gh secret set ANTHROPIC_API_KEY`. |
 
 ---
 
@@ -620,9 +621,9 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
 - `pass`, owner check `none`: GOV-001 prompt and SessionStart hooks, GOV-002 deny on
   protected paths, deny on `git push` and commit-on-`main` guard, GOV-006 prompt hook,
   SCOPE-001 and SCOPE-002 PreToolUse.
-- `pass`, owner check "After the run step 6": GOV-004 commit-msg, EVID-001 trailers.
+- `pass`, owner check "After the run step 2": GOV-004 commit-msg, EVID-001 trailers.
   They do nothing until `core.hooksPath` is set.
-- `deferred`, owner check "After the run step 7": GOV-002 sandbox.
+- `deferred`, owner check "After the run step 3": GOV-002 sandbox.
 
 ---
 
@@ -776,8 +777,9 @@ what the agent does.
 ### Ledger
 
 GOV-005, MODEL-001 allowlist test and EVID-001 session log as `pass`, owner check
-`none`. COST-001 runtime as `pass`, with owner check "the Stage 6 manual run" until it
-has run, because token counting hasn't seen a real response before then.
+`none`. COST-001 runtime as `pass`, with owner check `none` if the manual run passed in
+this run, so the proposal can activate it. Otherwise use the owner check "the Stage 6
+manual run, After the run step 4", because token counting hasn't seen a real response.
 
 ---
 
@@ -982,7 +984,8 @@ quality claims need proof.
 ### Ledger
 
 QUAL-001 as tested. EVID-001 review and DATA-001 ORR as `deferred`, with these
-owner checks: hold the first review, and sign off `SECURITY.md`.
+owner checks: hold the first review, and sign off `SECURITY.md`, each at "After the run"
+in `docs/agent_governance_implementation.md`.
 
 ---
 
@@ -1020,12 +1023,17 @@ statement of what is proven and what isn't.
    in which only controls with a `pass` result and owner check `none` are
    `active`. Everything else stays `planned`. This is a proposal: the run does
    not change the status of any control in `governance/rules.yaml`.
-5. **Tech-debt tracker.** Add every deferred item and every gap found.
-6. **Close-out.** List in the plan every open owner action from "After the run" that
+5. **`scripts/arm_governance.py`.** Copy it exactly from "Reference scripts", and test
+   its decisions in `tests/governance/test_arm_governance.py`: `activate` changes only
+   the named controls, including every real one the script names, and `ci_failures`
+   fails a failed step, a required job that didn't run, and anything but the ignored
+   step. The run never runs its `arm`, `sandbox` or `paid` commands.
+6. **Tech-debt tracker.** Add every deferred item and every gap found.
+7. **Close-out.** List in the plan every open owner action from "After the run" that
    applies, each deferred check and each stage that was blocked.
-7. **Dry-run the apply step.** Commit, then clone the branch to a temporary folder
-   outside the repo and symlink `.venv` into it. There, follow "After the run" step 2
-   exactly, then run the Stop hook's checks with
+8. **Dry-run the apply step.** Commit, then clone the branch to a temporary folder
+   outside the repo and symlink `.venv` into it. There, run
+   `.venv/bin/python -m scripts.arm_governance apply`, then the Stop hook's checks with
    `echo '{}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh`. Everything must
    pass in the applied state too, because nothing else tests it. Fix what breaks, and
    delete the clone. Never run this in the repo itself.
@@ -1035,7 +1043,7 @@ statement of what is proven and what isn't.
 - [ ] `scripts/check_activation.py` passes against the proposal.
 - [ ] `test_settings.py` still passes against the proposed settings.
 - [ ] Everything, including `proposals/0001/`, is committed on the branch.
-- [ ] The dry run of "After the run" step 2 passes every check.
+- [ ] The dry run of the apply command passes every check.
 
 ---
 
@@ -1099,78 +1107,90 @@ profile), this file, `docs/agent_governance_implementation.md`,
 
 These are for the owner, in this order, once the run has given its final report. The
 run lists them and does not attempt them. Every owner action in this file is here, and
-none is needed before the final report.
+none is needed before the final report. A complete run leaves three: review, arm and
+confirm.
 
 1. **Review the branch.** Check everything, especially `profile.yaml`,
    `rules.yaml`, `thresholds.yaml`, `tools.yaml`, the allowlists and the ledger.
    Check that each tool's `tools.yaml` entry matches its signature, and review the
-   dependency diff, and any uncommitted changes Stage 1 carried over. If Stage 1
-   recorded a missing run input, fill it in and resume from the first blocked stage.
-2. **Check and apply the proposal, on the branch.** This arms the controls and
-   applies the proposed statuses:
+   dependency diff, and any uncommitted changes Stage 1 carried over. Read
+   `scripts/arm_governance.py` closely: the run wrote it, and step 2 pushes and merges
+   with it. If Stage 1 recorded a missing run input, fill it in and resume from the
+   first blocked stage.
+2. **Arm the controls.** Your review is the approval, so run this only after step 1,
+   from your own terminal:
 
    ```bash
-   .venv/bin/python scripts/check_activation.py proposals/0001/governance/rules.yaml
+   .venv/bin/python -m scripts.arm_governance arm
    ```
+
+   After you confirm, it:
+   - Checks and applies the proposal, commits it with its trailers and runs the tests.
+   - If the run inputs say yes to the reviewer key, stores `REVIEWER_API_KEY` from your
+     terminal as the repo secret, which starts paid calls on every PR (COST-001).
+   - Pushes the base branch and the branch, and opens the test PR into the base branch.
+   - Fails unless every step of every job passed. The jobs use `continue-on-error`, so a
+     green workflow doesn't prove that.
+   - Sets `core.hooksPath`, and proves a commit with no trailers is refused.
+   - Sets GOV-004 CI, SEC-002 CI, DEP-001 CI, GOV-004 commit-msg and EVID-001 trailers to
+     `active`, through `scripts/check_activation.py`, and waits for CI again.
+   - Merges that PR, then merges the base branch to `main` with merge commits. On the
+     second PR, only the trailer check may fail, because it flags the base branch's own
+     commits and GitHub's merge commit, which predate the rule.
+   - Switches to `main`, runs the tests and compares the local and remote governance
+     hashes.
+
+   It stops at the first failure and names it. Fix the cause, without weakening a control,
+   and run it again to resume. Applying arms open sessions too, so their prompts are
+   blocked until governance is committed and clean; that is the gate working.
+3. **Confirm the refusals.** Only a session started under the armed settings can prove
+   these. On Linux or WSL2, install `bubblewrap` and `socat` first, or the session won't
+   start. Start a new session at the repo root with:
+
+   > *"Run the refusal checks in "After the run" step 3 of
+   > docs/governance_implementation.md, and report each result in a table."*
+
+   The session start must show the governance hash. The session then makes each attempt
+   itself, and any attempt that isn't refused is a finding:
+
+   | # | Attempt | Expect |
+   | --- | --- | --- |
+   | 1 | Edit `governance/README.md` with the Edit tool | Refused by a deny rule |
+   | 2 | `git push --dry-run` | Refused |
+   | 3 | `git -C . push --dry-run` | Refused by `branch_guard.sh` |
+   | 4 | `git commit --allow-empty -m 'test'` on `main` | Refused by `branch_guard.sh` |
+   | 5 | Edit `README.md` with no active plan | Refused (SCOPE-001) |
+   | 6 | `.venv/bin/python -c "open('governance/x','w')"` | Refused by the sandbox |
+   | 7 | `.venv/bin/python -c "open('.githooks/x','w')"` | Refused by the sandbox |
+   | 8 | Draft `docs/exec-plans/active/0002-check.md` with `id: '0002'`, `rules: [SCOPE-002]` and `scope_paths: [docs/QUALITY_SCORE.md]`, edit `README.md`, then delete the draft | The draft works, and the edit is refused (SCOPE-002) |
+
+   Never pass `dangerouslyDisableSandbox`. Afterwards, `git status --short` must be empty.
+   If attempts 6 and 7 were refused, run this from your own terminal to set the GOV-002
+   sandbox control to `active`:
 
    ```bash
-   cp -R proposals/0001/. . && rm -rf proposals/0001 && git add -A
+   .venv/bin/python -m scripts.arm_governance sandbox
    ```
 
-   Commit before running the tests. Until then `governance/` is dirty, so the agent
-   fails closed (GOV-005) and the tests can't import it:
-
-   ```bash
-   git commit -m 'Apply governance proposal' --trailer "Governance: $(git rev-parse HEAD:governance)" --trailer 'Plan: 0001'
-   ```
-
-   ```bash
-   .venv/bin/pytest
-   ```
-
-   The tests' defaults now read the applied files.
-3. **Add the reviewer model's API key** as a repo secret. This starts paid calls
-   on every PR, which the run's paid-model approval doesn't cover, so decide it
-   separately (COST-001).
-4. **Push the base branch, then the branch, and open a pull request into the base
-   branch** as the test PR. Confirm the jobs run, then set the GOV-004 CI, SEC-002 CI
-   and DEP-001 CI controls to `active` in that PR.
-5. **Merge that PR, then merge the base branch to `main`.** The second PR's trailer
-   check flags the base branch's own commits, which predate the rule and have no
-   trailers. It's advisory, and nothing else should be flagged. Until governance is
-   committed and clean, every prompt is blocked; that is the gate working.
-6. **Turn on the git hooks.** Then set GOV-004 commit-msg and EVID-001 trailers to
-   `active` in a governance commit, which from now on needs the trailers:
-
-   ```bash
-   git config core.hooksPath .githooks
-   ```
-
-7. **Start a new session at the repo root and confirm.** On Linux or WSL2, install
-   `bubblewrap` and `socat` first, or the session won't start:
-   - The session start shows the governance hash.
-   - Editing `governance/README.md` is refused.
-   - `git push` is refused.
-   - `git commit` on `main` is refused.
-   - Editing any other file, with no active plan, is refused.
-   - After you commit a change to `governance/` from outside the session,
-     the session's next prompt is refused.
-   - An edit outside the active plan's `scope_paths` is refused.
-   - An indirect write to `governance/` from a Bash script is refused. Then set the
-     GOV-002 sandbox control to `active`.
-8. **Clear what was deferred.** Run each deferred ledger check that applies, and set a
-   control to `active`, in a governance commit, only when its check passes:
+   Then send the session any prompt. It must be refused, because the governance hash
+   changed after it started (GOV-006). That is the last check.
+4. **Clear anything deferred.** A complete run has nothing here. Otherwise run each
+   deferred ledger check that applies, and set a control to `active`, in a governance
+   commit, only when its check passes:
 
    | Deferred check | Needs | Commands |
    | --- | --- | --- |
    | Stage 5 local tools | The tools | `brew install actionlint gitleaks osv-scanner`, then `actionlint`, `gitleaks git` and `osv-scanner scan source --lockfile=requirements.txt:requirements-dev.lock` |
-   | Stage 6 manual run and integration tests, COST-001 runtime | `ANTHROPIC_API_KEY` | `.venv/bin/python -m scripts.local_session "What is the status of demo?"`, then `.venv/bin/pytest -m integration` |
+   | Stage 6 manual run and integration tests, COST-001 runtime | `ANTHROPIC_API_KEY` in your terminal | `.venv/bin/python -m scripts.arm_governance paid`, which runs both and then activates the control |
    | Stage 8 complete trace | Docker running | `docker compose -f ops/observability/docker-compose.yaml up -d`, then `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 .venv/bin/python -m scripts.local_session --fake "What is the status of demo?"`, and find the trace in Grafana at http://localhost:3000 |
 
    The Stage 8 trace is outside the sandbox: `docker` can't run in an armed session, so
    run these from your own terminal.
-9. **Hold the first evidence review.** Then set EVID-001 review to `active`.
-10. **Sign off `SECURITY.md`.** Then set DATA-001 ORR to `active`.
+
+The first evidence review and the `SECURITY.md` sign-off wait for
+`docs/agent_governance_implementation.md`, because they need a product agent's evidence and
+its data handling to be meaningful. EVID-001 review and DATA-001 ORR stay `planned` until
+then.
 
 Then continue with `docs/agent_governance_implementation.md` once the agent's
 purpose is known. Until then, normal working applies: **one plan per session**, and every change to
@@ -1759,6 +1779,287 @@ cd "$CLAUDE_PROJECT_DIR" || exit 0
 deny 'GOV-002: no commits on main. Create a branch and commit there; main changes only through a PR the owner merges.'
 ```
 
+`scripts/arm_governance.py`, copied in Stage 10. Set `BASE` and `BRANCH` from the run inputs:
+
+```python
+"""Owner-only: applies the proposal, merges it and activates only what its checks prove.
+
+Usage, from the owner's own terminal: .venv/bin/python -m scripts.arm_governance <command>
+
+  apply    Check and apply the proposal on the branch. Stage 10's dry run uses this alone.
+  arm      Apply, push, run the test PR, turn on the git hooks, activate and merge to main.
+  sandbox  Activate the GOV-002 sandbox control, once a new session has shown the refusals.
+  paid     Run the Stage 6 checks with ANTHROPIC_API_KEY set, then activate COST-001 runtime.
+
+Every command stops at the first failure, and running it again resumes.
+"""
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from scripts.check_activation import problems, read_ledger
+
+REPO = Path(__file__).parent.parent
+RULES = REPO / 'governance/rules.yaml'
+LEDGER = REPO / 'docs/governance-activation.md'
+PROPOSAL = 'proposals/0001'
+BASE = 'governance_implementation'
+BRANCH = 'governance_bootstrap'
+PYTEST = '.venv/bin/pytest'
+CI_POLL_SECONDS = 15
+CI_TIMEOUT_SECONDS = 1800
+# The jobs use continue-on-error, so a green workflow doesn't prove a job passed.
+WORKFLOW_JOBS = {'checks': ['checks'], 'governance': ['governance', 'secrets', 'dependencies']}
+
+Control = tuple[str, str]
+CI_AND_HOOK_CONTROLS: list[Control] = [
+  ('GOV-004', 'governance workflow trailer check (S05)'),
+  ('SEC-002', 'gitleaks in the governance workflow (S05)'),
+  ('DEP-001', 'vulnerability audit and osv-scanner (S05, A02)'),
+  ('GOV-004', '.githooks/commit-msg (S04)'),
+  ('EVID-001', 'Governance and Plan trailers enforced by commit-msg (S04)'),
+]
+SANDBOX_CONTROL: Control = (
+  'GOV-002',
+  'Claude Code sandbox blocks indirect writes to protected paths (S04)',
+)
+COST_CONTROL: Control = ('COST-001', 'governance layer enforces session_token_budget (S06)')
+
+
+class ArmError(Exception):
+  """A check failed, so nothing further may be armed."""
+
+
+def run(*args: str, stdin: str | None = None) -> str:
+  """Runs a command from the repo root and returns its output."""
+  result = subprocess.run(  # noqa: S603 - fixed commands; the owner runs this script
+    args, cwd=REPO, input=stdin, stdout=subprocess.PIPE, text=True, check=True
+  )
+  return result.stdout.strip()
+
+
+def say(message: str) -> None:
+  sys.stdout.write(f'{message}\n')
+  sys.stdout.flush()
+
+
+def commit(message: str) -> None:
+  governance = run('git', 'rev-parse', 'HEAD:governance')
+  run(
+    'git',
+    'commit',
+    '-m',
+    message,
+    '--trailer',
+    f'Governance: {governance}',
+    '--trailer',
+    'Plan: 0001',
+  )
+
+
+def activate(rules: str, ledger: str, controls: list[Control], today: str) -> tuple[str, str]:
+  """Returns the rules and ledger text with these controls active and confirmed by the owner."""
+  for rule_id, control in controls:
+    # YAML quotes a name holding a comma.
+    planned = rf"(by: '?{re.escape(control)}'?, status: )planned"
+    rules = re.sub(planned, r'\1active', rules)
+    names = rf'\| {re.escape(rule_id)} \| {re.escape(control)}'
+    row = rf'^({names} \| [^|]* \| [^|]* \|) [a-z]+ \| [^|]* \|$'
+    ledger = re.sub(row, rf'\1 pass | Confirmed by the owner, {today} |', ledger, flags=re.M)
+  return rules, ledger
+
+
+def commit_controls(controls: list[Control], message: str) -> None:
+  """Activates controls in one commit, after the activation check accepts them."""
+  old_rules = RULES.read_text()
+  rules, ledger = activate(old_rules, LEDGER.read_text(), controls, date.today().isoformat())
+  proposed = yaml.safe_load(rules)['rules']
+  active = {(r['id'], c['by']) for r in proposed for c in r['controls'] if c['status'] == 'active'}
+  found = [
+    f'{rule}: "{name}" did not become active'
+    for rule, name in controls
+    if (rule, name) not in active
+  ]
+  found += problems(yaml.safe_load(old_rules)['rules'], proposed, read_ledger(ledger))
+  if found:
+    raise ArmError('\n'.join(found))
+  if rules == old_rules:
+    return
+  RULES.write_text(rules)
+  LEDGER.write_text(ledger)
+  run('git', 'add', str(RULES), str(LEDGER))
+  commit(message)
+
+
+def ci_failures(
+  jobs: list[dict[str, Any]], required: list[str], ignored_step: str | None = None
+) -> list[str]:
+  """Returns what failed in a workflow run. A required job that didn't run counts."""
+  steps = {job['name']: job['steps'] for job in jobs}
+  missing = [f'{name}: did not run' for name in required if not steps.get(name)]
+  return missing + [
+    f'{name}: step "{step["name"]}" ended {step["conclusion"]}'
+    for name, job_steps in steps.items()
+    for step in job_steps
+    if step['conclusion'] not in ('success', 'skipped') and step['name'] != ignored_step
+  ]
+
+
+def _finished_run(sha: str, workflow: str) -> str:
+  listing = ('gh', 'run', 'list', '--commit', sha, '--workflow', workflow, '--event')
+  fields = ('pull_request', '--json', 'databaseId,status')
+  deadline = time.monotonic() + CI_TIMEOUT_SECONDS
+  while time.monotonic() < deadline:
+    runs = json.loads(run(*listing, *fields))
+    if runs and runs[0]['status'] == 'completed':
+      return str(runs[0]['databaseId'])
+    time.sleep(CI_POLL_SECONDS)
+  raise ArmError(f'{workflow} did not finish on {sha}')
+
+
+def await_ci(sha: str, ignored_step: str | None = None) -> None:
+  """Waits for CI on a commit, and fails unless every job's steps passed."""
+  found: list[str] = []
+  for workflow, required in WORKFLOW_JOBS.items():
+    say(f'Waiting for {workflow} on {sha[:7]}')
+    run_id = _finished_run(sha, workflow)
+    jobs = json.loads(run('gh', 'run', 'view', run_id, '--json', 'jobs'))['jobs']
+    found += [f'{workflow}/{problem}' for problem in ci_failures(jobs, required, ignored_step)]
+  if found:
+    raise ArmError('\n'.join(found))
+
+
+def pr_state(head: str) -> str:
+  return run(
+    'gh', 'pr', 'list', '--head', head, '--state', 'all', '--json', 'state', '-q', '.[0].state'
+  )
+
+
+def require_clean() -> None:
+  if run('git', 'status', '--porcelain'):
+    raise ArmError('The working tree has uncommitted changes.')
+
+
+def apply_proposal() -> None:
+  """Applying arms every open session, and the gate blocks prompts until the commit lands."""
+  require_clean()
+  if not (REPO / PROPOSAL).exists():
+    return
+  run(sys.executable, 'scripts/check_activation.py', f'{PROPOSAL}/governance/rules.yaml')
+  run('cp', '-R', f'{PROPOSAL}/.', '.')
+  shutil.rmtree(REPO / PROPOSAL)
+  run('git', 'add', '-A')
+  commit('Apply governance proposal')
+  run(PYTEST)
+  say('The proposal is applied and the tests pass.')
+
+
+def prove_git_hooks() -> None:
+  run('git', 'config', 'core.hooksPath', '.githooks')
+  attempt = ('git', 'commit', '--allow-empty', '-m', 'This should be refused')
+  refused = subprocess.run(attempt, cwd=REPO, capture_output=True, check=False)  # noqa: S603 - fixed command
+  if refused.returncode == 0:
+    run('git', 'reset', '--soft', 'HEAD~1')
+    raise ArmError('A commit with no trailers was accepted, so the git hooks are not running.')
+
+
+def merge_bootstrap() -> None:
+  run('git', 'switch', BRANCH)
+  apply_proposal()
+  if key := os.environ.get('REVIEWER_API_KEY'):
+    run('gh', 'secret', 'set', 'ANTHROPIC_API_KEY', stdin=key)
+  # Before the hooks are on: pre-push would refuse the base branch's older commits.
+  run('git', 'push', '-u', 'origin', BASE)
+  run('git', 'push', '-u', 'origin', BRANCH)
+  if pr_state(BRANCH) != 'OPEN':
+    title = 'Governance bootstrap'
+    run('gh', 'pr', 'create', '--base', BASE, '--head', BRANCH, '--title', title, '--body', title)
+  await_ci(run('git', 'rev-parse', 'HEAD'))
+  prove_git_hooks()
+  commit_controls(CI_AND_HOOK_CONTROLS, 'Activate the CI and git hook controls')
+  run(PYTEST)
+  run('git', 'push')
+  await_ci(run('git', 'rev-parse', 'HEAD'))
+  run('gh', 'pr', 'merge', BRANCH, '--merge')
+
+
+def merge_base() -> None:
+  if pr_state(BASE) != 'OPEN':
+    title = 'Governance instructions and bootstrap'
+    run('gh', 'pr', 'create', '--base', 'main', '--head', BASE, '--title', title, '--body', title)
+  run('git', 'fetch', 'origin')
+  # The base branch's own commits and GitHub's merge commit predate the trailer rule.
+  await_ci(run('git', 'rev-parse', f'origin/{BASE}'), ignored_step='Commit trailers')
+  run('gh', 'pr', 'merge', BASE, '--merge')
+
+
+def arm() -> None:
+  say('This pushes, merges to main and arms the controls. Do this only after reviewing the branch.')
+  if input('Type arm to continue: ') != 'arm':
+    raise ArmError('Nothing was changed.')
+  require_clean()
+  if pr_state(BRANCH) != 'MERGED':
+    merge_bootstrap()
+  if pr_state(BASE) != 'MERGED':
+    merge_base()
+  run('git', 'fetch', 'origin')
+  run('git', 'switch', 'main')
+  run('git', 'pull', '--ff-only', 'origin', 'main')
+  run(PYTEST)
+  if run('git', 'rev-parse', 'HEAD:governance') != run(
+    'git', 'rev-parse', 'origin/main:governance'
+  ):
+    raise ArmError('The local and remote governance hashes differ.')
+  say('Armed. Next: start a new session and run the refusal check in "After the run" step 3.')
+
+
+def activate_by_pr(branch: str, control: Control, message: str) -> None:
+  """main changes only through a PR, so a later activation goes on its own branch."""
+  require_clean()
+  run('git', 'switch', '-c', branch)
+  commit_controls([control], message)
+  run(PYTEST)
+  run('git', 'push', '-u', 'origin', branch)
+  run('gh', 'pr', 'create', '--base', 'main', '--fill')
+  await_ci(run('git', 'rev-parse', 'HEAD'))
+  run('gh', 'pr', 'merge', '--merge', '--delete-branch')
+  run('git', 'switch', 'main')
+  run('git', 'pull', '--ff-only', 'origin', 'main')
+  say(f'{control[0]} is active: {control[1]}')
+
+
+def sandbox() -> None:
+  activate_by_pr('activate-sandbox', SANDBOX_CONTROL, 'Activate the sandbox control')
+
+
+def paid() -> None:
+  if not os.environ.get('ANTHROPIC_API_KEY'):
+    raise ArmError('ANTHROPIC_API_KEY is not set in this terminal.')
+  run(sys.executable, '-m', 'scripts.local_session', 'What is the status of demo?')
+  run(PYTEST, '-m', 'integration')
+  activate_by_pr('activate-cost-runtime', COST_CONTROL, 'Activate the COST-001 runtime control')
+
+
+if __name__ == '__main__':
+  commands = {'apply': apply_proposal, 'arm': arm, 'sandbox': sandbox, 'paid': paid}
+  try:
+    commands[sys.argv[1]]()
+  except ArmError as error:
+    sys.exit(f'Stopped: {error}')
+  except subprocess.CalledProcessError as error:
+    sys.exit(f'{error.stdout}\nStopped: {" ".join(error.cmd)} failed.')
+```
+
 ## Verified facts
 
 These were checked against sources on Python 3.14 and ADK 2.14, except where a fact says
@@ -1833,7 +2134,7 @@ Seed `docs/exec-plans/tech-debt-tracker.md` with these:
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
 | In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
 | All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/agent_governance_implementation.md` |
-| The proposed sandbox can't be proven inside the run: only a session started under those settings shows the write refused. | GOV-002 | "After the run" step 7 |
+| The proposed sandbox can't be proven inside the run: only a session started under those settings shows the write refused. | GOV-002 | "After the run" step 3 |
 | `branch_guard.sh` reads command text, so `sh -c 'git push'`, aliases and `GIT_CONFIG_*` variables get past it, and a write to `.git/config` can repoint `core.hooksPath`. | GOV-002, GOV-004 | CI trailer check and owner review; consider adding `./.git/config` to `denyWrite` |
 | The sandbox blocks `docker`, so an armed session can't run the local stack or a verification sandbox. | GOV-002, SBX-001 | The owner runs the stack; phase A02 decides whether to exclude `docker` |
 | ADK stores the user's message without calling plugins, so that one stored event has no governance stamp. | GOV-005, EVID-001 | Accept, or wrap the session service to stamp in `append_event` |

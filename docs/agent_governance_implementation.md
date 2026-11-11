@@ -523,8 +523,10 @@ them. Every per-part owner action is here.
    tiers, so they run under the policy.
 7. **Clear what was deferred.** Run each deferred ledger check. Set a control to
    `active`, in a governance commit, only when its check passes.
-8. **Hold an evidence review** that covers a product-agent run.
-9. **Sign off the updated `SECURITY.md`** before the first release.
+8. **Hold the first evidence review,** covering a product-agent run. Then set
+   EVID-001 review to `active` in a governance commit.
+9. **Sign off the updated `SECURITY.md`** before the first release. Then set DATA-001
+   ORR to `active` in a governance commit.
 
 After that, normal working applies: **one plan per session**, and every change
 to a protected path goes through `proposals/<plan ID>/`. A plan that amends a
