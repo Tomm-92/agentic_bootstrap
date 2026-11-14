@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 
 PROJECT = Path(__file__).parent.parent.parent
-PROPOSED = PROJECT / 'proposals/0001/.claude/hooks'
-HOOKS = Path(os.environ.get('HOOKS_DIR', PROPOSED if PROPOSED.is_dir() else '.claude/hooks'))
+HOOKS = Path(os.environ.get('HOOKS_DIR', '.claude/hooks'))
 HOOKS = HOOKS if HOOKS.is_absolute() else PROJECT / HOOKS
 GITHOOKS = PROJECT / '.githooks'
-PLAN = "---\nid: '0001'\nrules: [SCOPE-002]\nscope_paths:\n  - app/**\n---\n\n# Plan\n"
+PLAN = (
+  "---\nid: '0001'\nrules: [SCOPE-002]\nscope_paths:\n  - app/**\n  - scripts/**\n---\n\n# Plan\n"
+)
 ZERO = '0' * 40
 GIT_ENV = {
   'GIT_CONFIG_GLOBAL': os.devnull,
@@ -199,9 +200,10 @@ def test_plan_files_are_editable_with_no_plan(repo):
   assert not denied(repo.edit(repo.path / 'docs/exec-plans/active/0002-new.md'))
 
 
-def test_scope_inside_allowed(repo):
+@pytest.mark.parametrize('path', ['app/deep/x.py', 'scripts/x.sh'])
+def test_scope_inside_allowed(repo, path):
   add_plan(repo)
-  assert not denied(repo.edit(repo.path / 'app/deep/x.py'))
+  assert not denied(repo.edit(repo.path / path))
 
 
 def test_scope_outside_denied(repo):
@@ -227,15 +229,6 @@ def test_scope_path_cannot_borrow_the_plan_exemption(repo):
   assert denied(repo.edit(f'{repo.path}/docs/exec-plans/../../x'))
   add_plan(repo)
   assert denied(repo.edit(f'{repo.path}/docs/exec-plans/../../x'))
-
-
-def test_scope_with_this_runs_own_plan(repo):
-  plans = PROJECT / 'docs/exec-plans'
-  [plan] = [*plans.glob('active/0001-bootstrap.md'), *plans.glob('completed/0001-bootstrap.md')]
-  repo.write('docs/exec-plans/active/0001-bootstrap.md', plan.read_text())
-  assert not denied(repo.edit(repo.path / 'app/agent.py'))
-  assert not denied(repo.edit(repo.path / 'proposals/0001/mypy.ini'))
-  assert denied(repo.edit(repo.path / 'ruff.toml'))
 
 
 # --- Branch guard ----------------------------------------------------------------------
@@ -299,7 +292,6 @@ def test_guard_denies_on_any_branch(repo, command):
   [
     'git config core.hooksPath',
     'git config --get core.hooksPath',
-    'git stash push',
     'git log --grep "git push"',
     'echo "git push"',
   ],

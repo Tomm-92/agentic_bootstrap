@@ -8,9 +8,9 @@ from pathlib import Path
 import pytest
 
 PROJECT = Path(__file__).parent.parent.parent
-PROPOSED = PROJECT / 'proposals/0001/.claude/settings.json'
-DEFAULT = PROPOSED if PROPOSED.exists() else PROJECT / '.claude/settings.json'
-SETTINGS = json.loads(Path(os.environ.get('SETTINGS_PATH', DEFAULT)).read_text())
+SETTINGS = json.loads(
+  Path(os.environ.get('SETTINGS_PATH', PROJECT / '.claude/settings.json')).read_text()
+)
 
 PROTECTED = {
   'Edit(/governance/**)': './governance',
@@ -91,5 +91,4 @@ def test_every_hook_script_exists():
   for command in commands:
     name = re.fullmatch(r'"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/(\S+\.sh)', command)
     assert name, command
-    folders = (PROJECT / 'proposals/0001/.claude/hooks', PROJECT / '.claude/hooks')
-    assert any((folder / name[1]).exists() for folder in folders), command
+    assert (PROJECT / '.claude/hooks' / name[1]).exists(), command
