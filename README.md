@@ -1,9 +1,99 @@
-# agentic_tools_v2
+# agentic_bootstrap
 
-A Google ADK agent project. `app/` currently holds a placeholder agent, to be
-replaced with the real one.
+The starting point for every agentic development project. A new project starts from
+this repo, so it gets the same governance, transparency, observability and code
+quality controls from its first commit. The goal is consistent development and
+reliable, production-ready outcomes, whoever or whatever writes the code.
 
-## Governance
+`app/` holds a placeholder Google ADK agent, which each project replaces with its
+real one.
+
+## Why a bootstrap repo
+
+Coding agents write code fast. Without shared guardrails, every project picks its own
+rules, checks and logging, and each one is governed differently. Some are not governed
+at all. Nobody can say for sure what an agent did, which rules it followed or whether
+its output is safe to ship.
+
+This repo fixes that by making the controls part of the project's starting state. They
+are in place before anything is built, so no team has to add them later. Every project
+built from it has these four things.
+
+**Governance.** The rules are written down in `governance/rules.yaml`. Each one has a
+reason, a tier and at least one control that enforces it. Hooks, permission deny rules,
+git hooks and CI apply them, so they do not rely on the agent following instructions.
+Agents cannot edit the rules or their enforcement. Changes go through a proposal that
+the owner reviews. The product agent itself fails closed without committed governance,
+refuses unclassified tools and keeps to a token budget.
+
+**Transparency.** All work runs under an execution plan that states its intent, scope,
+decisions and risks. Edits outside the plan's scope are blocked. Every commit records
+the governance hash and plan ID it was made under, so any change can be traced back to
+the rules and intent behind it. Runtime sessions go to a durable log that is never
+summarised away. `docs/QUALITY_SCORE.md` can only claim progress with linked evidence.
+
+**Observability.** Every model call and tool call emits OpenTelemetry spans with the
+session, user, governance hash and guardrail result. When something fails, the span
+says whether the cause was the model, the harness, a tool, a policy or the sandbox.
+Metrics count blocked tool calls, confirmations, budget refusals and token use.
+`ops/observability/` holds a local collector, Tempo, Prometheus and Grafana stack, with
+alerts.
+
+**Code quality.** Ruff, vulture, mypy (strict) and the unit tests run after every agent
+edit, before every turn ends, and in CI on every pull request. Tests use a scripted fake
+model, so they cost nothing. Real-model tests are kept separate. ADK conventions are
+checked by tests and by the `/adk-review` command.
+
+Together these turn agent-driven development into a repeatable process. Each project
+starts from the same controls and leaves the same evidence. Each one reaches production
+through the same gates.
+
+## Why Google ADK
+
+The product agent is built on Google's Agent Development Kit (ADK). It was chosen
+because its extension points let governance live in the framework instead of in prompts:
+
+- **Plugins and callbacks.** A single `GovernancePlugin` attached to the `App` sees
+  every run, model call, tool call and event. It fails closed, enforces the token
+  budget and tool policy, and stamps evidence. The rules are enforced in code, not only
+  stated in instructions.
+- **Model choice.** ADK is not tied to Gemini. This repo runs Claude through
+  `AnthropicLlm`, with each model pinned by exact ID from an allowlist. A model can
+  change without the agent being rewritten.
+- **Durable sessions.** `DatabaseSessionService` keeps a full, queryable record of every
+  session, which the evidence rules depend on.
+- **Built-in telemetry.** ADK emits OpenTelemetry spans for agent and tool execution.
+  The governance layer adds its own attributes to them, without a separate tracing
+  setup.
+- **Structured multi-agent design.** `Workflow` graphs and sub-agents with
+  `mode='single_turn'` or `mode='task'` and typed `input_schema`s make the delegation
+  explicit. That lets later phases separate the agent that plans from the one that
+  acts, and give the reviewer its own model.
+- **Evaluation.** ADK's eval format gives a standard way to write behavioural tests,
+  which later phases run as a gate whenever a model changes.
+- **Open source and production-ready.** ADK is maintained by Google and installed as a
+  pinned, locked dependency. Its CLI covers local development (`adk web`), evals
+  (`adk eval`) and deployment (`adk deploy` to Cloud Run, Agent Engine, GKE or a
+  Docker image).
+
+## Starting a new project
+
+A project is built from four instruction files in `docs/`. Run each one in its own
+Claude Code session, opened at the repo root:
+
+| Order | File | What it adds |
+| --- | --- | --- |
+| 1 | `docs/initial_install.md` | Git, Python 3.14, Google ADK, first commit |
+| 2 | `docs/codequality.md` | Lint, type and test gates |
+| 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose |
+| 4 | `docs/agent_governance_implementation.md` | The controls that do, once the purpose is known: tools, sandboxed verification, intent approval, independent review and evals |
+
+`docs/governance-activation.md` records which controls are active. The owner activates
+planned controls one at a time, as each one becomes real.
+
+## How it works
+
+### Governance
 
 The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
 agent. See `governance/README.md` for the rule format and change process.
@@ -63,7 +153,7 @@ the durable log at `.sessions/sessions.db`, with `--fake` to spend nothing:
 `ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
 scripts.evidence_report` summarises the evidence for `docs/REVIEW.md`.
 
-## Code quality
+### Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
 that follows Google ADK conventions. CLAUDE.md holds the rules, and the
