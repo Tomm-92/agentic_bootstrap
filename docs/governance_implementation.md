@@ -572,7 +572,10 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
     `HOOKS_DIR` environment variable. Its default
     is `proposals/0001/.claude/hooks` if that folder exists, and otherwise
     `.claude/hooks`, so the suite passes during the run and after the owner
-    applies the proposal, and code quality's Stop hook stays green. Cases:
+    applies the proposal, and code quality's Stop hook stays green. Once the owner
+    has applied the proposal, the next plan deletes this fallback and keeps
+    `HOOKS_DIR`. Otherwise, anything that recreates the folder would silently point
+    the tests at it in place of the live hooks. Cases:
     - SessionStart reports the hash and the plan.
     - A prompt is allowed when governance is clean, and its output contains
       the hash and the plan.
@@ -585,21 +588,24 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
     - Edits with 0, 1 or 2 plans give deny, allow, deny.
     - Plan files are editable with no plan.
     - The branch guard denies `git commit` and `git -C . commit` on `main`,
-      and allows `git status`, and commits on another branch.
+      and allows `git status` and `git stash push`, and commits on another branch.
     - Scope paths: inside allowed, outside denied, outside the repo denied, missing
-      front matter denied. A `docs/exec-plans/../../x` path is denied. Include this
-      run's own plan, `0001-bootstrap.md`, found in `active/` or `completed/`.
+      front matter denied. A `docs/exec-plans/../../x` path is denied. The test plan
+      has two scope paths, and a path that matches only the second is allowed, so a
+      hook that checks only the first glob fails.
     - Each new branch-guard case, including `git -C . push`,
       `git -c push.default=current push`, `git -c user.name=x commit` on `main`, and
-      lookalikes that stay allowed (`git commit --amend`, `git stash push`).
+      lookalikes that stay allowed (`git commit --amend`).
     - `commit-msg`: missing, wrong or valid trailers; root commit; the commit
       that first adds `governance/`.
 11. **`tests/governance/test_settings.py`.** Reads the settings from a
     `SETTINGS_PATH` environment variable. Its default is
     `proposals/0001/.claude/settings.json` if that file exists, and otherwise
-    `.claude/settings.json`. It checks that every protected path has a deny rule
-    and a sandbox `denyWrite` entry, that every hook refers to a script that exists
-    in the proposal or in `.claude/hooks/`, that code quality's hooks and deny rules
+    `.claude/settings.json`. As with `HOOKS_DIR`, the next plan after the owner
+    applies the proposal deletes this fallback and keeps `SETTINGS_PATH`. It checks
+    that every protected path has a deny rule and a sandbox `denyWrite` entry, that
+    every hook refers to a script that exists in the proposal or in `.claude/hooks/`
+    (only `.claude/hooks/` once the fallback is gone), that code quality's hooks and deny rules
     are still there, and that the sandbox is on with no escape: `failIfUnavailable`
     true, `allowUnsandboxedCommands` false, and no `excludedCommands`.
 
