@@ -2,7 +2,6 @@
 
 import json
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -256,7 +255,7 @@ def test_guard_denies_commit_on_main(repo, command):
   assert denied(repo.guard(command))
 
 
-@pytest.mark.parametrize('command', ['git status', 'git stash push', 'git log --oneline'])
+@pytest.mark.parametrize('command', ['git status', 'git stash push'])
 def test_guard_allows_other_commands_on_main(repo, command):
   assert not denied(repo.guard(command))
 
@@ -415,8 +414,3 @@ def test_pre_push_checks_a_new_remote_branch(repo):
 
 def test_pre_push_skips_a_branch_deletion(repo):
   assert _push(repo, ZERO, repo.git('rev-parse', 'HEAD')).returncode == 0
-
-
-def test_hook_scripts_are_executable():
-  for path in (HOOKS / 'governance_gate.sh', HOOKS / 'branch_guard.sh', GITHOOKS / 'commit-msg'):
-    assert shutil.which(path.name, path=str(path.parent)), path

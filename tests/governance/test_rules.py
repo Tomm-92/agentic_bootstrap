@@ -56,13 +56,10 @@ def test_tier_has_the_control_it_needs(rule):
     assert 'H' in types
 
 
-def test_profile_has_every_key():
-  assert set(PROFILE) == {'project', 'product_agent'}
-  assert set(PROFILE['product_agent']) == AGENT_KEYS
-
-
-def test_bootstrap_keys_are_filled():
+def test_profile_is_complete():
   agent = PROFILE['product_agent']
+  assert set(PROFILE) == {'project', 'product_agent'}
+  assert set(agent) == AGENT_KEYS
   assert PROFILE['project']
   assert agent['path']
   assert agent['framework']

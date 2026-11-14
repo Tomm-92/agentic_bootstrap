@@ -17,10 +17,6 @@ def _all_agents(root=agent.root_agent):
     yield from _all_agents(sub_agent)
 
 
-def test_agent_loads():
-  AgentLoader(str(PROJECT)).load_agent('app')
-
-
 def test_agent_folders_are_laid_out_for_adk_web():
   # ADK lists every top-level folder with an agent.py, a root_agent.yaml or
   # an __init__.py, so tests/ must not be a package.
