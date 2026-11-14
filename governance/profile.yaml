@@ -1,6 +1,6 @@
 # Describes this project's agentic product. Rules and phases refer to these
 # keys as <profile.key>. Change process: governance/README.md.
-project: 'agentic_tools_v2'
+project: 'agentic_bootstrap'
 product_agent:                 # one ADK agent tree: a root agent and its sub-agents
   path: 'app'
   framework: 'google-adk==2.14.0'
