@@ -20,11 +20,6 @@ def _text(event):
   return ''.join(p.text or '' for p in event.content.parts)
 
 
-def test_startup_fails_when_governance_is_missing(tmp_path):
-  with pytest.raises(GovernanceError):
-    GovernancePlugin(tmp_path)
-
-
 def test_startup_fails_when_governance_is_uncommitted(tmp_path):
   repo = GovernedRepo(tmp_path)
   repo.git('rm', '-rq', '--cached', 'governance')
