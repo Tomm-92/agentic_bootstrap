@@ -19,8 +19,8 @@ The owner does these before the run, because the assistant must not:
 
 - [ ] Stages 1 to 11 of `docs/governance_implementation.md` are complete, and
       "After the run" in that file is done.
-- [ ] The purpose inputs below are filled in. The owner can say what the agent
-      is for.
+- [ ] The owner can say, in a sentence each, what the agent is for and what it
+      produces. The purpose interview guides them through everything else.
 - [ ] A container runtime is reachable from the session, and `ANTHROPIC_API_KEY`
       is set. Without them, their checks will be `deferred`.
 
@@ -29,13 +29,17 @@ The owner does these before the run, because the assistant must not:
 Start one session at the repo root with:
 
 > *"Implement docs/agent_governance_implementation.md in one run, from A01 to
-> A06. The purpose inputs are in <path>."*
+> A06."*
+
+If the owner has already written some purpose inputs down, they can add *"The
+purpose inputs are in <path>."* The interview then asks only about the rest.
 
 ### How one run stays governed
 
 The controls from the bootstrap file are armed, and nothing here turns them
 off. The gate, deny rules, scope check, sandbox and commit trailers all apply
-throughout. The run still needs no help from the owner until it ends:
+throughout. After the purpose interview, the run needs no help from the owner
+until it ends:
 
 1. **Protected changes are proposals.** Every change to a protected path goes
    under `proposals/A00/` at the same relative path, in this order of need:
@@ -94,20 +98,43 @@ A control with no passing evidence stays `planned`.
 
 ## Purpose inputs
 
-Answer these in one file, or in the opening message. A01 asks once, in a single
-batch, for anything missing. The appendices show two complete examples.
+The run collects these in a **purpose interview** before A01 builds anything.
+The owner doesn't need to prepare them or know the governance terms in
+advance.
 
-| Input | Goes to | Notes |
+1. **Ask for the purpose and the output first.** Ask for them together, in
+   plain words: what the agent does for its users, and what it produces.
+   Nothing else is asked until both are answered.
+2. **Guide the owner through the rest, one input at a time,** in the order of
+   the table below. For each one:
+   - Explain in a sentence what it controls and why it matters.
+   - Recommend a value worked out from the purpose and output, using the
+     appendices as guides, and say why. Offer the main alternatives as choices
+     where there are any.
+   - Let the owner accept the recommendation, pick an alternative or give their
+     own answer.
+
+   Skip any input the owner already answered in the opening message or a file.
+3. **Confirm the whole set.** Show every answer in one summary and ask the owner
+   to confirm it or change any item.
+4. **Record it.** Write the confirmed answers to the plan under "Purpose
+   inputs". A01 to A06 use only these.
+
+A recommendation is not an answer until the owner accepts it. If the owner
+can't answer an input, record it as an open question in the plan, and mark the
+parts that depend on it as `blocked`.
+
+| Input | Goes to | What to recommend |
 | --- | --- | --- |
-| Purpose, in one sentence | `profile.product_agent.purpose` | **Required.** |
-| Output | `profile.product_agent.output` | |
-| Intent artifact | `profile.product_agent.intent_artifact` | What users approve first. |
-| Tools, and what each does | `profile.product_agent.tools`, `tools.yaml` | Include tier decisions that differ from the defaults in A01. |
-| Verification stages | `profile.product_agent.verification` | Only those that apply to the output type. |
-| Package ecosystems and allowed packages | `profile.product_agent.package_ecosystems`, `packages.yaml` | |
-| External targets | `profile.product_agent.external_targets`, `services.yaml` | |
-| Reviewer model | `models.yaml` | Its ID must differ from the executor's, but it may be the same family (see "Known gaps" in `docs/governance_implementation.md`). |
-| Paid-model approval | The plan | Default: none. In Claude-only dev mode, A03's end-to-end runs and A04's eval gate are paid calls, so say whether each is approved. A04 costs `eval_runs` runs per eval case. Without approval, those checks are `deferred`. |
+| Purpose, in one sentence | `profile.product_agent.purpose` | **Required.** Asked first; no recommendation. |
+| Output | `profile.product_agent.output` | **Required.** Asked first; no recommendation. |
+| Intent artifact | `profile.product_agent.intent_artifact` | What users approve before anything is built. The standard description format for the output, for example an OpenAPI document for an API or a change request for infrastructure. |
+| Tools, and what each does | `profile.product_agent.tools`, `tools.yaml` | The smallest set that produces the output. Give each tool's tier with the defaults in A01: anything that writes, executes, sends, deletes or spends is at least `confirm`. Ask whether any tier should differ. |
+| Verification stages | `profile.product_agent.verification` | Only the stages from A02's table that apply to the output type, each with a one-line reason. |
+| Package ecosystems and allowed packages | `profile.product_agent.package_ecosystems`, `packages.yaml` | The registries the output's language or format uses, and a short starting list of packages. None if the output has no dependencies. |
+| External targets | `profile.product_agent.external_targets`, `services.yaml` | None, unless the purpose says the agent acts on another system. |
+| Reviewer model | `models.yaml` | The model with `use: reviewer` in `allowlists/models.yaml`. Its ID must differ from the executor's, but it may be the same family (see "Known gaps" in `docs/governance_implementation.md`). |
+| Paid-model approval | The plan | Recommend none. Explain that in Claude-only dev mode, A03's end-to-end runs and A04's eval gate are paid calls, and A04 costs `eval_runs` runs per eval case. Ask about each separately. Without approval, those checks are `deferred`. |
 
 ---
 
@@ -126,13 +153,14 @@ user.
 
 ### Build
 
-1. **Plan and branch.** Read the purpose inputs, and ask for anything missing in
-   one batch. Switch to the branch `governance-agent-purpose`, and write
+1. **Interview, plan and branch.** Run the purpose interview in "Purpose
+   inputs". Switch to the branch `governance-agent-purpose`, and write
    `docs/exec-plans/active/A00-agent-purpose.md` with `id: 'A00'`, every rule ID
-   this file names, a checklist of A01 to A06 with their acceptance criteria,
-   and the union of their scope paths plus the protected paths the proposal will
-   change, so the applied commit stays in scope. This file's controls are the
-   `pending` rows in `docs/governance-activation.md`; each part updates its own.
+   this file names, the confirmed purpose inputs, a checklist of A01 to A06 with
+   their acceptance criteria, and the union of their scope paths plus the
+   protected paths the proposal will change, so the applied commit stays in
+   scope. This file's controls are the `pending` rows in
+   `docs/governance-activation.md`; each part updates its own.
 2. **`scripts/proving_repo.sh <dir>`.** Clones the repo at `HEAD` into `<dir>`,
    copies the working tree's changes over it, overlays `proposals/A00/`, and
    commits there, so `governance/` is clean and committed. It never writes to the
