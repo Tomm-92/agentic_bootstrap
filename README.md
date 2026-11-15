@@ -8,6 +8,131 @@ reliable, production-ready outcomes, whoever or whatever writes the code.
 `app/` holds a placeholder Google ADK agent, which each project replaces with its
 real one.
 
+## Getting started
+
+The bootstrap is built from four instruction files in `docs/`. The first three are
+already applied in every clone, so you only run the fourth:
+
+| Order | File | What it adds | In a fresh clone |
+| --- | --- | --- | --- |
+| 1 | `docs/initial_install.md` | Git, Python 3.14, Google ADK, first commit | Done |
+| 2 | `docs/codequality.md` | Lint, type and test gates | Done |
+| 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose | Done |
+| 4 | `docs/agent_governance_implementation.md` | Tools, sandboxed verification, intent approval, independent review and evals for your agent | **You run this** |
+
+Getting going takes five steps: set up your clone, know what your agent is for,
+check the prerequisites, run file 4, then apply what it proposes.
+
+### 1. Set up your clone
+
+Run:
+
+```bash
+python3.14 -m venv .venv
+.venv/bin/pip install -r requirements-dev.lock
+git config core.hooksPath .githooks
+```
+
+Always open Claude Code at the repo root. It loads `.claude/settings.json` only from
+the folder it was launched in, so a session opened from a parent folder runs none of
+the hooks or deny rules.
+
+### 2. Know what your agent is for
+
+You need only two answers ready, each in a sentence:
+
+- **Purpose:** what the agent does for its users. For example, *"Designs REST APIs
+  with the user and generates them in Go or Python."*
+- **Output:** what it produces. For example, *"REST API source code"*.
+
+The run asks for these first. Then it takes you through the remaining choices one at a
+time. For each one it explains what the choice controls, recommends an answer based on
+your purpose and output, and lets you accept it, pick another option or answer in your
+own words:
+
+| Choice | What it decides |
+| --- | --- |
+| Intent artifact | What your users approve before the agent builds anything, such as an OpenAPI document |
+| Tools | What the agent can do, and which actions need the user's confirmation |
+| Verification | Which checks every output must pass, such as secret scanning or tests |
+| Packages | Which package registries and packages the output may use |
+| External systems | Any system the agent may act on beyond files, such as a GitHub repo |
+| Reviewer model | The model that independently reviews the agent's work |
+| Spending | Whether the run may make paid model calls to test the agent. The recommendation is no, and those checks are left for you to run later |
+
+At the end it shows all your answers together, so you can change any of them before it
+starts building. If you can't answer a choice, the run records it as an open question
+and skips the parts that depend on it. It never guesses.
+
+### 3. Check the prerequisites
+
+- A container runtime, such as Docker, is reachable from the session. The run
+  verifies generated output in a disposable sandbox.
+- `ANTHROPIC_API_KEY` is set in your environment.
+
+Without these the run still finishes, but the checks that need them are recorded as
+`deferred`, with the exact command for you to run later.
+
+### 4. Run the agent governance implementation
+
+Start one Claude Code session at the repo root and say:
+
+> *"Implement docs/agent_governance_implementation.md in one run, from A01 to
+> A06."*
+
+It starts with the questions from step 2. Once you confirm your answers, it needs
+nothing more from you until it ends. It:
+
+- creates the branch `governance-agent-purpose` and the plan
+  `docs/exec-plans/active/A00-agent-purpose.md`, and commits there after each part
+  (A01 to A06). It never commits on `main` and never pushes.
+- builds the agent's tools, sandbox, intent approval, review and evals in `app/`,
+  `scripts/` and `tests/`.
+- writes every change to governance files, such as `governance/profile.yaml`,
+  `governance/tools.yaml` and `CLAUDE.md`, to `proposals/A00/` instead. Agents
+  can't edit those files, so you apply them.
+- ends with a report listing what passed, what was deferred and what you need to do.
+
+Until you apply the proposal, your agent's new tools are denied when it runs. That
+is expected: the live `governance/tools.yaml` has no entry for them yet.
+
+### 5. Apply the proposal
+
+Do these yourself, on the `governance-agent-purpose` branch. The full list is in
+"After the run" in `docs/agent_governance_implementation.md`.
+
+1. **Review** everything in `proposals/A00/`, especially `governance/profile.yaml`,
+   `governance/tools.yaml` and the allowlists. Check that each tool's tier matches
+   what it can do.
+2. **Choose the extra rules.** The run suggests new rules in
+   `proposals/A00/governance/rules-additions.yaml`. Copy the ones you want into
+   `proposals/A00/governance/rules.yaml`, add a row for each to
+   `docs/governance-activation.md`, then delete the additions file.
+3. **Check and apply** the proposal, then commit it:
+
+   ```bash
+   .venv/bin/python scripts/check_activation.py proposals/A00/governance/rules.yaml
+   cp -R proposals/A00/. . && rm -rf proposals/A00
+   git add -A && git commit -m "Apply proposal A00" \
+     -m "Governance: $(git rev-parse HEAD:governance)" -m "Plan: A00"
+   ```
+
+4. **Decide on eval spending.** The evals workflow makes paid model calls nightly
+   and on matching pull requests. Add `ANTHROPIC_API_KEY` as a repo secret only if
+   you approve that cost.
+5. **Push, open a pull request and merge.** Any open Claude Code session stops at
+   its next prompt, because the governance hash has changed.
+6. **Start a new session.** The new tools now have tiers, so they run under the
+   policy.
+7. **Run the deferred checks** listed in the report, and mark each control
+   `active` in `docs/governance-activation.md` once its check passes.
+
+Before your first release, also hold the first evidence review and sign off
+`docs/SECURITY.md`, as items 8 and 9 of "After the run" describe.
+
+From then on, build your agent one change at a time, with one execution plan per
+session, as described in [How it works](#how-it-works).
+
 ## Why a bootstrap repo
 
 Coding agents write code fast. Without shared guardrails, every project picks its own
@@ -76,22 +201,10 @@ because its extension points let governance live in the framework instead of in 
   (`adk eval`) and deployment (`adk deploy` to Cloud Run, Agent Engine, GKE or a
   Docker image).
 
-## Starting a new project
-
-A project is built from four instruction files in `docs/`. Run each one in its own
-Claude Code session, opened at the repo root:
-
-| Order | File | What it adds |
-| --- | --- | --- |
-| 1 | `docs/initial_install.md` | Git, Python 3.14, Google ADK, first commit |
-| 2 | `docs/codequality.md` | Lint, type and test gates |
-| 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose |
-| 4 | `docs/agent_governance_implementation.md` | The controls that do, once the purpose is known: tools, sandboxed verification, intent approval, independent review and evals |
+## How it works
 
 `docs/governance-activation.md` records which controls are active. The owner activates
 planned controls one at a time, as each one becomes real.
-
-## How it works
 
 ### Governance
 
@@ -133,16 +246,6 @@ plan to `docs/exec-plans/completed/`. The edit gate allows plan files, so this i
 possible. "Owner actions" are for the human: a session lists them and does not attempt
 them.
 
-**Open sessions at the repo root.** Claude Code loads `.claude/settings.json` only from
-the folder it was launched in, so a session opened from a parent folder runs none of
-the hooks or deny rules.
-
-**Setup.** Turn on the git hooks once in each clone:
-
-```bash
-git config core.hooksPath .githooks
-```
-
 **Runtime.** `app/governance.py` is the governance layer. To run one session against
 the durable log at `.sessions/sessions.db`, with `--fake` to spend nothing:
 
@@ -169,9 +272,6 @@ so they cost no extra usage.
   the unit tests. If one fails, Claude is blocked once and keeps working. If the
   retry also fails, the hook tells you instead of blocking again, and doesn't
   re-check until the files change.
-
-Open Claude Code at the repo root. A session opened from a parent folder runs
-none of the hooks.
 
 What the checks cover:
 - ruff.toml: formatting and common errors, needlessly roundabout code,
@@ -211,13 +311,6 @@ it is a required status check in the branch protection rules.
 
 Run integration tests with `.venv/bin/pytest -m integration` before merging
 anything that changes model-facing behaviour.
-
-**Setup:**
-
-```bash
-python3.14 -m venv .venv
-.venv/bin/pip install -r requirements-dev.lock
-```
 
 Run the checks by hand:
 
