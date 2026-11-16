@@ -9,7 +9,9 @@ Gaps deferred on purpose, and what closes them.
 | The plan check proves a plan exists, not that edits stay in scope. | SCOPE-002 | Stage 4, live once the owner applies it |
 | Commit trailers are instructions, not checks. | GOV-004 | Stages 4 and 5, live once the owner sets `core.hooksPath` |
 | The prompt hook restates the governance hash and plan, not the rules' text, and nothing limits a coding session's length. | GOV-006 | Stage 9 evidence review: tighten if transcripts show drift late in sessions |
-| Coding agents other than Claude Code get the rules as instructions only. | GOV-001, GOV-002, GOV-006, SCOPE-001 | CI checks (Stage 5) and owner review |
+| Coding agents other than Claude Code get checks, trailers, plan scope and protected paths at commit or in CI, not during the session. Nothing pins their governance hash per session, and nothing stops their pushes or commits on `main` until branch protection exists. | GOV-001, GOV-002, GOV-006, SCOPE-001 | Branch protection (see "When the repo changes") and owner review |
+| The edit gate checks scope only for the Edit, Write and NotebookEdit tools. A shell command can write outside `scope_paths`, because the sandbox blocks only protected paths. | SCOPE-002 | The CI scope check reports it at the pull request |
+| The CI scope check accepts any path that has a file in the plan's proposal folder, and trusts the plan's `scope_paths` as of the commit, so a plan can widen its own scope. | SCOPE-002 | Owner review of proposals and plan diffs |
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
 | In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
 | All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/agent_governance_implementation.md` |

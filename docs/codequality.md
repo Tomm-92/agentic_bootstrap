@@ -12,9 +12,9 @@ developed with Claude Code including:
 - On-demand review commands, run on small commits.
 
 The priority throughout is **concise code that follows the framework's
-conventions**. Instructions in `CLAUDE.md` state the rules. Deterministic
-checks enforce every rule they can. Reviews handle the rules that need
-judgement.
+conventions**. Instructions in `AGENTS.md`, which any coding agent reads,
+state the rules. Deterministic checks enforce every rule they can. Reviews
+handle the rules that need judgement.
 
 Put this file at `docs/codequality.md` in the new repo.
 
@@ -49,9 +49,10 @@ Change these before you start if they don't hold:
   **vulture** (dead code), **mypy** (types) and **pytest**. For another
   language, use the equivalents in "Other languages" and keep the same
   structure.
-- **Claude Code is the coding agent.** Its hooks make the checks
-  deterministic. Other agents only see `CLAUDE.md` and `AGENTS.md` as
-  instructions, so CI runs the same checks on every pull request.
+- **Claude Code is the main coding agent, and others are supported.** Claude
+  Code's hooks run the checks during a session. Other agents read
+  `AGENTS.md` as instructions, so CI runs the same checks on every pull
+  request.
 - **The repo is on GitHub**, with Actions enabled. On another host, port the
   CI workflow to its CI system.
 - **`jq` and `git` are installed**, and the repo has at least one commit.
@@ -66,7 +67,7 @@ Change these before you start if they don't hold:
 
 1. **Concise code first.** Write the smallest change that does the job. Dead
    code, speculative helpers and needless guards count as defects.
-2. **Deterministic checks over instructions.** Each `CLAUDE.md` rule that a
+2. **Deterministic checks over instructions.** Each `AGENTS.md` rule that a
    linter or test can check, a linter or test enforces. Instructions only
    nudge the model.
 3. **Cheap checks run automatically, costly ones on demand.** Hooks cost no
@@ -79,18 +80,20 @@ Change these before you start if they don't hold:
 6. **Reviews only look at small diffs.** Commit after each feature so reviews
    stay cheap and focused.
 7. **Reviews cite evidence.** Each finding cites the rule it breaks, either a
-   `CLAUDE.md` line or installed framework source. Findings without
+   `AGENTS.md` line or installed framework source. Findings without
    evidence are dropped.
 
 ## Controls
 
 | Control | When it runs | Type | Cost |
 | --- | --- | --- | --- |
-| `CLAUDE.md` code style and framework conventions | Every session | Instruction | Context only |
+| `AGENTS.md` code style, checks and test rules | Every session | Instruction | Context only |
+| `<agent_package>/AGENTS.md` framework conventions | When an agent first works in the package | Instruction | Context only |
 | `lint_on_edit.sh`: autofix and format, then report what's left | After every Edit/Write of a source file | Hook (deterministic) | Free |
 | `checks_on_stop.sh`: lint, format, dead code, types, unit tests | When Claude tries to finish a turn that changed files | Hook (deterministic) | Free |
 | Lint config: concision, complexity, security, banned APIs | Inside both hooks | Deterministic | Free |
 | Framework convention tests | Inside the Stop hook (unit tests) | Deterministic | Free |
+| Unit tests refuse network connections | Inside the Stop hook (unit tests) | Deterministic | Free |
 | Integration tests and evals against the real model | `pytest -m integration`, by hand | Deterministic | Spends credits |
 | `/<framework>-review`: project conventions | By hand, after a commit | Model judgement | One reviewer |
 | `/simplify`: duplication and complexity, with fixes | By hand, after a commit | Model judgement | Four reviewers |
@@ -184,9 +187,11 @@ Change these before you start if they don't hold:
    model, a description and one fully documented function tool. Tell the
    owner it's a stand-in to replace. Under `tests/unittests/`:
    - Replace any paid model or external service with a scripted fake, so
-     the tests are free and repeatable.
-   - Turn each mechanically checkable convention from `CLAUDE.md` into a
-     test. See "Framework add-ons" for the ADK set. The review skill then
+     the tests are free and repeatable. Add an autouse fixture that makes
+     socket connections fail, so a missed fake fails the test instead of
+     spending credits.
+   - Turn each mechanically checkable convention from
+     `<agent_package>/AGENTS.md` into a test. See "Framework add-ons" for the ADK set. The review skill then
      skips those conventions.
    - Put real-model tests under `tests/integration/`, marked
      `@pytest.mark.integration`.
@@ -199,11 +204,18 @@ Change these before you start if they don't hold:
    `.claude/.checks_fingerprint`. Any unignored file the checks or the
    install create changes the Stop hook's fingerprint (see "Verified facts").
 
-8. **`CLAUDE.md`.** Add the "Code style" section from "Reference files". Add
-   framework conventions under their own heading (layout, imports, models,
-   tools and so on), with a project layout tree. Every convention must be
-   checkable by reading the code. If `AGENTS.md` exists, `CLAUDE.md` starts
-   with `@AGENTS.md`.
+8. **Instruction files.** Put each rule where every coding agent can read
+   it, scoped to where it applies. Copy the sections from "Instruction
+   files" in "Reference files":
+   - `AGENTS.md`: the "Code style", "Checks" and "Tests" sections, and a
+     project layout tree. Create the file if it doesn't exist.
+   - `<agent_package>/AGENTS.md`: the "Framework" section, then the
+     framework conventions (models, tools and so on). Every convention must
+     be checkable by reading the code.
+   - `CLAUDE.md`: `@AGENTS.md` and the Claude Code lines.
+   - `<agent_package>/CLAUDE.md`: only `@AGENTS.md`. Claude Code resolves
+     the import against the file's own folder, and loads the file when it
+     first reads or edits a file in the package.
 
 9. **`.claude/hooks/lint_on_edit.sh` and `.claude/hooks/checks_on_stop.sh`.**
    Copy them from "Reference scripts". Fill in the variables at the top of
@@ -313,7 +325,7 @@ select = [
     "TID251",                    # banned APIs, listed below
     "PGH004", "RUF100",          # noqa must name codes, and stale ones go
     "ANN",                       # type hints on every function
-    "T20",                       # print(); CLAUDE.md bans prints
+    "T20",                       # print(); AGENTS.md bans prints
     "S",                         # security (Bandit)
 ]
 ignore = [
@@ -367,7 +379,9 @@ enable_error_code = ignore-without-code
 warn_unused_ignores = True
 ```
 
-### `CLAUDE.md` code style section
+### Instruction files
+
+Sections for `AGENTS.md`:
 
 ```markdown
 ## Code style
@@ -383,8 +397,7 @@ Concise code is the priority. Write the smallest change that does the job.
 - Do not guard against what cannot happen. Skip `try/except`, `None` checks
   and re-validation for inputs that the framework, Pydantic or the type hints
   already guarantee. Catch only specific exceptions, and only around calls to
-  external services, the network or files. In a tool, return them as an
-  `error` status dict. Never catch bare `Exception`.
+  external services, the network or files. Never catch bare `Exception`.
 - Type-hint every function's parameters and return value. Ruff's `ANN` rules
   enforce this outside `tests/`, and mypy checks the hints are right.
 - Comment only the non-obvious why. No comments or docstrings that restate
@@ -394,24 +407,46 @@ Concise code is the priority. Write the smallest change that does the job.
   backward-compatibility shims unless asked.
 - Match the existing style: <indent width>, <quote style>. `ruff format`
   enforces it.
-- Hooks in `.claude/settings.json` enforce part of this. After each edit,
-  `ruff check --fix` and `ruff format` run on the file, and ruff reports what
-  it cannot fix. Before Claude finishes a turn in which it edited files, ruff
-  (lint and format), vulture (dead code), mypy (types) and the unit tests must
-  pass. Fix the code rather than adding `noqa`, `type: ignore` or ignores. If
-  a rule is wrong for one line, name the code and say why after it:
-  `# noqa: E501 - <why>` or `# type: ignore[arg-type]  # <why>`. The Stop
-  hook rejects either with no reason.
 
-## Working rules
+## Checks
+
+Before you finish, and in CI on every pull request, these must pass: ruff (lint and
+format), vulture (dead code), mypy (types) and the unit tests. Fix the code rather
+than adding `noqa`, `type: ignore` or ignores. If a rule is wrong for one line, name
+the code and say why after it: `# noqa: E501 - <why>` or
+`# type: ignore[arg-type]  # <why>`. A bare one fails the checks.
+
+## Tests
+
+- Unit tests never call a real model or network service. Use the scripted fake in
+  `tests/unittests/conftest.py`, which also refuses network connections.
+- Real-model tests go in `tests/integration/`, marked `@pytest.mark.integration`.
+  They spend credits, so ask before running them.
+```
+
+Section for `<agent_package>/AGENTS.md`, before the framework conventions:
+
+```markdown
+## Framework
 
 - Verify every framework API against the installed source in
   `<.venv/lib/python3.14/site-packages/<framework>/>` before using it. Never
   guess a class, parameter or import path.
 - Prefer framework built-ins over custom code that does the same job.
-- Unit tests never call a real model or network service: use the scripted
-  fake in `tests/unittests/conftest.py`. Real-model tests go in
-  `tests/integration/`, marked `@pytest.mark.integration`.
+```
+
+Claude Code lines for `CLAUDE.md`, after `@AGENTS.md`:
+
+```markdown
+# Claude Code
+
+- Hooks in `.claude/settings.json` run the checks in AGENTS.md for you. After each
+  edit, ruff fixes and formats the file and reports what it can't fix. A turn that
+  edited files can't end while a check fails. When a hook blocks, fix the code.
+- `<agent_package>/CLAUDE.md` loads the framework conventions when you first read or
+  edit a file under `<agent_package>/`.
+- `/<framework>-review` checks changes against `<agent_package>/AGENTS.md` and the
+  installed framework source.
 ```
 
 ### `.claude/settings.json` fragment
@@ -491,8 +526,7 @@ If nothing is in scope, say so and stop.
 
 ## 2. Checklist
 
-The checklist is the "<framework> conventions" section of CLAUDE.md. Read it
-first.
+The checklist is `<agent_package>/AGENTS.md`. Read it first.
 
 Skip what is already enforced automatically:
 - ruff bans <the deprecated imports in ruff.toml>.
@@ -503,13 +537,14 @@ Focus on what needs judgement:
   only the permissions or tools it needs; are hard rules enforced in code
   rather than only in prompts; does new code re-implement a built-in; are
   typed models used instead of untyped dicts>.
-- Project structure: compare the repo against CLAUDE.md's layout tree, using
-  `ls` and `git ls-files`, not by reading every file. Is each new file in the
-  right place? Is the layout tree still accurate?
+- Project structure: compare the repo against the layout tree in the root
+  `AGENTS.md`, using `ls` and `git ls-files`, not by reading every file. Is
+  each new file in the right place? Is the layout tree still accurate?
 
 ## 3. Evidence
 
-Every finding must cite the rule it breaks: either a CLAUDE.md line, or a
+Every finding must cite the rule it breaks: either an `AGENTS.md` or
+`<agent_package>/AGENTS.md` line, or a
 location in the installed <framework> source under
 <path to installed source> that you have read. Check any claim about
 framework behaviour against that source, not memory. Do not browse the web.
@@ -522,8 +557,9 @@ List the findings, most important first. Give each one:
 - the rule it breaks, with its evidence
 - the fix
 
-If a finding shows that a rule is missing from CLAUDE.md, suggest the wording
-but do not add it. If the code is aligned, say so in one line.
+If a finding shows that a rule is missing from `<agent_package>/AGENTS.md`,
+suggest the wording but do not add it. If the code is aligned, say so in one
+line.
 ```
 
 ### README section
@@ -532,8 +568,8 @@ but do not add it. If the code is aligned, say so in one line.
 ## Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
-that follows <framework> conventions. CLAUDE.md holds the rules, and the
-checks below enforce them.
+that follows <framework> conventions. AGENTS.md and <agent_package>/AGENTS.md
+hold the rules, and the checks below enforce them.
 
 **Automatic checks.** These run through the hooks in .claude/settings.json,
 so they cost no extra usage.
@@ -685,12 +721,17 @@ repeated table header, and ruff then won't load the file.
 "google.adk.agents.loop_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
 "google.adk.tools.AgentTool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
 "google.adk.tools.agent_tool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
+# google.adk.tools re-exports it lazily, so mypy can't resolve it there.
+"google.adk.tools.ToolContext".msg = "Import ToolContext from google.adk.tools.tool_context."
 ```
 
 **Fake model (`tests/unittests/conftest.py`).** Sub-agents inherit the
-root's model, so one fake answers for the whole tree:
+root's model, so one fake answers for the whole tree. The autouse fixture
+fails any test that opens a connection, so a missed fake can't spend credits:
 
 ```python
+import socket
+
 import pytest
 from google.adk.models.base_llm import BaseLlm
 from google.adk.models.llm_request import LlmRequest
@@ -724,6 +765,17 @@ class FakeLlm(BaseLlm):
     if not self.script:
       raise AssertionError('The agent called the model more times than scripted.')
     yield self.script.pop(0)
+
+
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+  """Unit tests are free: a real model or network call fails instead of spending credits."""
+
+  def refuse(_sock, address, *_):
+    raise AssertionError(f'Unit tests must not open network connections; tried {address}.')
+
+  monkeypatch.setattr(socket.socket, 'connect', refuse)
+  monkeypatch.setattr(socket.socket, 'connect_ex', refuse)
 
 
 @pytest.fixture
@@ -760,9 +812,10 @@ assert them before indexing, or mypy fails. To read a tool's result, use
 **Convention tests (`tests/unittests/test_adk_conventions.py`):**
 
 ```python
-"""CLAUDE.md's ADK conventions that can be checked without a model."""
+"""The conventions in <agent_package>/AGENTS.md that can be checked without a model."""
 
 import inspect
+import typing
 from pathlib import Path
 
 from google.adk.cli.utils.agent_loader import AgentLoader
@@ -791,6 +844,7 @@ def test_agent_folders_are_laid_out_for_adk_web():
   for name in names:
     assert name.isidentifier(), name
     assert 'from . import agent' in (PROJECT / name / '__init__.py').read_text()
+  assert not list((PROJECT / 'tests').rglob('__init__.py'))
 
 
 def test_only_the_root_sets_a_model():
@@ -814,12 +868,16 @@ def test_tool_schemas_are_complete():
     assert all(p.annotation is not inspect.Parameter.empty for p in params), tool.__name__
     assert 'Returns:' in doc, tool.__name__
     assert all(f'{p.name}:' in doc for p in params), tool.__name__
+    # Tools report failure in a `status` key rather than raising.
+    ret = sig.return_annotation
+    assert typing.get_origin(ret) is dict or 'status' in typing.get_type_hints(ret), tool.__name__
 ```
 
 **Review skill judgement items for ADK:** routing descriptions that say
 how each sub-agent differs from its peers; delegated agents'
 `input_schema` carrying everything they need; least tools per agent; tools
-returning `status` dicts instead of raising; hard rules enforced by
+catching external, network and file errors as `error` statuses instead of
+raising; hard rules enforced by
 callbacks, not just instructions; `{identifier}` placeholders matching
 state keys that are always set; built-ins used instead of custom code.
 

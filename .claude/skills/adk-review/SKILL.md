@@ -19,33 +19,37 @@ If nothing is in scope, say so and stop.
 
 ## 2. Checklist
 
-The checklist is the "ADK conventions" section of CLAUDE.md. Read it first.
+The checklist is `app/AGENTS.md`. Read it first.
 
 Skip what is already enforced automatically:
 - ruff bans `SequentialAgent`, `ParallelAgent`, `LoopAgent` and `AgentTool`,
-  and their modules.
+  and their modules, and the lazy `ToolContext` import from `google.adk.tools`.
 - `tests/unittests/test_adk_conventions.py` checks that the agent loads, that
   the folders are laid out for `adk web` (`app` is the only agent, and its
-  `__init__.py` has `from . import agent`), that only the root sets a model,
-  that every agent has a description, and that every function tool has complete
-  hints and a docstring covering its parameters and return value.
+  `__init__.py` has `from . import agent`, and `tests/` has no `__init__.py`),
+  that only the root sets a model, that every agent has a description, and that
+  every function tool has complete hints, a docstring covering its parameters
+  and return value, and a return type that carries a `status` key.
 - mypy checks the type hints, including bare `dict` returns.
 
 Focus on what needs judgement:
 - Routing descriptions say how each sub-agent differs from its peers.
 - A delegated agent's `input_schema` carries everything it needs.
 - Each agent has the fewest tools it needs.
-- Tools return `status` dicts instead of raising.
+- Tools catch external, network and file errors and return them as an `error`
+  status instead of raising.
 - Hard rules are enforced by callbacks, not just instructions.
 - `{identifier}` placeholders match state keys that are always set.
 - Built-ins are used instead of custom code that does the same job.
-- Project structure: compare the repo against CLAUDE.md's layout tree, using
+- Project structure: compare the repo against the layout tree in the root
+  `AGENTS.md`, using
   `ls` and `git ls-files`, not by reading every file. Is each new file in the
   right place? Is the layout tree still accurate?
 
 ## 3. Evidence
 
-Every finding must cite the rule it breaks: either a CLAUDE.md line, or a
+Every finding must cite the rule it breaks: either an `AGENTS.md` or
+`app/AGENTS.md` line, or a
 location in the installed ADK source under
 `.venv/lib/python3.14/site-packages/google/adk/` that you have read. Check any
 claim about framework behaviour against that source, not memory. Do not browse
@@ -58,5 +62,6 @@ List the findings, most important first. Give each one:
 - the rule it breaks, with its evidence
 - the fix
 
-If a finding shows that a rule is missing from CLAUDE.md, suggest the wording
-but do not add it. If the code is aligned, say so in one line.
+If a finding shows that a rule is missing from `app/AGENTS.md`, suggest the
+wording but do not add it: it is a protected path, so it changes through a
+proposal. If the code is aligned, say so in one line.

@@ -1,0 +1,247 @@
+# Canonical rules for coding agents (build) and the product agent (runtime).
+# Format and change process: governance/README.md. <profile.x> refers to
+# governance/profile.yaml. A control's status moves from planned to active
+# only through an owner PR, in the change that makes the control real.
+# "(S0N)" names the stage in docs/governance_implementation.md, and "(A0N)"
+# the phase in docs/agent_governance_implementation.md, that builds a planned
+# control.
+rules:
+  # --- Governance itself -------------------------------------------------
+  - id: GOV-001
+    applies_to: [build]
+    rule: A coding agent session needs committed governance before it acts on any prompt
+    because: work done under missing or unreviewed rules cannot be audited against the rules that applied.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: UserPromptSubmit hook blocks prompts (S04), status: active}
+      - {type: ND, at: session, by: SessionStart hook injects the governance hash (S04), status: active}
+
+  - id: GOV-002
+    applies_to: [build, runtime]
+    rule: Governance and enforcement changes need the named owner's approval through a pull request
+    because: relaxing a rule is higher risk than most features, and an agent that edits its own rules is ungoverned.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: Claude Code permission deny on protected paths (S04), status: active}
+      - {type: D, at: session, by: Claude Code permission deny on git push (S04), status: active}
+      - {type: D, at: session, by: PreToolUse hook denies git commit on main (S04), status: active}
+      - {type: D, at: session, by: Claude Code sandbox blocks indirect writes to protected paths (S04), status: active}
+      - {type: H, at: merge, by: owner review, status: active}
+
+  - id: GOV-003
+    applies_to: [build, runtime]
+    rule: Every rule needs a because, a tier, a kind and at least one control
+    because: a rule without a reason gets bypassed the first time it causes friction.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: commit, by: tests/governance/test_rules.py (S03), status: active}
+
+  - id: GOV-004
+    applies_to: [build]
+    rule: Every commit records the governance hash and plan ID in Governance and Plan trailers
+    because: a change that cannot be tied to the rules and intent it was made under cannot be audited.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: ND, at: session, by: AGENTS.md instruction (S03), status: active}
+      - {type: D, at: commit, by: .githooks/commit-msg (S04), status: active}
+      - {type: D, at: ci, by: governance workflow trailer check (S05), status: active}
+
+  - id: GOV-005
+    applies_to: [runtime]
+    rule: The product agent refuses to run without committed governance and stamps the governance hash on every session event
+    because: a runtime session that cannot prove which rules it ran under is ungoverned risk.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: runtime, by: governance layer fails closed at startup and halts on hash change (S06), status: active}
+
+  - id: GOV-006
+    applies_to: [build]
+    rule: A coding agent session works only under the governance hash it started with, restated with every prompt
+    because: rules injected once fade as the context grows, and a session whose rules changed partway works under rules it was never given.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: UserPromptSubmit hook restates the hash and plan and blocks on a hash change (S04), status: active}
+      - {type: ND, at: session, by: AGENTS.md instruction to start a new session per plan (S03), status: active}
+
+  # --- Scope -------------------------------------------------------------
+  - id: SCOPE-001
+    applies_to: [build]
+    rule: Code edits need exactly one active execution plan in docs/exec-plans/active/
+    because: an agent without one declared intent makes broader changes than anyone reviewed.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: PreToolUse hook denies edits (S04), status: active}
+      - {type: H, at: merge, by: reviewer checks the diff against the plan scope, status: active}
+
+  - id: SCOPE-002
+    applies_to: [build]
+    rule: Edits stay inside the scope_paths declared by the active plan
+    because: unbounded sessions produce unbounded side effects that review then has to find by hand.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: PreToolUse hook checks scope_paths (S04), status: active}
+      - {type: D, at: ci, by: governance workflow scope check (S05), status: planned}
+      - {type: H, at: merge, by: reviewer checks the diff against the plan scope, status: active}
+
+  # --- Evidence ----------------------------------------------------------
+  - id: EVID-001
+    applies_to: [build, runtime]
+    rule: Evidence is retained and attributable for retention_days, and is never summarised away
+    because: without a record of what an agent did, the only account is the agent's own explanation.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: commit, by: Governance and Plan trailers enforced by commit-msg (S04), status: active}
+      - {type: D, at: runtime, by: durable session log with compaction off (S06), status: active}
+      - {type: H, at: review, by: evidence review each sprint (S09), status: active}
+
+  # --- Secrets and data --------------------------------------------------
+  - id: SEC-001
+    applies_to: [build]
+    rule: Agents never read, print or commit .env files
+    because: secrets read into a session end up in transcripts, which are retained as evidence.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: session, by: Claude Code permission deny on .env, status: active}
+      - {type: D, at: commit, by: .gitignore, status: active}
+
+  - id: SEC-002
+    applies_to: [build, runtime]
+    rule: No hard-coded secrets reach a commit or an agent output
+    because: a credential in code or output is exposed to everyone who can read it.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: ci, by: gitleaks in the governance workflow (S05), status: active}
+      - {type: D, at: runtime, by: secrets stage of verify.sh (A02), status: planned}
+
+  - id: DATA-001
+    applies_to: [runtime]
+    rule: Prompts, sessions, traces and outputs go only to allowlisted services, and nobody gets interactive access to sandboxes
+    because: user-supplied content may be confidential, and a shell into a sandbox bypasses every audit trail.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: ci, by: test that collector exporters match the allowlist (S08), status: active}
+      - {type: D, at: runtime, by: sandbox containers run without a TTY or exec access (A02), status: planned}
+      - {type: H, at: review, by: ORR data-handling sign-off (S09), status: planned}
+
+  # --- Dependencies, cost and models -------------------------------------
+  - id: DEP-001
+    applies_to: [build, runtime]
+    rule: New external dependencies need explicit human approval and a version range or lockfile pin
+    because: every unreviewed library is a future security and maintenance liability, and agents can hallucinate package names.
+    tier: confirm
+    kind: safety
+    controls:
+      - {type: H, at: merge, by: owner review of dependency manifests, status: active}
+      - {type: D, at: runtime, by: allowlist and registry existence check (A01), status: planned}
+      - {type: H, at: runtime, by: confirmation on non-allowlisted dependencies (A01), status: planned}
+      - {type: D, at: ci, by: 'vulnerability audit and osv-scanner (S05, A02)', status: active}
+
+  - id: COST-001
+    applies_to: [build, runtime]
+    rule: Running an agent against a paid model needs approval, and every product-agent session has a token budget
+    because: unbounded sessions spend credits nobody approved.
+    tier: confirm
+    kind: safety
+    controls:
+      - {type: H, at: session, by: coding agent asks before paid-model runs, status: active}
+      - {type: D, at: session, by: Claude Code permission ask on paid-model commands (S04), status: planned}
+      - {type: D, at: commit, by: unit-test fixture refuses network connections, status: active}
+      - {type: D, at: runtime, by: governance layer enforces session_token_budget (S06), status: active}
+
+  - id: MODEL-001
+    applies_to: [runtime]
+    rule: Models are configured by exact model ID from the allowlist, and changing one runs the eval suite
+    because: an alias or unreviewed model change silently changes behaviour that evals were calibrated against.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: commit, by: test that configured model IDs are allowlisted (S06), status: active}
+      - {type: D, at: ci, by: eval pass-rate gate on model change (A04), status: planned}
+
+  # --- Runtime behaviour -------------------------------------------------
+  - id: TOOL-001
+    applies_to: [runtime]
+    rule: Every product-agent tool has a tier in governance/tools.yaml, and calls to unlisted tools or targets are refused
+    because: a tool or target nobody classified has whatever autonomy the model decides to give it.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: runtime, by: before-tool policy default-deny (S07), status: active}
+
+  - id: SPEC-001
+    applies_to: [runtime]
+    rule: Nothing is produced or changed until the user approves the intent artifact, and the executor receives only that approved artifact
+    because: raw conversation can carry prompt injection and unbounded intent, and the approved artifact is the trust and scope boundary.
+    tier: confirm
+    kind: safety
+    controls:
+      - {type: H, at: runtime, by: confirmation on approve_intent (A03), status: planned}
+      - {type: D, at: runtime, by: executor input schema accepts only ApprovedIntent (A03), status: planned}
+
+  - id: FS-001
+    applies_to: [runtime]
+    rule: The product agent writes only under <profile.output_root>/<approved work item>/
+    because: a write outside the approved work item can silently change another user's output or the agent itself.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: runtime, by: before-tool path check (S07), status: active}
+
+  - id: SBX-001
+    applies_to: [runtime]
+    rule: Anything the product agent generates is executed or scanned only in a sandbox with no credentials and allowlisted network only
+    because: a prompt injection inside generated content can reach anything reachable from where it runs.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: runtime, by: verification sandbox container (A02), status: planned}
+
+  - id: VER-001
+    applies_to: [runtime]
+    rule: An output is handed over only after verification passes the severity gate in thresholds.yaml
+    because: passing tests confirm behaviour, not safety, and a critical finding shipped is an incident waiting.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: runtime, by: 'verify gate blocks delivery (A02, A03)', status: planned}
+      - {type: H, at: runtime, by: user acknowledges high findings (A03), status: planned}
+
+  - id: REV-001
+    applies_to: [runtime]
+    rule: The reviewer agent runs on a different model from the executor
+    because: two sessions of the same model share blind spots, so self-review confirms rather than checks.
+    tier: deny
+    kind: capability
+    controls:
+      - {type: D, at: commit, by: test that reviewer and executor model IDs differ (A03), status: planned}
+
+  # --- Observability and quality -----------------------------------------
+  - id: OBS-001
+    applies_to: [runtime]
+    rule: Every model call and tool call emits the required telemetry attributes in ARCHITECTURE.md
+    because: a failure that telemetry cannot attribute to model, harness, tool, sandbox or policy can only be debugged by guessing.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: commit, by: in-memory span exporter test (S08), status: active}
+
+  - id: QUAL-001
+    applies_to: [build, runtime]
+    rule: A score in docs/QUALITY_SCORE.md rises above 1 only with linked evidence that exists
+    because: scores without evidence let people and agents declare victory early.
+    tier: deny
+    kind: safety
+    controls:
+      - {type: D, at: commit, by: test that every score above 1 links to an existing file or test (S09), status: active}

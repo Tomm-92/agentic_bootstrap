@@ -1,4 +1,5 @@
 import shutil
+import socket
 import subprocess
 from pathlib import Path
 
@@ -51,6 +52,17 @@ class FakeLlm(BaseLlm):
     if not self.script:
       raise AssertionError('The agent called the model more times than scripted.')
     yield self.script.pop(0)
+
+
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+  """Unit tests are free: a real model or network call fails instead of spending credits."""
+
+  def refuse(_sock, address, *_):
+    raise AssertionError(f'Unit tests must not open network connections; tried {address}.')
+
+  monkeypatch.setattr(socket.socket, 'connect', refuse)
+  monkeypatch.setattr(socket.socket, 'connect_ex', refuse)
 
 
 @pytest.fixture
