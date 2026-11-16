@@ -16,7 +16,15 @@
       "Edit(/.githooks/**)",
       "Edit(/AGENTS.md)",
       "Edit(/CLAUDE.md)",
+      "Edit(/app/AGENTS.md)",
+      "Edit(/app/CLAUDE.md)",
       "Bash(git push:*)"
+    ],
+    "ask": [
+      "Bash(*pytest* -m integration*)",
+      "Bash(*local_session*--real*)",
+      "Bash(*adk run*)",
+      "Bash(*adk web*)"
     ]
   },
   "sandbox": {
@@ -34,7 +42,12 @@
         "./.github",
         "./.githooks",
         "./AGENTS.md",
-        "./CLAUDE.md"
+        "./CLAUDE.md",
+        "./app/AGENTS.md",
+        "./app/CLAUDE.md",
+        "./ruff.toml",
+        "./pytest.ini",
+        "./mypy.ini"
       ]
     }
   },

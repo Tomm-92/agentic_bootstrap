@@ -29,12 +29,16 @@ jobs:
         # A push to main also carries GitHub's merge commit, which has no trailers.
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: .githooks/check_trailers.sh "$BASE_SHA..$HEAD_SHA" 2>&1 | tee governance-report/trailers.txt; exit "${PIPESTATUS[0]}"
+      - name: Plan scope
+        # SCOPE-002 for every coding agent, not only those the session hooks govern.
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        run: .venv/bin/python scripts/check_scope.py "$BASE_SHA..$HEAD_SHA" 2>&1 | tee governance-report/scope.txt; exit "${PIPESTATUS[0]}"
       - name: Changed protected paths
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: |
           {
             echo '## Changed protected paths'
-            git diff --name-only "$BASE_SHA...$HEAD_SHA" -- governance docs/governance_implementation.md docs/agent_governance_implementation.md .claude/settings.json .claude/settings.local.json .claude/hooks .github .githooks AGENTS.md CLAUDE.md | sed 's/^/- /'
+            git diff --name-only "$BASE_SHA...$HEAD_SHA" -- governance docs/governance_implementation.md docs/agent_governance_implementation.md .claude/settings.json .claude/settings.local.json .claude/hooks .github .githooks AGENTS.md CLAUDE.md app/AGENTS.md app/CLAUDE.md ruff.toml pytest.ini mypy.ini | sed 's/^/- /'
           } | tee governance-report/protected-paths.md >>"$GITHUB_STEP_SUMMARY"
       - name: DEP-001 items for review
         if: ${{ !cancelled() }}

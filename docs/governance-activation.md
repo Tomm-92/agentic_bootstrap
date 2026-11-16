@@ -23,6 +23,7 @@ rewritten to start with `Confirmed`.
 | GOV-006 | AGENTS.md instruction to start a new session per plan (S03) | S03 | AGENTS.md, While working section | pass | none |
 | SCOPE-001 | PreToolUse hook denies edits (S04) | S04 | tests/governance/test_hooks.py::test_edit_needs_exactly_one_plan | pass | none |
 | SCOPE-002 | PreToolUse hook checks scope_paths (S04) | S04 | tests/governance/test_hooks.py::test_scope_outside_denied | pass | none |
+| SCOPE-002 | governance workflow scope check (S05) | S05 | tests/governance/test_check_scope.py; scripts/check_scope.py over main's 48 commits reported only 7d58e45, an owner edit to governance/profile.yaml | pass | Confirm the "Plan scope" step ran on the pull request that applies proposal 0010 |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | Confirmed by the owner, 2026-11-11 |
 | EVID-001 | durable session log with compaction off (S06) | S06 | tests/unittests/test_governance_plugin.py::test_compaction_is_off; .venv/bin/python -m scripts.local_session --fake wrote stamped events to .sessions/sessions.db | pass | none |
 | EVID-001 | evidence review each sprint (S09) | S09 | docs/REVIEW.md, review of 2026-11-11 (.venv/bin/python -m scripts.evidence_report and .sessions/sessions.db) | pass | Confirmed by the owner, 11-11-2026 |
@@ -34,6 +35,8 @@ rewritten to start with `Confirmed`.
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | pass | Confirmed by the owner, 2026-11-11 |
+| COST-001 | Claude Code permission ask on paid-model commands (S04) | S04 | tests/governance/test_settings.py::test_paid_model_runs_ask_first proves the config only; a session under it must show the prompt | pass | Confirm a session prompts before `.venv/bin/pytest -q -m integration` and `.venv/bin/python -m scripts.local_session --real hi`, and not before `.venv/bin/python -m scripts.local_session hi` |
+| COST-001 | unit-test fixture refuses network connections | codequality | tests/unittests/conftest.py::no_network; plan 0010 probe: a raw socket and an anthropic client call were both refused | pass | none |
 | COST-001 | governance layer enforces session_token_budget (S06) | S06 | tests/unittests/test_governance_plugin.py::test_session_is_refused_once_over_budget, tests/unittests/test_governance_plugin.py::test_missing_token_count_is_an_error; on 2026-11-11 the Stage 6 manual run logged real claude-haiku-5-5 token counts in .sessions/sessions.db, and pytest -m integration passed | pass | Confirmed by the owner, 2026-11-11 |
 | MODEL-001 | test that configured model IDs are allowlisted (S06) | S06 | tests/unittests/test_governance_plugin.py::test_every_configured_model_is_allowlisted | pass | none |
 | MODEL-001 | eval pass-rate gate on model change (A04) | A04 | phase A04 builds this | pending | none |

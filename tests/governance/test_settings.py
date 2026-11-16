@@ -1,4 +1,5 @@
-"""GOV-002: the settings deny every protected path, keep code quality's controls and sandbox."""
+"""GOV-002 and COST-001: the settings deny every protected path, keep code quality's controls
+and sandbox, and ask before paid-model runs."""
 
 import json
 import os
@@ -23,11 +24,13 @@ PROTECTED = {
   'Edit(/.githooks/**)': './.githooks',
   'Edit(/AGENTS.md)': './AGENTS.md',
   'Edit(/CLAUDE.md)': './CLAUDE.md',
+  'Edit(/app/AGENTS.md)': './app/AGENTS.md',
+  'Edit(/app/CLAUDE.md)': './app/CLAUDE.md',
+  'Edit(/ruff.toml)': './ruff.toml',
+  'Edit(/pytest.ini)': './pytest.ini',
+  'Edit(/mypy.ini)': './mypy.ini',
 }
 CODE_QUALITY_DENY = [
-  'Edit(/ruff.toml)',
-  'Edit(/pytest.ini)',
-  'Edit(/mypy.ini)',
   'Edit(/.github/workflows/**)',
   'Read(**/.env)',
 ]
@@ -71,6 +74,19 @@ def test_sandbox_has_no_escape():
 @pytest.mark.parametrize('rule', [*CODE_QUALITY_DENY, 'Bash(git push:*)'])
 def test_other_deny_rules_are_kept(rule):
   assert rule in SETTINGS['permissions']['deny']
+
+
+@pytest.mark.parametrize(
+  'rule',
+  [
+    'Bash(*pytest* -m integration*)',
+    'Bash(*local_session*--real*)',
+    'Bash(*adk run*)',
+    'Bash(*adk web*)',
+  ],
+)
+def test_paid_model_runs_ask_first(rule):
+  assert rule in SETTINGS['permissions']['ask']
 
 
 def test_code_quality_hooks_are_kept():

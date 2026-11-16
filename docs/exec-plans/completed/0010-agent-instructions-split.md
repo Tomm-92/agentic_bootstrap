@@ -11,6 +11,7 @@ scope_paths:
   - scripts/arm_governance.py
   - tests/unittests/**
   - tests/governance/test_check_scope.py
+  - tests/governance/test_settings.py
   - .claude/skills/adk-review/**
 ---
 

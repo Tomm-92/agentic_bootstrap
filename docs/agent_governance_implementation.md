@@ -44,7 +44,8 @@ until it ends:
 1. **Protected changes are proposals.** Every change to a protected path goes
    under `proposals/A00/` at the same relative path, in this order of need:
    `governance/profile.yaml`, `governance/tools.yaml`,
-   `governance/allowlists/`, `CLAUDE.md`, `.github/workflows/evals.yml`,
+   `governance/allowlists/`, `<profile.product_agent.path>/AGENTS.md`,
+   `.github/workflows/evals.yml`,
    `governance/rules-additions.yaml` and, last, `governance/rules.yaml`.
 2. **The governance hash doesn't change.** Nothing here commits to
    `governance/`, so the session's pin stays valid (GOV-006) and one session can
@@ -333,8 +334,9 @@ in use.
      the approved intent, its scope and security patterns (REV-001).
      Code quality's convention lets only the root agent set a model, so REV-001
      needs this one exception. Narrow the convention, and no further:
-     - **`proposals/A00/CLAUDE.md`.** Only the root agent and the reviewer set
-       `model`. Other sub-agents inherit it.
+     - **`proposals/A00/<profile.product_agent.path>/AGENTS.md`.** Only the root
+       agent and the reviewer set `model`. Other sub-agents inherit it. The ADK
+       conventions live here, not in `CLAUDE.md`, so every coding agent reads them.
      - **`test_only_the_root_sets_a_model`.** Rename it, and allow exactly the root
        agent and the reviewer. It still fails if any other sub-agent sets a model,
        or if the reviewer's ID isn't listed with `use: reviewer`.
