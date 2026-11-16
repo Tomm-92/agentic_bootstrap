@@ -261,7 +261,7 @@ def sandbox() -> None:
 def paid() -> None:
   if not os.environ.get('ANTHROPIC_API_KEY'):
     raise ArmError('ANTHROPIC_API_KEY is not set in this terminal.')
-  run(sys.executable, '-m', 'scripts.local_session', 'What is the status of demo?')
+  run(sys.executable, '-m', 'scripts.local_session', '--real', 'What is the status of demo?')
   run(PYTEST, '-m', 'integration')
   activate_by_pr('activate-cost-runtime', COST_CONTROL, 'Activate the COST-001 runtime control')
 

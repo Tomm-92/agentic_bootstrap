@@ -89,7 +89,7 @@ nothing more from you until it ends. It:
 - builds the agent's tools, sandbox, intent approval, review and evals in `app/`,
   `scripts/` and `tests/`.
 - writes every change to governance files, such as `governance/profile.yaml`,
-  `governance/tools.yaml` and `CLAUDE.md`, to `proposals/A00/` instead. Agents
+  `governance/tools.yaml` and `app/AGENTS.md`, to `proposals/A00/` instead. Agents
   can't edit those files, so you apply them.
 - ends with a report listing what passed, what was deferred and what you need to do.
 
@@ -223,7 +223,8 @@ that plan's `scope_paths`. The product agent fails closed the same way at startu
 **Protected paths.** Agents can't edit `governance/`,
 `docs/governance_implementation.md`, `docs/agent_governance_implementation.md`,
 `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.github/`,
-`.githooks/`, `AGENTS.md` or `CLAUDE.md`.
+`.githooks/`, the instruction files (`AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and
+`app/CLAUDE.md`), or the check config (`ruff.toml`, `pytest.ini` and `mypy.ini`).
 
 **Proposals.** To change a protected path, an agent writes the new version to
 `proposals/<plan ID>/` at the same relative path. The owner reviews it, copies it into
@@ -247,20 +248,40 @@ possible. "Owner actions" are for the human: a session lists them and does not a
 them.
 
 **Runtime.** `app/governance.py` is the governance layer. To run one session against
-the durable log at `.sessions/sessions.db`, with `--fake` to spend nothing:
+the durable log at `.sessions/sessions.db`. It uses a scripted model and spends
+nothing unless you pass `--real`, which calls the paid model (COST-001):
 
 ```bash
-.venv/bin/python -m scripts.local_session --fake "What is the status of demo?"
+.venv/bin/python -m scripts.local_session "What is the status of demo?"
 ```
 
 `ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
 scripts.evidence_report` summarises the evidence for `docs/REVIEW.md`.
 
+### Coding agents
+
+Any coding agent can work here. `AGENTS.md` is the entry point, and `app/AGENTS.md`
+adds the ADK conventions for work in `app/`. `CLAUDE.md` and `app/CLAUDE.md` import
+them for Claude Code. Enforcement differs by agent, because only Claude Code runs
+the session hooks:
+
+| Control | Claude Code | Other agents |
+| --- | --- | --- |
+| Instructions | `AGENTS.md` files, through the `CLAUDE.md` imports | `AGENTS.md` files, where the tool reads nested ones |
+| Lint, format, types, dead code, unit tests | Hooks on every edit and turn, then CI | CI on every pull request |
+| Commit trailers | `commit-msg` hook, then CI | `commit-msg` hook, then CI |
+| Plan scope | File edits outside it are blocked; CI's plan scope check reports shell writes | CI's plan scope check reports them |
+| Protected paths | Blocked by deny rules and the sandbox | CI lists them for the owner's review |
+| No push, no commits on `main` | Blocked by `branch_guard.sh` | Only branch protection, once enabled |
+| One governance hash per session | Prompts blocked when it changes | Not enforced |
+
+The CI checks are advisory until the repo has required status checks.
+
 ### Code quality
 
 Code quality is enforced by automatic checks. The priority is concise code
-that follows Google ADK conventions. CLAUDE.md holds the rules, and the
-checks below enforce them.
+that follows Google ADK conventions. `AGENTS.md` and `app/AGENTS.md` hold the
+rules, and the checks below enforce them.
 
 **Automatic checks.** These run through the hooks in .claude/settings.json,
 so they cost no extra usage.
@@ -281,20 +302,20 @@ What the checks cover:
   `ParallelAgent`, `LoopAgent` and `AgentTool`.
 - mypy.ini: strict type checks on `app`, `tests` and `scripts`. Every `type: ignore` must
   name its code, and stale ones fail.
-- tests/unittests/: free tests that use a scripted fake model, plus ADK
-  convention tests in `test_adk_conventions.py`.
+- tests/unittests/: free tests that use a scripted fake model and fail on any
+  network connection, plus ADK convention tests in `test_adk_conventions.py`.
 - tests/integration/: real-model tests that spend credits. They only run with
-  `.venv/bin/pytest -m integration`.
+  `.venv/bin/pytest -m integration`, and Claude Code asks you first.
 
-Deny rules in .claude/settings.json stop Claude from editing the hooks, its
-settings, the CI workflows, `ruff.toml`, `mypy.ini` and `pytest.ini`. Change those
-yourself, by hand or through a pull request.
+Deny rules and the sandbox in .claude/settings.json stop Claude from editing the
+hooks, its settings, the CI workflows, `ruff.toml`, `mypy.ini` and `pytest.ini`.
+Change those yourself, by hand or through a pull request.
 
 **Review commands.** Run these by hand, after a commit.
 
 | Command | What it does | Source |
 | --- | --- | --- |
-| `/adk-review` | Checks changes against this project's ADK conventions, citing CLAUDE.md or the installed ADK source | `.claude/skills/adk-review/SKILL.md` |
+| `/adk-review` | Checks changes against this project's ADK conventions, citing `app/AGENTS.md`, `AGENTS.md` or the installed ADK source | `.claude/skills/adk-review/SKILL.md` |
 | `/simplify` | Finds duplication and needless complexity, and fixes them | Built into Claude Code |
 | `/code-review low` | Finds bugs, reporting fewer, higher-confidence findings | Built into Claude Code |
 

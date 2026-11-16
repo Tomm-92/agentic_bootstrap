@@ -18,7 +18,7 @@ select = [
     "TID251",                    # banned APIs, listed below
     "PGH004", "RUF100",          # noqa must name codes, and stale ones go
     "ANN",                       # type hints on every function
-    "T20",                       # print(); CLAUDE.md bans prints
+    "T20",                       # print(); AGENTS.md bans prints
     "S",                         # security (Bandit)
 ]
 ignore = [

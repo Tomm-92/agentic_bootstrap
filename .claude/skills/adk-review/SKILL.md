@@ -19,7 +19,7 @@ If nothing is in scope, say so and stop.
 
 ## 2. Checklist
 
-The checklist is the "ADK conventions" section of CLAUDE.md. Read it first.
+The checklist is `app/AGENTS.md`. Read it first.
 
 Skip what is already enforced automatically:
 - ruff bans `SequentialAgent`, `ParallelAgent`, `LoopAgent` and `AgentTool`,
@@ -39,13 +39,15 @@ Focus on what needs judgement:
 - Hard rules are enforced by callbacks, not just instructions.
 - `{identifier}` placeholders match state keys that are always set.
 - Built-ins are used instead of custom code that does the same job.
-- Project structure: compare the repo against CLAUDE.md's layout tree, using
+- Project structure: compare the repo against the layout tree in the root
+  `AGENTS.md`, using
   `ls` and `git ls-files`, not by reading every file. Is each new file in the
   right place? Is the layout tree still accurate?
 
 ## 3. Evidence
 
-Every finding must cite the rule it breaks: either a CLAUDE.md line, or a
+Every finding must cite the rule it breaks: either an `AGENTS.md` or
+`app/AGENTS.md` line, or a
 location in the installed ADK source under
 `.venv/lib/python3.14/site-packages/google/adk/` that you have read. Check any
 claim about framework behaviour against that source, not memory. Do not browse
@@ -58,5 +60,6 @@ List the findings, most important first. Give each one:
 - the rule it breaks, with its evidence
 - the fix
 
-If a finding shows that a rule is missing from CLAUDE.md, suggest the wording
-but do not add it. If the code is aligned, say so in one line.
+If a finding shows that a rule is missing from `app/AGENTS.md`, suggest the
+wording but do not add it: it is a protected path, so it changes through a
+proposal. If the code is aligned, say so in one line.

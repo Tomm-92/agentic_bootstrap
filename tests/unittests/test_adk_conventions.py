@@ -1,4 +1,4 @@
-"""CLAUDE.md's ADK conventions that can be checked without a model."""
+"""The conventions in app/AGENTS.md that can be checked without a model."""
 
 import inspect
 from pathlib import Path

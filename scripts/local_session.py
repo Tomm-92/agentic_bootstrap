@@ -64,10 +64,11 @@ async def run(prompt: str) -> None:
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument('--fake', action='store_true', help='use a scripted model; spends nothing')
+  # Fake by default, so a forgotten flag spends nothing and only --real needs approval.
+  parser.add_argument('--real', action='store_true', help='call the paid model (COST-001)')
   parser.add_argument('prompt')
   args = parser.parse_args()
-  if args.fake:
+  if not args.real:
     agent.root_agent.model = ScriptedLlm()
   maybe_set_otel_providers(otel_resource=Resource.create({'service.name': agent.app.name}))
   asyncio.run(run(args.prompt))

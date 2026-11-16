@@ -4,6 +4,11 @@
 /docs/agent_governance_implementation.md @Tomm-92
 /AGENTS.md @Tomm-92
 /CLAUDE.md @Tomm-92
+/app/AGENTS.md @Tomm-92
+/app/CLAUDE.md @Tomm-92
+/ruff.toml @Tomm-92
+/pytest.ini @Tomm-92
+/mypy.ini @Tomm-92
 /.claude/ @Tomm-92
 /.github/ @Tomm-92
 /.githooks/ @Tomm-92

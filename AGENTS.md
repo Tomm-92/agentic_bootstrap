@@ -1,7 +1,9 @@
 # Instructions for coding agents
 
-This file is the entry point for any coding agent. It points to rules and defines
-none of its own.
+This file is the entry point for any coding agent. It says how to work under the
+rules in `governance/` and how code here is written. It defines no governance rules
+of its own. Before working in `app/`, read `app/AGENTS.md`, which holds the agent
+framework's conventions.
 
 ## Before changing anything
 
@@ -29,7 +31,8 @@ Never write to these, and never do so indirectly through a script or command (GO
 - `docs/agent_governance_implementation.md`
 - `.claude/settings.json`, `.claude/settings.local.json` and `.claude/hooks/`
 - `.github/` and `.githooks/`
-- `AGENTS.md` and `CLAUDE.md`
+- `AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and `app/CLAUDE.md`
+- `ruff.toml`, `pytest.ini` and `mypy.ini`
 
 To change one, write the new version to `proposals/<plan ID>/` at the same relative
 path. The owner reviews and applies it.
@@ -44,3 +47,60 @@ path. The owner reviews and applies it.
   Governance: <git rev-parse HEAD:governance>
   Plan: <plan ID>
   ```
+
+## Code style
+
+Concise code is the priority. Write the smallest change that does the job.
+
+- Add no helpers, parameters, options or abstractions the task does not need
+  now. Three similar lines beat a premature helper.
+- Before adding code, check whether a framework built-in or an existing local
+  function already does it.
+- Delete what a change makes unused: functions, imports, constants, tests and
+  prompt text.
+- Do not guard against what cannot happen. Skip `try/except`, `None` checks
+  and re-validation for inputs that the framework, Pydantic or the type hints
+  already guarantee. Catch only specific exceptions, and only around calls to
+  external services, the network or files. Never catch bare `Exception`.
+- Type-hint every function's parameters and return value. Ruff's `ANN` rules
+  enforce this outside `tests/`, and mypy checks the hints are right.
+- Comment only the non-obvious why. No comments or docstrings that restate
+  the code. Docstrings a model reads, such as tool docstrings, are the
+  exception.
+- No logging, prints (ruff `T20` bans `print`), commented-out code or
+  backward-compatibility shims unless asked.
+- Match the existing style: 2-space indent, single quotes. `ruff format`
+  enforces it.
+
+## Checks
+
+Before you finish, and in CI on every pull request, these must pass: ruff (lint and
+format), vulture (dead code), mypy (types) and the unit tests. Fix the code rather
+than adding `noqa`, `type: ignore` or ignores. If a rule is wrong for one line, name
+the code and say why after it: `# noqa: E501 - <why>` or
+`# type: ignore[arg-type]  # <why>`. A bare one fails the checks.
+
+## Tests
+
+- Unit tests never call a real model or network service. Use the scripted fake in
+  `tests/unittests/conftest.py`, which also refuses network connections.
+- Real-model tests go in `tests/integration/`, marked `@pytest.mark.integration`.
+  They spend credits, so ask before running them (COST-001).
+
+## Layout
+
+```text
+app/                    the agent package; its conventions are in app/AGENTS.md
+  __init__.py           contains `from . import agent`, which ADK's loader needs
+  agent.py              defines `root_agent`
+output/                 generated output, excluded from lint, format and checks
+tests/                  not a package: no `__init__.py` here or in subfolders
+  unittests/            free tests using the fake model; conftest.py holds the fake
+  integration/          real-model tests; spend credits
+  governance/           rule catalogue and profile tests; also free
+docs/                   project setup instructions, plans and the activation ledger
+governance/             rules, profile, thresholds, allowlists and tool tiers
+scripts/                local session, evidence report, activation and scope checks; not a package
+ops/                    observability stack
+proposals/              owner-applied changes to protected paths
+```

@@ -88,6 +88,7 @@ rules:
     kind: safety
     controls:
       - {type: D, at: session, by: PreToolUse hook checks scope_paths (S04), status: active}
+      - {type: D, at: ci, by: governance workflow scope check (S05), status: active}
       - {type: H, at: merge, by: reviewer checks the diff against the plan scope, status: active}
 
   # --- Evidence ----------------------------------------------------------
@@ -155,6 +156,8 @@ rules:
     kind: safety
     controls:
       - {type: H, at: session, by: coding agent asks before paid-model runs, status: active}
+      - {type: D, at: session, by: Claude Code permission ask on paid-model commands (S04), status: active}
+      - {type: D, at: commit, by: unit-test fixture refuses network connections, status: active}
       - {type: D, at: runtime, by: governance layer enforces session_token_budget (S06), status: active}
 
   - id: MODEL-001
