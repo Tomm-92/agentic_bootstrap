@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" role="img" aria-label="Telemetry data flow: the governance layer and ADK send traces, metrics and logs over OTLP to the collector, which sends traces to Tempo, metrics to Prometheus and logs to Loki, all read in Grafana">
+<style>
+svg{--bg:#ffffff;--fg:#1f2328;--mut:#59636e;--line:#d1d9e0;--box:#f6f8fa;
+--t:#0969da;--tbg:#ddf4ff;--m:#9a6700;--mbg:#fff8c5;--l:#1a7f37;--lbg:#dafbe1}
+@media (prefers-color-scheme:dark){svg{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#3d444d;--box:#151b23;
+--t:#4493f8;--tbg:#0c2d6b;--m:#d29922;--mbg:#3b2e00;--l:#3fb950;--lbg:#0f3d1c}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--fg)}
+.bg{fill:var(--bg)}.box{fill:var(--box);stroke:var(--line)}.ln{stroke:var(--line);fill:none}
+.h1{font-size:26px;font-weight:700}.sub{font-size:14px;fill:var(--mut)}
+.ch{font-size:15px;font-weight:700}.ti{font-size:13.5px;font-weight:600}
+.c{font-size:12px}.cs{font-size:11.5px;fill:var(--mut)}
+.id{font-size:11.5px;fill:var(--mut);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.grp{font-size:11px;font-weight:700;letter-spacing:.08em}.gh{fill:var(--mut)}
+.chip{font-size:10px;font-weight:700;letter-spacing:.06em}
+.T{fill:var(--tbg);stroke:var(--t)}.M{fill:var(--mbg);stroke:var(--m)}.L{fill:var(--lbg);stroke:var(--l)}
+.gt{fill:var(--t)}.gm{fill:var(--m)}.gl{fill:var(--l)}
+.a{fill:none;stroke-width:2}.an{stroke:var(--mut)}.at{stroke:var(--t)}.am{stroke:var(--m)}.al{stroke:var(--l)}
+.hn{fill:var(--mut)}.ht{fill:var(--t)}.hm{fill:var(--m)}.hl{fill:var(--l)}
+</style>
+<defs>
+<marker id="n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hn"/></marker>
+<marker id="t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ht"/></marker>
+<marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hm"/></marker>
+<marker id="l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hl"/></marker>
+</defs>
+<rect class="bg" width="1100" height="660" rx="12"/>
+<text x="24" y="50" class="h1">Telemetry stack</text>
+<text x="24" y="74" class="sub">What sends telemetry, where each signal goes, and where the owner reads it.</text>
+
+<text x="24" y="102" class="grp gh">1 · EMIT</text>
+<text x="344" y="102" class="grp gh">2 · COLLECT</text>
+<text x="620" y="102" class="grp gh">3 · STORE</text>
+<text x="896" y="102" class="grp gh">4 · VIEW</text>
+
+<!-- 1. What sends telemetry -->
+<rect x="24" y="186" width="240" height="278" rx="8" class="box"/>
+
+<text x="40" y="212" class="ti">Governance layer</text>
+<text x="40" y="228" class="id">app/governance.py</text>
+<text x="40" y="250" class="c">Opens a span for every model</text>
+<text x="40" y="268" class="c">call and labels every tool call.</text>
+<text x="40" y="286" class="c">Counts blocked calls, approvals,</text>
+<text x="40" y="304" class="c">budget refusals and tokens.</text>
+<rect x="40" y="316" width="58" height="16" rx="4" class="T"/><text x="46" y="328" class="chip gt">TRACES</text>
+<rect x="104" y="316" width="64" height="16" rx="4" class="M"/><text x="110" y="328" class="chip gm">METRICS</text>
+<path d="M24 344H264" class="ln"/>
+
+<text x="40" y="368" class="ti">ADK</text>
+<text x="40" y="384" class="id">google-adk</text>
+<text x="40" y="406" class="c">Logs each model call as GenAI</text>
+<text x="40" y="424" class="c">events.</text>
+<rect x="40" y="436" width="44" height="16" rx="4" class="L"/><text x="46" y="448" class="chip gl">LOGS</text>
+
+<!-- 1 to 2 -->
+<path d="M264 325H340" class="a an" marker-end="url(#n)"/>
+<text x="302" y="315" class="cs" text-anchor="middle">OTLP</text>
+<text x="302" y="343" class="id" text-anchor="middle">:4318</text>
+
+<!-- 2. Collector -->
+<rect x="344" y="235" width="210" height="180" rx="8" class="box"/>
+<text x="360" y="263" class="ch">OTel Collector</text>
+<text x="360" y="281" class="id">collector.yaml</text>
+<text x="360" y="307" class="c">Receives OTLP on :4317 (gRPC)</text>
+<text x="360" y="325" class="c">and :4318 (HTTP).</text>
+<text x="360" y="349" class="c">Batches, then runs one</text>
+<text x="360" y="367" class="c">pipeline per signal.</text>
+<text x="360" y="391" class="c">Exports only to allowlisted</text>
+<text x="360" y="409" class="cs">endpoints (DATA-001).</text>
+
+<!-- 2 to 3 -->
+<path d="M554 295C590 295 584 175 616 175" class="a at" marker-end="url(#t)"/>
+<path d="M554 325H616" class="a am" marker-end="url(#m)"/>
+<path d="M554 355C590 355 584 475 616 475" class="a al" marker-end="url(#l)"/>
+
+<!-- 3. Tempo -->
+<rect x="620" y="115" width="230" height="120" rx="8" class="T"/>
+<text x="636" y="141" class="ch">Tempo</text>
+<text x="836" y="141" class="id" text-anchor="end">:3200</text>
+<text x="636" y="159" class="grp gt">TRACES</text>
+<text x="636" y="181" class="c">Every model and tool span,</text>
+<text x="636" y="199" class="c">stamped with session, user</text>
+<text x="636" y="217" class="c">and governance hash</text>
+
+<!-- 3. Prometheus -->
+<rect x="620" y="265" width="230" height="120" rx="8" class="M"/>
+<text x="636" y="291" class="ch">Prometheus</text>
+<text x="836" y="291" class="id" text-anchor="end">:9090</text>
+<text x="636" y="309" class="grp gm">METRICS AND ALERTS</text>
+<text x="636" y="331" class="c">governance.* counters and</text>
+<text x="636" y="349" class="c">gauges, plus the three alerts</text>
+<text x="636" y="367" class="c">in alerts.yaml</text>
+
+<!-- 3. Loki -->
+<rect x="620" y="415" width="230" height="120" rx="8" class="L"/>
+<text x="636" y="441" class="ch">Loki</text>
+<text x="836" y="441" class="id" text-anchor="end">:3100</text>
+<text x="636" y="459" class="grp gl">LOGS</text>
+<text x="636" y="481" class="c">ADK's GenAI events for each</text>
+<text x="636" y="499" class="c">model call, linked to their</text>
+<text x="636" y="517" class="c">trace by trace ID</text>
+
+<!-- 3 to 4 -->
+<path d="M850 175C880 175 868 285 892 285" class="a at" marker-end="url(#t)"/>
+<path d="M850 325H892" class="a am" marker-end="url(#m)"/>
+<path d="M850 475C880 475 868 365 892 365" class="a al" marker-end="url(#l)"/>
+
+<!-- 4. Grafana -->
+<rect x="896" y="215" width="180" height="220" rx="8" class="box"/>
+<text x="912" y="243" class="ch">Grafana</text>
+<text x="1062" y="243" class="id" text-anchor="end">:3000</text>
+<text x="912" y="271" class="ti">Governance dashboard</text>
+<text x="912" y="291" class="c">Blocked calls, approvals,</text>
+<text x="912" y="309" class="c">budget refusals, session</text>
+<text x="912" y="327" class="c">tokens, recent traces</text>
+<text x="912" y="361" class="ti">Explore → Tempo</text>
+<text x="912" y="381" class="c">One session's full trace,</text>
+<text x="912" y="399" class="c">span by span</text>
+
+<path d="M24 614H1076" class="ln"/>
+<text x="24" y="636" class="cs">Every port is bound to 127.0.0.1. Every container has restart: unless-stopped, so the stack comes back whenever Docker starts.</text>
+</svg>
