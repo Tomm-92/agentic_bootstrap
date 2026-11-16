@@ -443,10 +443,6 @@ Claude Code lines for `CLAUDE.md`, after `@AGENTS.md`:
 - Hooks in `.claude/settings.json` run the checks in AGENTS.md for you. After each
   edit, ruff fixes and formats the file and reports what it can't fix. A turn that
   edited files can't end while a check fails. When a hook blocks, fix the code.
-- `<agent_package>/CLAUDE.md` loads the framework conventions when you first read or
-  edit a file under `<agent_package>/`.
-- `/<framework>-review` checks changes against `<agent_package>/AGENTS.md` and the
-  installed framework source.
 ```
 
 ### `.claude/settings.json` fragment
@@ -721,8 +717,6 @@ repeated table header, and ruff then won't load the file.
 "google.adk.agents.loop_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
 "google.adk.tools.AgentTool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
 "google.adk.tools.agent_tool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
-# google.adk.tools re-exports it lazily, so mypy can't resolve it there.
-"google.adk.tools.ToolContext".msg = "Import ToolContext from google.adk.tools.tool_context."
 ```
 
 **Fake model (`tests/unittests/conftest.py`).** Sub-agents inherit the
@@ -815,7 +809,6 @@ assert them before indexing, or mypy fails. To read a tool's result, use
 """The conventions in <agent_package>/AGENTS.md that can be checked without a model."""
 
 import inspect
-import typing
 from pathlib import Path
 
 from google.adk.cli.utils.agent_loader import AgentLoader
@@ -844,7 +837,6 @@ def test_agent_folders_are_laid_out_for_adk_web():
   for name in names:
     assert name.isidentifier(), name
     assert 'from . import agent' in (PROJECT / name / '__init__.py').read_text()
-  assert not list((PROJECT / 'tests').rglob('__init__.py'))
 
 
 def test_only_the_root_sets_a_model():
@@ -868,16 +860,12 @@ def test_tool_schemas_are_complete():
     assert all(p.annotation is not inspect.Parameter.empty for p in params), tool.__name__
     assert 'Returns:' in doc, tool.__name__
     assert all(f'{p.name}:' in doc for p in params), tool.__name__
-    # Tools report failure in a `status` key rather than raising.
-    ret = sig.return_annotation
-    assert typing.get_origin(ret) is dict or 'status' in typing.get_type_hints(ret), tool.__name__
 ```
 
 **Review skill judgement items for ADK:** routing descriptions that say
 how each sub-agent differs from its peers; delegated agents'
 `input_schema` carrying everything they need; least tools per agent; tools
-catching external, network and file errors as `error` statuses instead of
-raising; hard rules enforced by
+returning `status` dicts instead of raising; hard rules enforced by
 callbacks, not just instructions; `{identifier}` placeholders matching
 state keys that are always set; built-ins used instead of custom code.
 

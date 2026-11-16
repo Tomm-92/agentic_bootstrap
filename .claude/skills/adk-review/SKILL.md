@@ -23,21 +23,19 @@ The checklist is `app/AGENTS.md`. Read it first.
 
 Skip what is already enforced automatically:
 - ruff bans `SequentialAgent`, `ParallelAgent`, `LoopAgent` and `AgentTool`,
-  and their modules, and the lazy `ToolContext` import from `google.adk.tools`.
+  and their modules.
 - `tests/unittests/test_adk_conventions.py` checks that the agent loads, that
   the folders are laid out for `adk web` (`app` is the only agent, and its
-  `__init__.py` has `from . import agent`, and `tests/` has no `__init__.py`),
-  that only the root sets a model, that every agent has a description, and that
-  every function tool has complete hints, a docstring covering its parameters
-  and return value, and a return type that carries a `status` key.
+  `__init__.py` has `from . import agent`), that only the root sets a model,
+  that every agent has a description, and that every function tool has complete
+  hints and a docstring covering its parameters and return value.
 - mypy checks the type hints, including bare `dict` returns.
 
 Focus on what needs judgement:
 - Routing descriptions say how each sub-agent differs from its peers.
 - A delegated agent's `input_schema` carries everything it needs.
 - Each agent has the fewest tools it needs.
-- Tools catch external, network and file errors and return them as an `error`
-  status instead of raising.
+- Tools return `status` dicts instead of raising.
 - Hard rules are enforced by callbacks, not just instructions.
 - `{identifier}` placeholders match state keys that are always set.
 - Built-ins are used instead of custom code that does the same job.

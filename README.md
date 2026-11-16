@@ -299,8 +299,7 @@ What the checks cover:
   commented-out code, unused arguments, blind exception handling, complexity
   and size limits, type hints, `print`, security (Bandit), and `noqa` comments
   that are bare or stale. It also bans ADK's deprecated `SequentialAgent`,
-  `ParallelAgent`, `LoopAgent` and `AgentTool`, and importing `ToolContext` from
-  `google.adk.tools`.
+  `ParallelAgent`, `LoopAgent` and `AgentTool`.
 - mypy.ini: strict type checks on `app`, `tests` and `scripts`. Every `type: ignore` must
   name its code, and stale ones fail.
 - tests/unittests/: free tests that use a scripted fake model and fail on any

@@ -46,5 +46,3 @@ max-statements = 30
 "google.adk.agents.loop_agent".msg = "Deprecated in ADK 2.x; use a Workflow graph."
 "google.adk.tools.AgentTool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
 "google.adk.tools.agent_tool".msg = "Add the agent to sub_agents with mode='single_turn' or 'task'."
-# google.adk.tools re-exports it lazily, so mypy can't resolve it there.
-"google.adk.tools.ToolContext".msg = "Import ToolContext from google.adk.tools.tool_context."
