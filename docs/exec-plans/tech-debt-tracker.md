@@ -26,3 +26,4 @@ Gaps deferred on purpose, and what closes them.
 | The manual run and integration tests against `claude-haiku-5-5` haven't run, because `ANTHROPIC_API_KEY` was unset. Token counting hasn't seen a real response. | COST-001 | "After the run" step 4 |
 | The `governance.session_tokens` gauge is labelled per session, so its cardinality grows with sessions. Fine locally; a shared backend needs a different approach. | COST-001, OBS-001 | Before moving to a shared backend |
 | ADK captures prompts and responses in spans by default, so traces hold them. | DATA-001 | `docs/SECURITY.md` sign-off |
+| `scripts/check_scope.py` counts only the files in a plan's proposal folder, so a proposal shipped as a `.diff` doesn't cover the paths it patches. The patched paths must be in the plan's `scope_paths`, or the owner's apply commit fails the scope check. | SCOPE-002 | Plan 0013: teach the check to read the paths a `.diff` patches |
