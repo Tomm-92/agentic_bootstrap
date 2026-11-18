@@ -9,3 +9,4 @@ __pycache__/
 .claude/.session_governance/
 .sessions/
 output/
+app/.adk/

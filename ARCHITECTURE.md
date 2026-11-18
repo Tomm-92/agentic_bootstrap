@@ -27,7 +27,7 @@ it.
 | GOV-002 | Owner review, plus the build-time controls | Build-time |
 | GOV-003 | `tests/governance/test_rules.py` | Commit |
 | GOV-005 | `GovernancePlugin.__init__`, `before_run_callback`, `on_event_callback` | Built |
-| EVID-001 | `DatabaseSessionService` in `scripts/local_session.py`, compaction off | Built |
+| EVID-001 | `DatabaseSessionService` in `scripts/local_session.py`, and `adk web`'s `SqliteSessionService` at `app/.adk/session.db`; compaction off through `app` | Built |
 | SEC-002 | Gitleaks in CI; phase A02 adds `verify.sh` | CI |
 | DATA-001 | `tests/governance/test_observability.py`, ORR sign-off (S09); phase A02 adds the sandbox | Commit, review |
 | DEP-001 | Owner review, CI audit; phase A01 adds the runtime check | CI |

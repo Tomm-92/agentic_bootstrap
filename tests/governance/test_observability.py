@@ -31,6 +31,11 @@ def test_compose_service_is_pinned_and_local(name):
   tag = service['image'].rsplit(':', 1)[1]
   assert tag[-1].isdigit(), service['image']
   assert all(port.startswith('127.0.0.1:') for port in service['ports'])
+  assert service['restart'] == 'unless-stopped'
+
+
+def test_compose_project_has_its_own_name():
+  assert COMPOSE['name'] == 'agentic_bootstrap-observability'
 
 
 def test_prometheus_receives_otlp():

@@ -10,7 +10,8 @@ sandbox and output items.
 - [ ] `retention_days` in `governance/thresholds.yaml` is 90. Nothing expires evidence
       automatically, so the owner has decided how this is met for `.sessions/`, the stack's
       Docker volumes, CI artifacts and coding-agent transcripts.
-- [ ] Session logs live at `.sessions/sessions.db`, which git ignores because it holds prompts.
+- [ ] Session logs live at `.sessions/sessions.db` (`scripts/local_session.py`) and
+      `app/.adk/session.db` (`adk web`). Git ignores both because they hold prompts.
 
 ## Redaction
 
@@ -45,7 +46,7 @@ sandbox and output items.
 ## Incident response
 
 1. Stop the agent: revoke the API key, or make `governance/` dirty so it refuses to start.
-2. Keep the evidence: copy `.sessions/sessions.db`, and export the traces.
+2. Keep the evidence: copy `.sessions/` and `app/.adk/session.db`, and export the traces.
 3. Attribute the failure with `failure.source` on the session's spans.
 4. Rotate any credential that may have been exposed.
 5. Record what happened, and draft any rule change under `proposals/`.
