@@ -6,7 +6,8 @@ Held each sprint by the owner (EVID-001). Start from `.venv/bin/python -m script
 
 - Coding-agent transcripts
 - Commit trailers
-- Product-agent session logs and governance logs (`.sessions/sessions.db`)
+- Product-agent session logs and governance logs (`.sessions/*.db` from `scripts/local_session.py`, and
+  `app/.adk/session.db` from `adk web`)
 - Traces and alerts (`ops/observability/`)
 - `docs/exec-plans/tech-debt-tracker.md`
 

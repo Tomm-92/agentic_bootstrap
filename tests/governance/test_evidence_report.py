@@ -34,6 +34,7 @@ def test_report_says_what_is_missing(tmp_path):
 def test_report_summarises_sessions_and_decisions(tmp_path):
   repo = _repo(tmp_path)
   (repo / '.sessions').mkdir()
+  (repo / 'app/.adk').mkdir(parents=True)
   decision = {'tool': 't', 'tier': 'confirm', 'result': 'confirmed', 'rule': 'TOOL-001'}
   denied = {'tool': 't', 'tier': 'deny', 'result': 'denied', 'rule': 'FS-001'}
   event = {
@@ -42,12 +43,17 @@ def test_report_summarises_sessions_and_decisions(tmp_path):
       'state_delta': {'governance_log:1:confirmed': decision, 'governance_log:2:denied': denied}
     },
   }
-  with sqlite3.connect(repo / '.sessions/sessions.db') as connection:
-    connection.execute('CREATE TABLE events (session_id TEXT, event_data TEXT)')
-    connection.execute('INSERT INTO events VALUES (?, ?)', ('s1', json.dumps(event)))
-    connection.execute('INSERT INTO events VALUES (?, ?)', ('s1', json.dumps({'author': 'user'})))
+  user = json.dumps({'author': 'user'})
+  # The adk web database repeats e1, as a copy of the other database would.
+  for path, rows in [
+    ('.sessions/sessions.db', [('e1', 's1', json.dumps(event)), ('e2', 's1', user)]),
+    ('app/.adk/session.db', [('e1', 's1', json.dumps(event)), ('e3', 's2', user)]),
+  ]:
+    with sqlite3.connect(repo / path) as connection:
+      connection.execute('CREATE TABLE events (id TEXT, session_id TEXT, event_data TEXT)')
+      connection.executemany('INSERT INTO events VALUES (?, ?, ?)', rows)
   text = report(repo)
-  assert 'Sessions: 1, with 2 stored events.' in text
+  assert 'Sessions: 2, with 3 stored events, in .sessions/sessions.db, app/.adk/session.db.' in text
   assert 'stamped with a governance hash: 1' in text
   assert "{'confirmed': 1, 'denied': 1}" in text
   assert 'Approval rate: 100%.' in text

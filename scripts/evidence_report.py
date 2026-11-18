@@ -57,12 +57,17 @@ def _transcripts(repo: Path) -> list[str]:
 
 
 def _sessions(repo: Path) -> list[str]:
-  database = repo / '.sessions/sessions.db'
-  if not database.exists():
-    return ['No session log at .sessions/sessions.db.']
-  with sqlite3.connect(f'file:{database}?mode=ro', uri=True) as connection:
-    rows = connection.execute('SELECT session_id, event_data FROM events').fetchall()
-  events = [json.loads(data) for _, data in rows]
+  # scripts/local_session.py writes .sessions/, and `adk web` defaults to app/.adk/.
+  databases = [*sorted(repo.glob('.sessions/*.db')), *repo.glob('app/.adk/session.db')]
+  if not databases:
+    return ['No session log at .sessions/*.db or app/.adk/session.db.']
+  # Keyed by event id, so a database copied from another counts its events once.
+  rows: dict[str, tuple[str, str]] = {}
+  for database in databases:
+    with sqlite3.connect(f'file:{database}?mode=ro', uri=True) as connection:
+      query = 'SELECT id, session_id, event_data FROM events'
+      rows |= {id_: (session, data) for id_, session, data in connection.execute(query)}
+  events = [json.loads(data) for _, data in rows.values()]
   decisions = [
     value
     for event in events
@@ -74,7 +79,8 @@ def _sessions(repo: Path) -> list[str]:
   approval = f'{results["confirmed"] / answered:.0%}' if answered else 'no confirmations yet'
   stamped = [e for e in events if (e.get('custom_metadata') or {}).get('governance_sha')]
   return [
-    f'Sessions: {len({session for session, _ in rows})}, with {len(events)} stored events.',
+    f'Sessions: {len({session for session, _ in rows.values()})}, with {len(events)} stored'
+    f' events, in {", ".join(str(d.relative_to(repo)) for d in databases)}.',
     f'Events stamped with a governance hash: {len(stamped)} (user messages are not stamped).',
     f'Tool decisions by result: {dict(results)}.',
     f'Tool decisions by rule: {dict(Counter(d["rule"] for d in decisions))}.',
