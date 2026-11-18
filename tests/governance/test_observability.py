@@ -34,6 +34,10 @@ def test_compose_service_is_pinned_and_local(name):
   assert service['restart'] == 'unless-stopped'
 
 
+def test_compose_project_has_its_own_name():
+  assert COMPOSE['name'] == 'agentic_bootstrap-observability'
+
+
 def test_prometheus_receives_otlp():
   assert '--web.enable-otlp-receiver' in COMPOSE['services']['prometheus']['command']
 

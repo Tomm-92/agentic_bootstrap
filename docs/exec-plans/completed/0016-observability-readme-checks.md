@@ -47,26 +47,26 @@ the two to separate.
 
 ## Checklist
 
-- [ ] `ops/observability/docker-compose.yaml`: add a top-level
+- [x] `ops/observability/docker-compose.yaml`: add a top-level
       `name: agentic_bootstrap-observability`. Change nothing else.
-- [ ] `tests/governance/test_observability.py`: add a test that
+- [x] `tests/governance/test_observability.py`: add a test that
       `COMPOSE['name'] == 'agentic_bootstrap-observability'`. Prove it can fail by
       removing the key, running the test, and restoring the key.
-- [ ] `docker compose -f ops/observability/docker-compose.yaml config -q` passes.
-- [ ] README, "One-time setup", after the `~/.zshrc` step: check the variable with
+- [x] `docker compose -f ops/observability/docker-compose.yaml config -q` passes.
+- [x] README, "One-time setup", after the `~/.zshrc` step: check the variable with
       `echo $OTEL_EXPORTER_OTLP_ENDPOINT`, and say that terminals opened before the
       edit, including VS Code's integrated terminal, don't have it until reopened.
-- [ ] README, after the `restart: unless-stopped` paragraph (lines 110–112): give the
+- [x] README, after the `restart: unless-stopped` paragraph (lines 110–112): give the
       check. Restart Docker Desktop, then run `curl -s localhost:3200/ready` without
       `up`. It prints `ready`.
-- [ ] README: add a short note that the stack is the Compose project
+- [x] README: add a short note that the stack is the Compose project
       `agentic_bootstrap-observability`, with its own volumes. If `up` fails with "port
       is already allocated", another stack holds the ports (4317, 4318, 3000, 3100,
       3200, 9090), for example one from another project with the same setup. Stop that
       stack first. Name no other project.
-- [ ] Change nothing else in the README. Keep its style: short sentences, numbered
+- [x] Change nothing else in the README. Keep its style: short sentences, numbered
       steps, `sh` code blocks.
-- [ ] The unit and governance test suites pass, as do ruff, mypy and vulture.
+- [x] The unit and governance test suites pass, as do ruff, mypy and vulture.
 
 ## Decisions
 
@@ -84,6 +84,8 @@ the two to separate.
   taking over the other stack.
 - The README names no other project. Which projects share this machine is the owner's
   setup, not this repo's, so the note covers any stack on the same ports.
+- The name test was proved to fail by running it before the key was added: it raised
+  `KeyError: 'name'`. It passed once the key was in.
 - Session-database checks from plan 0015 stay in `docs/REVIEW.md` and
   `docs/SECURITY.md`, which already cover them.
 

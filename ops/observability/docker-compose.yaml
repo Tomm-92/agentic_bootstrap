@@ -1,5 +1,6 @@
 # The local telemetry stack. Every port is bound to 127.0.0.1. Grafana's first login is
 # admin/admin. Run it from your own terminal: the Claude Code sandbox blocks docker.
+name: agentic_bootstrap-observability
 services:
   collector:
     image: otel/opentelemetry-collector:0.165.0

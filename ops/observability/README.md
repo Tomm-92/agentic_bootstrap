@@ -100,6 +100,16 @@ One-time setup:
    export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
    ```
 
+   Check it in the terminal that will run `adk web`:
+
+   ```sh
+   echo $OTEL_EXPORTER_OTLP_ENDPOINT
+   ```
+
+   It prints `http://localhost:4318`. Terminals opened before the edit, including VS
+   Code's integrated terminal, don't have it until you reopen them. `adk web` started
+   from one of them sends no traces and gives no warning.
+
 2. In Docker Desktop's settings, turn on "Start Docker Desktop when you sign in".
 3. Start the stack:
 
@@ -110,6 +120,19 @@ One-time setup:
 Every service has `restart: unless-stopped`, so from then on the stack starts whenever
 Docker does. It stays down only after `docker compose stop` or `down`, until you start
 it again. While it runs it holds memory between sessions.
+
+To check, restart Docker Desktop, then, without running `up`:
+
+```sh
+curl -s localhost:3200/ready
+```
+
+It prints `ready`.
+
+The stack is the Compose project `agentic_bootstrap-observability`, with its own
+volumes. Only one stack can hold its ports (4317, 4318, 3000, 3100, 3200, 9090). If `up`
+fails with "port is already allocated", another stack holds them, for example one from
+another project with the same setup. Stop that stack first.
 
 If the endpoint is set but the stack is down, the exporter logs connection errors, the
 session still runs, and its telemetry is lost.
