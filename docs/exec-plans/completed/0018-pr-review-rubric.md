@@ -16,6 +16,8 @@ scope_paths:
 
 # Plan 0018: PR review rubric
 
+Status: done. The owner approved it in plan mode on 2026-11-19.
+
 ## Goal
 
 Intent: [0018-pr-review-rubric](../intent/0018-pr-review-rubric.md)
@@ -101,22 +103,22 @@ This is stage 2 of the handover (playbook play 10).
 
 ## Order of work
 
-- [ ] Write this plan to `docs/exec-plans/active/0018-pr-review-rubric.md`.
-- [ ] Commit the intent, spec, plan and the tech-debt `@claude` row, with the
+- [x] Write this plan to `docs/exec-plans/active/0018-pr-review-rubric.md`.
+- [x] Commit the intent, spec, plan and the tech-debt `@claude` row, with the
       `Governance:` and `Plan: 0018` trailers. The owner's hook edit is left
       unstaged for the owner to commit.
-- [ ] Rename the evidence review, add the new input, and update the live references.
+- [x] Rename the evidence review, add the new input, and update the live references.
       Check with `git grep -n 'docs/REVIEW.md' -- ':!docs/exec-plans/completed'`.
       Only the handover's history and the protected docs (covered by proposals)
       should match.
-- [ ] Write `REVIEW.md`.
-- [ ] Change `ai_review.py` and its tests, with the tests written first.
-- [ ] Write the three proposals.
-- [ ] Update the handover and the tech-debt tracker.
-- [ ] ruff, mypy, vulture, and the unit and governance tests pass. Run
+- [x] Write `REVIEW.md`.
+- [x] Change `ai_review.py` and its tests, with the tests written first.
+- [x] Write the three proposals.
+- [x] Update the handover and the tech-debt tracker.
+- [x] ruff, mypy, vulture, and the unit and governance tests pass. Run
       `checks_on_stop.sh` and paste its output.
-- [ ] `scripts/check_scope.py` passes on the branch range.
-- [ ] Commit, then move this plan to `completed/` with `Status: done`.
+- [x] `scripts/check_scope.py` passes on the branch range.
+- [x] Commit, then move this plan to `completed/` with `Status: done`.
 
 ## Risks
 
@@ -138,12 +140,35 @@ This is stage 2 of the handover (playbook play 10).
 - `python scripts/check_scope.py main..HEAD`, which passes.
 - The `git grep` above shows no stale live references.
 
+### Results, 2026-11-19
+
+- `checks_on_stop.sh`: exit 0, with no output. ruff, vulture, mypy and the tests
+  passed.
+- `pytest -v tests/governance/test_ai_review.py`: 5 passed.
+  - `test_uses_the_allowlisted_reviewer_model`
+  - `test_instructions_come_from_base_and_the_pr_from_head`
+  - `test_a_missing_spec_is_stated`
+  - `test_a_missing_or_malformed_tally_is_marked_unavailable`
+  - `test_refusal_tells_the_human_and_does_not_retry`
+- `check_scope.py main..HEAD`: exit 0.
+- `git grep`: the only live references to `docs/REVIEW.md` are in the two protected
+  docs, which the proposals update.
+- A smoke test of `review()` against real git (`HEAD...HEAD`, stub client, no model
+  call):
+  - It found the plan, intent and spec for 0018.
+  - The system prompt held the rubric and was about 12 KB.
+  - A valid tally was kept.
+
 ## Decisions
 
 - Reading the base and head commits through `git show` keeps one helper (`_git`) for
   both trusted and untrusted inputs, and needs no second checkout.
 - There's no fallback for a base commit without `REVIEW.md`. Once this lands, that
   base never exists (spec Concerns).
+- `exec_doc` returns the "No <doc> for plan" message itself, not `None`, which saves
+  a branch at each call site.
+- The refusal path still returns `REFUSED` with no tally line (spec requirement 5). A
+  future gate should treat a missing tally as unavailable.
 - Generated paths are excluded in the rubric, not in the diff command, so policy
   stays in `REVIEW.md` (spec Design).
 - The governance gate blocked plan mode's own plan file while no plan was active. The
