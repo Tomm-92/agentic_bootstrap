@@ -32,7 +32,8 @@ def out_of_scope(globs: list[str], proposed: set[str], changed: list[str]) -> li
 
 
 def _plan_globs(commit: str, plan_id: str) -> list[str] | None:
-  for path in _git('ls-tree', '-r', '--name-only', commit, '--', 'docs/exec-plans').split():
+  plan_folders = ('docs/exec-plans/active', 'docs/exec-plans/completed')
+  for path in _git('ls-tree', '-r', '--name-only', commit, '--', *plan_folders).split():
     if fnmatch(path, f'docs/exec-plans/*/{plan_id}-*.md'):
       front = _git('show', f'{commit}:{path}').split('---\n', 2)[1]
       return list(yaml.safe_load(front)['scope_paths'])

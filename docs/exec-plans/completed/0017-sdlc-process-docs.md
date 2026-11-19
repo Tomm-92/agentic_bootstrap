@@ -11,7 +11,7 @@ scope_paths:
 
 # Plan 0017: make intent → spec → plan, started in plan mode, the default process
 
-Status: draft, awaiting owner approval.
+Status: done. The owner asked for it to be implemented on 2026-11-19.
 
 ## Goal
 
@@ -94,15 +94,15 @@ All three share one ID and name, so plan 0018 is built from intent 0018 and spec
 
 ## Order of work
 
-- [ ] `scripts/check_scope.py` and its test. Prove the new test fails before the fix.
-- [ ] The three templates and the two `.gitkeep` files.
-- [ ] `README.md`.
-- [ ] The three proposals. Each copies the live file and changes only what's listed
+- [x] `scripts/check_scope.py` and its test. Prove the new test fails before the fix.
+- [x] The three templates and the two `.gitkeep` files.
+- [x] `README.md`.
+- [x] The three proposals. Each copies the live file and changes only what's listed
       above. Check that `tests/governance/test_settings.py` still passes with the
-      proposed `settings.json` in place, then restore the live file.
-- [ ] Tech-debt entries.
-- [ ] ruff, mypy, vulture, and the unit and governance tests pass.
-- [ ] Move this plan to `completed/`.
+      proposed `settings.json`, using `SETTINGS_PATH`, so the live file is never touched.
+- [x] Tech-debt entries.
+- [x] ruff, mypy, vulture, and the unit and governance tests pass.
+- [x] Move this plan to `completed/`.
 
 ## Proof
 
@@ -145,6 +145,18 @@ them when approving this plan.
 - **`docs/REVIEW.md` stays as it is.** Renaming it belongs to stage 2, the PR review
   rubric.
 - **Existing completed plans aren't rewritten** to the new sections.
+
+Made while building:
+
+- **The scope fix limits `git ls-tree` to `active/` and `completed/`** rather than
+  adding a second glob. `ls-tree` sorts both folders before `intent/` and `spec/`, so
+  the old glob went wrong only when no plan with that ID existed. It then crashed on
+  the intent's missing front matter. The new test covers both cases: an intent and
+  spec next to their plan, and an intent with no plan, which is skipped.
+- **`test_settings.py` already reads `SETTINGS_PATH`**, so the proposal was checked
+  directly. The live settings are protected and the sandbox blocks writing them.
+- **The README's plan-mode steps gain a sixth step**, which links the review commands
+  that used to sit in "Workflow for each feature".
 
 ## Risks
 
