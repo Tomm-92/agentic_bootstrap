@@ -7,8 +7,8 @@ framework's conventions.
 
 ## Before changing anything
 
-- Read `governance/rules.yaml`, `governance/profile.yaml` and the single active plan
-  in `docs/exec-plans/active/`.
+- Read `governance/rules.yaml`, `governance/profile.yaml`, the single active plan
+  in `docs/exec-plans/active/`, and the intent and spec it links to.
 - Name the plan and the rule IDs you are working under.
 
 ## While working
@@ -21,6 +21,11 @@ framework's conventions.
 - Record assumptions, decisions and risks in the plan. Add deferred gaps to
   `docs/exec-plans/tech-debt-tracker.md`.
 - Never read, print or commit `.env` files (SEC-001).
+- Never set `Status: accepted` on an intent or spec. Only the owner accepts them.
+
+## Things agents get wrong
+
+When an agent makes the same mistake twice, propose a line for it here.
 
 ## Protected paths
 
@@ -98,7 +103,8 @@ tests/                  not a package: no `__init__.py` here or in subfolders
   unittests/            free tests using the fake model; conftest.py holds the fake
   integration/          real-model tests; spend credits
   governance/           rule catalogue and profile tests; also free
-docs/                   project setup instructions, plans and the activation ledger
+docs/                   project setup instructions and the activation ledger
+  exec-plans/           intents, specs, plans and their templates
 governance/             rules, profile, thresholds, allowlists and tool tiers
 scripts/                local session, evidence report, activation and scope checks; not a package
 ops/                    observability stack
