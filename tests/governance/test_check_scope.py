@@ -75,3 +75,13 @@ def test_the_repo_history_reports_only_out_of_scope_changes(repo):
   found = problems(['HEAD'])
   assert len(found) == 1
   assert found[0].endswith('scripts/x.py is outside its scope_paths')
+
+
+def test_intents_and_specs_are_not_read_as_plans(repo):
+  commit, _ = repo
+  intent = '# Intent\n\nStatus: draft\n'
+  commit({'docs/exec-plans/intent/0001-x.md': intent, 'docs/exec-plans/spec/0001-x.md': intent})
+  commit({'app/a.py': 'x'})
+  commit({'docs/exec-plans/intent/0002-y.md': intent}, plan='0002')
+  commit({'scripts/x.py': 'x'}, plan='0002')
+  assert problems(['HEAD']) == []

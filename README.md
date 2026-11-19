@@ -151,8 +151,9 @@ Agents cannot edit the rules or their enforcement. Changes go through a proposal
 the owner reviews. The product agent itself fails closed without committed governance,
 refuses unclassified tools and keeps to a token budget.
 
-**Transparency.** All work runs under an execution plan that states its intent, scope,
-decisions and risks. Edits outside the plan's scope are blocked. Every commit records
+**Transparency.** Every change starts as an intent, which becomes a spec and then an
+execution plan that states its scope, decisions and risks. The owner accepts each one
+before the next is written. Edits outside the plan's scope are blocked. Every commit records
 the governance hash and plan ID it was made under, so any change can be traced back to
 the rules and intent behind it. Runtime sessions go to a durable log that is never
 summarised away. `docs/QUALITY_SCORE.md` can only claim progress with linked evidence.
@@ -206,6 +207,54 @@ because its extension points let governance live in the framework instead of in 
 `docs/governance-activation.md` records which controls are active. The owner activates
 planned controls one at a time, as each one becomes real.
 
+### Development process
+
+Every change follows the committed-artifact chain from the
+[AI-native SDLC playbook](https://claude.com/resources/articles/the-ai-native-sdlc-playbook):
+intent, then spec, then plan, then build. Each artifact is a file, and the owner
+accepts it before the next one is written.
+
+| Artifact | Where | Accepted by | Acceptance starts |
+| --- | --- | --- | --- |
+| Intent | `docs/exec-plans/intent/<ID>-<name>.md` | Owner sets `Status: accepted` | Writing the spec |
+| Spec | `docs/exec-plans/spec/<ID>-<name>.md` | Owner sets `Status: accepted` | Plan mode |
+| Plan | `docs/exec-plans/active/<ID>-<name>.md` | Owner approves the plan as Claude leaves plan mode | Building |
+
+All three share one ID and name, and each starts from its template in
+`docs/exec-plans/templates/`. The playbook names a product owner, a policy owner and
+a tech lead. Here the owner plays every role. Agents draft intents and specs, but
+only the owner sets `Status: accepted`.
+
+**Small changes skip the intent and spec.** Fixes that restore documented behaviour,
+doc corrections and dependency bumps start at the plan, whose Goal says
+`Intent: none (<reason>)`. Everything else starts with an intent, including changes to
+governance and to this process.
+
+**One commit holds all three.** Commits need a `Plan:` trailer naming a plan in
+`active/` or `completed/`, so an intent can't be committed on its own. Acceptance is
+recorded in each file's header, and the intent, spec and plan are committed together.
+
+**Not the product agent's intent artifact.** An `intent.md` here describes a change to
+this repo. The product agent's intent artifact (`intent_artifact` in
+`governance/profile.yaml`, SPEC-001) is what the agent's users approve before it
+builds their output.
+
+**Planning in plan mode:**
+
+1. Start Claude Code in plan mode: `claude --permission-mode plan`, or press Shift+Tab.
+2. Ask it to plan from the accepted spec, for example: *"Plan the change in
+   docs/exec-plans/spec/0018-x.md."*
+3. Question the plan before you accept it. Ask what could break, which step is
+   riskiest, and which options it didn't take. Iterate until an engineer who never saw
+   the conversation could build the change from the plan alone.
+4. Approve it. Claude leaves plan mode and writes the plan to
+   `docs/exec-plans/active/` from the template. The edit gate exempts plan files.
+   Review the file, then commit the intent, spec and plan together.
+5. Build in the same session, or in a new one (GOV-006: one plan per session). When
+   the build departs from the plan, update the plan in the same commit.
+6. Review and commit as in [Review after each commit](#code-quality), then move the
+   plan to `docs/exec-plans/completed/`.
+
 ### Governance
 
 The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
@@ -230,17 +279,11 @@ that plan's `scope_paths`. The product agent fails closed the same way at startu
 `proposals/<plan ID>/` at the same relative path. The owner reviews it, copies it into
 place and commits.
 
-**Execution plans.** Each session after the bootstrap run writes a plan at
-`docs/exec-plans/active/<plan ID>-<name>.md`, starting with this front matter:
-
-```yaml
----
-id: '0002'
-rules: [SCOPE-001]
-scope_paths:
-  - app/**
----
-```
+**Execution plans.** Each session after the bootstrap run works under one plan at
+`docs/exec-plans/active/<plan ID>-<name>.md`, written from
+`docs/exec-plans/templates/plan.md` as the
+[development process](#development-process) describes. The gate reads its front
+matter: `id`, the `rules` it works under and the `scope_paths` it may edit.
 
 The session records its work there, lists its owner actions at the end, and moves the
 plan to `docs/exec-plans/completed/`. The edit gate allows plan files, so this is always
@@ -323,12 +366,13 @@ Change those yourself, by hand or through a pull request.
 and every push to `main`, for any agent or person. Merging needs it to pass once
 it is a required status check in the branch protection rules.
 
-**Workflow for each feature:**
-1. Build the feature. The hooks keep each turn clean.
-2. Commit. The reviews only look at changes since the last commit, so small
+**Review after each commit.** Features are planned and built as the
+[development process](#development-process) describes. The hooks keep each turn
+clean. Then:
+1. Commit. The reviews only look at changes since the last commit, so small
    commits keep them cheap.
-3. Run `/adk-review` and `/simplify`, then `/code-review low`.
-4. Commit the fixes.
+2. Run `/adk-review` and `/simplify`, then `/code-review low`.
+3. Commit the fixes.
 
 Run integration tests with `.venv/bin/pytest -m integration` before merging
 anything that changes model-facing behaviour.
