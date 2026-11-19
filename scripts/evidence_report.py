@@ -1,4 +1,4 @@
-"""Summarises the available evidence for the evidence review in docs/REVIEW.md (EVID-001)."""
+"""Summarises the evidence for the EVID-001 review in docs/EVIDENCE_REVIEW.md."""
 
 import json
 import re

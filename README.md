@@ -299,7 +299,7 @@ nothing unless you pass `--real`, which calls the paid model (COST-001):
 ```
 
 `ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
-scripts.evidence_report` summarises the evidence for `docs/REVIEW.md`.
+scripts.evidence_report` summarises the evidence for `docs/EVIDENCE_REVIEW.md`.
 
 ### Coding agents
 

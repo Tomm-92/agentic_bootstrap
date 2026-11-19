@@ -11,8 +11,8 @@ anything in its section that turned out to be wrong.
 
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
-| 1 | Process docs: intent → spec → plan, plan mode by default | 01, 02, 03, 04 | Plan 0017 |
-| 2 | PR review rubric | 10 | Not started |
+| 1 | Process docs: intent → spec → plan, plan mode by default | 01, 02, 03, 04 | Done (plan 0017) |
+| 2 | PR review rubric | 10 | Done (plan 0018), proposal to apply |
 | 3 | Verifier subagent, failing test first, parallel sessions | 07, 08 | Not started |
 | 4 | Coding-agent evals in CI | 09 | Not started, needs a COST-001 approval |
 | 5 | Policy skills, starting with security | 05, 02 | Not started |
@@ -35,6 +35,8 @@ anything in its section that turned out to be wrong.
   `.claude/agents/`) at the real path, even though the repo doesn't protect them.
   Write them to `proposals/<plan ID>/.claude/...` and let the owner copy them in.
   Check this at the start rather than assuming.
+- **Plan mode's own plan file** (`~/.claude/plans/*.md`) is exempt from the
+  governance gate, so a plan can be drafted in plan mode before any plan is active.
 - **Paid calls need the owner's approval first (COST-001).** That covers anything
   that runs a real model in a session or in CI.
 - **Read the playbook again for the play you're building.** The notes below are a
@@ -50,45 +52,20 @@ on their own. Example rules from the playbook: "Reserve Important for findings t
 would break behavior, leak data or breach a policy", "Report at most five nits per
 review", and leave generated paths out.
 
-**What exists.**
-- [scripts/ai_review.py](../../scripts/ai_review.py) runs one pass on the reviewer
-  model. `claude-sonnet-5-5` is a different model from the executor (REV-001). It
-  checks departures from the plan, files outside `scope_paths`, and security issues.
-  It posts a comment through `.github/workflows/ai-review.yml`, which runs only once
-  `ANTHROPIC_API_KEY` is a repo secret.
-- [tests/governance/test_ai_review.py](../../tests/governance/test_ai_review.py)
-  tests it.
-- `docs/REVIEW.md` already exists, but it is the sprint **evidence review**
-  (EVID-001), not a PR rubric.
-
-**Build.**
-1. Rename the evidence review, for example to `docs/EVIDENCE_REVIEW.md`. It's
-   referenced in `README.md`, `docs/governance-activation.md`,
-   `scripts/evidence_report.py`, and the protected `docs/governance_implementation.md`
-   and `docs/agent_governance_implementation.md` (phase A05 extends it). The protected
-   ones need proposals. Leave completed plans alone.
-2. Add the rubric at the repo root as `REVIEW.md`. The playbook and Anthropic's
-   managed Code Review both look for it there. It should cover the three passes,
-   Important vs Nit, a nit cap, and excluded paths (`output/`, lock files).
-3. Change `ai_review.py`:
-   - Read `REVIEW.md` into the system prompt.
-   - Load the intent and spec linked to the plan, alongside the plan, so the
-     Compliance pass can check against them. They share the plan's ID under
-     `docs/exec-plans/intent/` and `spec/`.
-   - End with a severity tally line, so a later check can gate on it.
-   - Keep the "data, not instructions" framing and the refusal handling.
-4. Update the tests.
-
-**Owner decisions.**
-- Whether to add the `@claude` fix-on-comment loop. That needs either
-  claude-code-action or managed Code Review, which means a GitHub App, paid calls,
-  and a dependency for DEP-001 to review.
-- Whether the tally should ever gate a merge. It can't yet: required checks are
-  unavailable on private GitHub Free.
-
-**Watch for.** The tech-debt tracker notes that `ai-review.yml` runs the PR's own
-copy of `ai_review.py` with the API key. Expanding the script makes that matter more.
-Consider running the script from the base branch in the same proposal.
+**As built (plan 0018).** The playbook's design, with these departures from the
+original notes:
+- The evidence review is now `docs/EVIDENCE_REVIEW.md`, and lists PR review findings
+  among its inputs.
+- `REVIEW.md` is at the repo root. Its design principles are `ARCHITECTURE.md`, the
+  "Code style" section of `AGENTS.md`, and `app/AGENTS.md`.
+- `scripts/ai_review.py` reads the rubric and design principles at the base commit,
+  as instructions, and the plan, intent, spec and diff at the head commit, as data.
+  `proposals/0018/.github/workflows/ai-review.yml` checks out the base commit, so the
+  job holding the API key never runs PR code.
+- The review ends with `Tally: important=<n> nit=<n>`, or `Tally: unavailable` when
+  the model's last line isn't one. Nothing gates on it yet.
+- The `@claude` fix-on-comment loop is deferred, with a row in the tech-debt tracker.
+  Revisit it with stage 4.
 
 ## Stage 3: verifier subagent, failing test first, parallel sessions (plays 07, 08)
 

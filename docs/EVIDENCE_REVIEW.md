@@ -10,6 +10,8 @@ Held each sprint by the owner (EVID-001). Start from `.venv/bin/python -m script
   `app/.adk/session.db` from `adk web`)
 - Traces and alerts (`ops/observability/`)
 - `docs/exec-plans/tech-debt-tracker.md`
+- PR review findings: the ai-review comments and their `ai-review` artifacts. A recurring
+  Important finding is a candidate rule or `AGENTS.md` change.
 
 Phase A05 adds verification reports, eval trends and run records.
 
