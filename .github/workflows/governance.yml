@@ -38,7 +38,7 @@ jobs:
         run: |
           {
             echo '## Changed protected paths'
-            git diff --name-only "$BASE_SHA...$HEAD_SHA" -- governance docs/governance_implementation.md docs/agent_governance_implementation.md .claude/settings.json .claude/settings.local.json .claude/hooks .github .githooks AGENTS.md CLAUDE.md app/AGENTS.md app/CLAUDE.md ruff.toml pytest.ini mypy.ini | sed 's/^/- /'
+            git diff --name-only "$BASE_SHA...$HEAD_SHA" -- governance docs/governance_implementation.md docs/agent_governance_implementation.md docs/aws_hosting_implementation.md .claude/settings.json .claude/settings.local.json .claude/hooks .github .githooks AGENTS.md CLAUDE.md app/AGENTS.md app/CLAUDE.md ruff.toml pytest.ini mypy.ini | sed 's/^/- /'
           } | tee governance-report/protected-paths.md >>"$GITHUB_STEP_SUMMARY"
       - name: DEP-001 items for review
         if: ${{ !cancelled() }}

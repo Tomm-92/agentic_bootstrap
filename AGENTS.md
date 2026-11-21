@@ -34,6 +34,7 @@ Never write to these, and never do so indirectly through a script or command (GO
 - `governance/`, including the profile
 - `docs/governance_implementation.md`
 - `docs/agent_governance_implementation.md`
+- `docs/aws_hosting_implementation.md`
 - `.claude/settings.json`, `.claude/settings.local.json` and `.claude/hooks/`
 - `.github/` and `.githooks/`
 - `AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and `app/CLAUDE.md`

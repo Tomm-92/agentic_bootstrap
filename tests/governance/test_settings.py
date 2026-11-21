@@ -17,6 +17,7 @@ PROTECTED = {
   'Edit(/governance/**)': './governance',
   'Edit(/docs/governance_implementation.md)': './docs/governance_implementation.md',
   'Edit(/docs/agent_governance_implementation.md)': './docs/agent_governance_implementation.md',
+  'Edit(/docs/aws_hosting_implementation.md)': './docs/aws_hosting_implementation.md',
   'Edit(/.claude/settings.json)': './.claude/settings.json',
   'Edit(/.claude/settings.local.json)': './.claude/settings.local.json',
   'Edit(/.claude/hooks/**)': './.claude/hooks',
