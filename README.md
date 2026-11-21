@@ -10,8 +10,9 @@ real one.
 
 ## Getting started
 
-The bootstrap is built from four instruction files in `docs/`. The first three are
-already applied in every clone, so you only run the fourth:
+The bootstrap is built from five instruction files in `docs/`. The first three are
+already applied in every clone. You run the fourth, and the fifth when you're ready to
+host the agent:
 
 | Order | File | What it adds | In a fresh clone |
 | --- | --- | --- | --- |
@@ -19,6 +20,7 @@ already applied in every clone, so you only run the fourth:
 | 2 | `docs/codequality.md` | Lint, type and test gates | Done |
 | 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose | Done |
 | 4 | `docs/agent_governance_implementation.md` | Tools, sandboxed verification, intent approval, independent review and evals for your agent | **You run this** |
+| 5 | `docs/aws_hosting_implementation.md` | A container image and Terraform for dev and prod on AWS ECS Fargate, with sessions, telemetry and promotion that keep every runtime control | Optional: run it after file 4, when you host |
 
 Getting going takes five steps: set up your clone, know what your agent is for,
 check the prerequisites, run file 4, then apply what it proposes.
@@ -200,7 +202,8 @@ because its extension points let governance live in the framework instead of in 
 - **Open source and production-ready.** ADK is maintained by Google and installed as a
   pinned, locked dependency. Its CLI covers local development (`adk web`), evals
   (`adk eval`) and deployment (`adk deploy` to Cloud Run, Agent Engine, GKE or a
-  Docker image).
+  Docker image). For AWS, `docs/aws_hosting_implementation.md` serves the same ADK
+  server from a container on ECS Fargate.
 
 ## How it works
 
@@ -271,6 +274,7 @@ that plan's `scope_paths`. The product agent fails closed the same way at startu
 
 **Protected paths.** Agents can't edit `governance/`,
 `docs/governance_implementation.md`, `docs/agent_governance_implementation.md`,
+`docs/aws_hosting_implementation.md`,
 `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.github/`,
 `.githooks/`, the instruction files (`AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and
 `app/CLAUDE.md`), or the check config (`ruff.toml`, `pytest.ini` and `mypy.ini`).
