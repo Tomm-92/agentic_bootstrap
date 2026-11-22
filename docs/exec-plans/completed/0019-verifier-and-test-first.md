@@ -9,7 +9,7 @@ scope_paths:
 
 # Plan 0019: verifier subagent and failing test first
 
-Status: in progress. The owner approved it in plan mode on 2026-11-22.
+Status: done. The owner approved it in plan mode on 2026-11-22.
 
 <!-- Written to docs/exec-plans/active/<ID>-<name>.md when the owner approves it in plan
 mode. Moved to docs/exec-plans/completed/ when done. -->
@@ -74,15 +74,15 @@ These don't change: `REVIEW.md` (requirement 9), `checks_on_stop.sh`,
 
 ## Order of work
 
-- [ ] Copy this plan to `docs/exec-plans/active/0019-verifier-and-test-first.md`.
+- [x] Copy this plan to `docs/exec-plans/active/0019-verifier-and-test-first.md`.
   Commit it with the intent and spec as one commit:
   "0019: intent, spec and plan for the verifier and failing test first".
-- [ ] Write `proposals/0019/.claude/agents/verifier.md` and `proposals/0019/AGENTS.md`.
-- [ ] Edit the README table.
-- [ ] Update the handover.
-- [ ] Run the checks with the spec's command, and paste the output into Proof.
-- [ ] Commit: "0019: add the verifier subagent and test rules, by proposal".
-- [ ] Mark the plan done, fill in Decisions and Owner actions, and move it to
+- [x] Write `proposals/0019/.claude/agents/verifier.md` and `proposals/0019/AGENTS.md`.
+- [x] Edit the README table.
+- [x] Update the handover.
+- [x] Run the checks with the spec's command, and paste the output into Proof.
+- [x] Commit: "0019: add the verifier subagent and test rules, by proposal".
+- [x] Mark the plan done, fill in Decisions and Owner actions, and move it to
   `completed/`. Commit.
 
 Every commit carries the trailers `Governance: <git rev-parse HEAD:governance>` and
@@ -102,15 +102,34 @@ Every commit carries the trailers `Governance: <git rev-parse HEAD:governance>` 
 
 ## Proof
 
-- `diff AGENTS.md proposals/0019/AGENTS.md` shows only the four added lines.
-- The check command exits 0. Its literal output is pasted here.
+- `diff AGENTS.md proposals/0019/AGENTS.md` shows only the four added lines
+  (`93a94,103`).
+- The check command exits 0. Its literal output, run before the build commit:
+
+  ```text
+  $ rm -f .claude/.checks_fingerprint
+  $ echo '{}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh; echo "exit $?"
+  exit 0
+  ```
+
+  No output with exit 0 means ruff, ruff format, the suppression check, vulture,
+  mypy and pytest all passed.
 - After the owner applies the proposal, `/agents` lists `verifier`. Asking "do the
   checks pass?" makes Claude call it. This is the owner's check, because the file
   can't be put in place before then.
 
 ## Decisions
 
-(Filled in while building.)
+- **The verifier checks `app/` changes with two git commands.** `git status
+  --porcelain -- app` catches uncommitted and untracked changes, and
+  `git diff HEAD --name-only -- app` is there for clarity. Committed changes on the
+  branch aren't checked. The verifier runs before a task is reported done, while the
+  work is usually still uncommitted, and CI never runs `local_session`.
+- **The README row says "Ask for the `verifier`"**, because the table's other rows
+  are slash commands and a subagent has none.
+- **The handover's stage 3 section follows stage 2's pattern.** Its build notes and
+  owner decision became an "As built" list, and it now points to stage 4 as plan
+  0020.
 
 ## Owner actions
 
