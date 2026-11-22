@@ -41,7 +41,8 @@ to apply. `AGENTS.md` is protected (GOV-002), and the sandbox blocks
   - The body is short:
     - Always run `rm -f .claude/.checks_fingerprint` and then
       `echo '{}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh`.
-    - If `git status --porcelain -- app` shows changes under `app/`, also run
+    - If `git status --porcelain` or `git diff HEAD --name-only` shows changes under
+      `app/`, also run
       `.venv/bin/python -m scripts.local_session "What is the status of demo?"`.
     - Never pass `--real`, and never run `pytest -m integration`.
     - Report each command, its exit code and its literal output. Exit 0 with no
@@ -119,10 +120,10 @@ Every commit carries the trailers `Governance: <git rev-parse HEAD:governance>` 
 
 ## Decisions
 
-- **The verifier checks for `app/` changes with `git status --porcelain -- app`
-  only.** It catches staged, unstaged and untracked changes. The plan also listed
-  `git diff HEAD --name-only`, which adds nothing to that, so it was dropped.
-  Committed changes on the branch aren't checked. The verifier runs before a task is reported done, while the
+- **The verifier checks `app/` changes with two git commands.** `git status
+  --porcelain -- app` catches uncommitted and untracked changes, and
+  `git diff HEAD --name-only -- app` is there for clarity. Committed changes on the
+  branch aren't checked. The verifier runs before a task is reported done, while the
   work is usually still uncommitted, and CI never runs `local_session`.
 - **The README row says "Ask for the `verifier`"**, because the table's other rows
   are slash commands and a subagent has none.
