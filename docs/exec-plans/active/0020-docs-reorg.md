@@ -15,6 +15,9 @@ scope_paths:
   - tests/governance/test_ai_review.py
   - tests/governance/test_observability.py
   - tests/governance/test_quality_score.py
+  - tests/governance/test_check_scope.py
+  - tests/governance/test_hooks.py
+  - tests/governance/test_settings.py
 ---
 
 # Plan 0020: docs reorganisation
@@ -97,19 +100,20 @@ docs change only through the proposal.
   every old path. The deny rules still name the old paths, so the new paths are open
   to edits until the owner applies this. I treat them as protected anyway.
 - These files find plans, so they change in the same commit as the hook, or the checks
-  fail in between: `scripts/check_scope.py` (prefix and plan folders),
-  `tests/governance/test_check_scope.py`, `tests/governance/test_hooks.py` and
-  `tests/governance/test_settings.py`.
+  fail in between: `scripts/check_scope.py` (prefix and plan folders), and
+  `tests/governance/test_check_scope.py`, `test_hooks.py` and `test_settings.py`. The
+  three tests go in as one patch, `proposals/0020/tests.patch` (see Decisions).
 
 ## Order of work
 
-- [ ] Write this plan to `docs/exec-plans/active/0020-docs-reorg.md`. Today's gate and
+- [x] Write this plan to `docs/exec-plans/active/0020-docs-reorg.md`. Today's gate and
       commit hook only see that path.
-- [ ] Owner commits their moves as one commit (it deletes protected files), with
-      trailers `Governance: <hash>` and `Plan: 0020`.
-- [ ] Make the direct changes. Commit the code and tests, then the docs.
-- [ ] Write `proposals/0020/`, then commit it.
-- [ ] Run the checks. Everything passes except where the old hook is still in effect.
+- [x] Owner commits their moves as one commit (it deletes protected files), with
+      trailers `Governance: <hash>` and `Plan: 0020`. Done in `aee6378`.
+- [x] Make the direct changes. Commit the code and tests, then the docs. Done in
+      `5deb799` and `e3ac2aa`.
+- [x] Write `proposals/0020/`, then commit it.
+- [x] Run the checks, both in the repo and in a copy with the proposal applied.
 - [ ] Owner applies `proposals/0020/` in one commit (see Owner actions).
 - [ ] New session (GOV-006): run the checks with the verifier, tick this plan, and move
       it to `docs/execution-plans/plan/completed/`.
@@ -145,14 +149,27 @@ docs change only through the proposal.
   2026-11-22).
 - `proposals/` keeps its name and stays at the top level. Applied proposals are deleted.
 - `governance/` is not reorganised.
+- The three proposed test files ship as `proposals/0020/tests.patch`, not as copies.
+  The repo's ruff check lints `proposals/`, and `ruff.toml` (protected) exempts only
+  `tests/**` from the `ANN` and `S101` rules. Their paths are added to `scope_paths` so
+  the CI scope check accepts the owner's apply commit (owner, 2026-11-22).
+- `scripts/check_scope.py` is proposed rather than edited directly, so plans are found
+  in the same place by the gate, the commit hook and CI from the same commit.
 
 ## Owner actions
 
 1. Commit your moves (see Order of work).
-2. Review `proposals/0020/`. In one commit, copy each file to its path, delete
-   `proposals/0020/`, and
-   `git mv docs/exec-plans/active/0020-docs-reorg.md docs/execution-plans/plan/active/`.
-   That leaves `docs/exec-plans/` empty, so remove it.
+2. Review `proposals/0020/`, then apply it in one commit, from the repo root:
+
+   ```bash
+   (cd proposals/0020 && find . -type f ! -name tests.patch -exec cp -p {} ../../{} \;)
+   git apply proposals/0020/tests.patch
+   git rm -rq proposals/0020
+   git mv docs/exec-plans/active/0020-docs-reorg.md docs/execution-plans/plan/active/
+   git add -A && git commit   # trailers: Governance: <old hash>, Plan: 0020
+   ```
+
+   `governance/rules.yaml` changes, so the hash in later trailers changes too.
 3. If the stack is running, restart it from the new folder:
    `docker compose -f observability/compose.yaml up -d`.
 4. Start a new session for the close-out.
