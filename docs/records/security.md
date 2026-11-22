@@ -41,7 +41,7 @@ sandbox and output items.
 - [ ] `session_token_budget` is 200000 tokens per session, enforced by the governance layer.
       Nothing limits the number of sessions.
 - [ ] The Console workspace behind the API key has a spend limit.
-- [ ] The `SessionTokenSpike` alert in `ops/observability/alerts.yaml` is being watched.
+- [ ] The `SessionTokenSpike` alert in `observability/alerts.yaml` is being watched.
 
 ## Incident response
 

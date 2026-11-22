@@ -26,12 +26,12 @@ rewritten to start with `Confirmed`.
 | SCOPE-002 | governance workflow scope check (S05) | S05 | tests/governance/test_check_scope.py; scripts/check_scope.py over main's 48 commits reported only 7d58e45, an owner edit to governance/profile.yaml | pass | Confirmed by the owner, 2026-11-16: the "Plan scope" step passed on the agent-instructions-split pull request, which applies proposal 0010 (commit a2ac814) |
 | EVID-001 | Governance and Plan trailers enforced by commit-msg (S04) | S04 | tests/governance/test_hooks.py::test_commit_msg_rejects_bad_trailers | pass | Confirmed by the owner, 2026-11-11 |
 | EVID-001 | durable session log with compaction off (S06) | S06 | tests/unittests/test_governance_plugin.py::test_compaction_is_off; .venv/bin/python -m scripts.local_session --fake wrote stamped events to .sessions/sessions.db | pass | none |
-| EVID-001 | evidence review each sprint (S09) | S09 | docs/EVIDENCE_REVIEW.md, review of 2026-11-11 (.venv/bin/python -m scripts.evidence_report and .sessions/sessions.db) | pass | Confirmed by the owner, 11-11-2026 |
+| EVID-001 | evidence review each sprint (S09) | S09 | docs/records/evidence_review.md, review of 2026-11-11 (.venv/bin/python -m scripts.evidence_report and .sessions/sessions.db) | pass | Confirmed by the owner, 11-11-2026 |
 | SEC-002 | gitleaks in the governance workflow (S05) | S05 | proposals/0001/.github/workflows/governance.yml, actionlint; gitleaks git ran clean locally | pass | Confirmed by the owner, 2026-11-11 |
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | test that collector exporters match the allowlist (S08) | S08 | tests/governance/test_observability.py::test_collector_exporters_match_the_allowlist | pass | none |
 | DATA-001 | sandbox containers run without a TTY or exec access (A02) | A02 | phase A02 builds this | pending | none |
-| DATA-001 | ORR data-handling sign-off (S09) | S09 | docs/SECURITY.md | deferred | Sign off docs/SECURITY.md, After the run step 9 in docs/agent_governance_implementation.md |
+| DATA-001 | ORR data-handling sign-off (S09) | S09 | docs/records/security.md | deferred | Sign off docs/records/security.md, After the run step 9 in docs/bootstrap-implementation/agent_governance.md |
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | pass | Confirmed by the owner, 2026-11-11 |

@@ -258,5 +258,5 @@ text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 <text x="34" y="1835" class="why">Scores without evidence declare victory early.</text>
 <rect x="538" y="1802" width="121" height="22" rx="5" class="D"><title>test that every score above 1 links to an existing file or test (S09)</title></rect>
 <text x="546" y="1817" class="c">Evidence-link test</text>
-<text x="24" y="1876" class="cs">Source of truth: governance/rules.yaml. Evidence for each control: docs/governance-activation.md.</text>
+<text x="24" y="1876" class="cs">Source of truth: governance/rules.yaml. Evidence for each control: docs/records/governance_activation.md.</text>
 </svg>

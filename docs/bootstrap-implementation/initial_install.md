@@ -6,10 +6,10 @@ in the project's setup:
 
 | Order | File | What it adds | Start a session with |
 | --- | --- | --- | --- |
-| 1 | `docs/initial_install.md` | Git, Python, Google ADK, first commit | *"Implement initial_install.md."* |
-| 2 | `docs/codequality.md` | Lint, type and test gates | *"Implement docs/codequality.md."* |
-| 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose | *"Implement docs/governance_implementation.md in one run, from Stage 1 to Stage 11."* |
-| 4 | `docs/agent_governance_implementation.md` | The controls that do, once the purpose is known | *"Implement docs/agent_governance_implementation.md in one run, from A01 to A06."* |
+| 1 | `docs/bootstrap-implementation/initial_install.md` | Git, Python, Google ADK, first commit | *"Implement initial_install.md."* |
+| 2 | `docs/bootstrap-implementation/codequality.md` | Lint, type and test gates | *"Implement docs/bootstrap-implementation/codequality.md."* |
+| 3 | `docs/bootstrap-implementation/project_governance.md` | Every control that doesn't depend on the agent's purpose | *"Implement docs/bootstrap-implementation/project_governance.md in one run, from Stage 1 to Stage 11."* |
+| 4 | `docs/bootstrap-implementation/agent_governance.md` | The controls that do, once the purpose is known | *"Implement docs/bootstrap-implementation/agent_governance.md in one run, from A01 to A06."* |
 
 Use a new session, opened at the repo root, for each file. Do only step 1 here.
 
@@ -20,8 +20,8 @@ matters:
 
 - `initial_install.md`
 - `codequality.md`
-- `governance_implementation.md`
-- `agent_governance_implementation.md`
+- `project_governance.md`
+- `agent_governance.md`
 
 ## Rules for this session
 
@@ -48,7 +48,7 @@ Run these from the repo root.
    once about everything that's missing.
 
    These are needed by this file and every later one. Git must be 2.32 or newer,
-   because the owner's last step in `docs/governance_implementation.md` uses
+   because the owner's last step in `docs/bootstrap-implementation/project_governance.md` uses
    `git commit --trailer`.
 
    ```bash
@@ -123,15 +123,16 @@ Run these from the repo root.
    git init -b main
    ```
 
-4. **Move the instruction files into `docs/`,** where the later files expect
+4. **Move the instruction files into `docs/bootstrap-implementation/`,** where the later files expect
    them.
 
    ```bash
-   mkdir -p docs && mv initial_install.md codequality.md governance_implementation.md agent_governance_implementation.md docs/
+   mkdir -p docs/bootstrap-implementation
+   mv initial_install.md codequality.md project_governance.md agent_governance.md docs/bootstrap-implementation/
    ```
 
-5. **`.gitignore`.** Create it with these lines. `docs/codequality.md` adds more
-   later.
+5. **`.gitignore`.** Create it with these lines.
+   `docs/bootstrap-implementation/codequality.md` adds more later.
 
    ```text
    .venv/
@@ -220,4 +221,4 @@ Run these from the repo root.
 Report the Python and ADK versions, the commit hash and any tool from step 1 that's
 still missing, then stop. Tell the owner
 the next step is a new session at the repo root, started with: *"Implement
-docs/codequality.md."*
+docs/bootstrap-implementation/codequality.md."*

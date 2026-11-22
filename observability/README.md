@@ -8,9 +8,9 @@ and tool calls it made, what the governance layer decided, and what each call co
 The source of truth is the code and config below. This page copies facts from them, so
 check them when it and they disagree:
 
-- [`ARCHITECTURE.md`](../../ARCHITECTURE.md), "Telemetry invariants": the required span
+- [`ARCHITECTURE.md`](../ARCHITECTURE.md), "Telemetry invariants": the required span
   attributes (OBS-001)
-- [`app/governance.py`](../../app/governance.py): `GovernancePlugin`, which sets them
+- [`app/governance.py`](../app/governance.py): `GovernancePlugin`, which sets them
 - [`collector.yaml`](collector.yaml): where each signal goes (DATA-001)
 - [`alerts.yaml`](alerts.yaml): the alert rules
 
@@ -82,7 +82,7 @@ that emitted it.
    it and runs one pipeline per signal: traces to Tempo, metrics to Prometheus and logs
    to Loki. Its exporters must match `telemetry_exporters` in
    `governance/allowlists/services.yaml` (DATA-001, tested by
-   [`tests/governance/test_observability.py`](../../tests/governance/test_observability.py)).
+   [`tests/governance/test_observability.py`](../tests/governance/test_observability.py)).
 4. Grafana reads all three stores. Its datasources and the Governance dashboard are
    provisioned from [`grafana/`](grafana/).
 
@@ -114,7 +114,7 @@ One-time setup:
 3. Start the stack:
 
    ```sh
-   docker compose -f ops/observability/docker-compose.yaml up -d
+   docker compose -f observability/compose.yaml up -d
    ```
 
 Every service has `restart: unless-stopped`, so from then on the stack starts whenever

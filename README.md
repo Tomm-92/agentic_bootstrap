@@ -15,10 +15,10 @@ already applied in every clone, so you only run the fourth:
 
 | Order | File | What it adds | In a fresh clone |
 | --- | --- | --- | --- |
-| 1 | `docs/initial_install.md` | Git, Python 3.14, Google ADK, first commit | Done |
-| 2 | `docs/codequality.md` | Lint, type and test gates | Done |
-| 3 | `docs/governance_implementation.md` | Every control that doesn't depend on the agent's purpose | Done |
-| 4 | `docs/agent_governance_implementation.md` | Tools, sandboxed verification, intent approval, independent review and evals for your agent | **You run this** |
+| 1 | `docs/bootstrap-implementation/initial_install.md` | Git, Python 3.14, Google ADK, first commit | Done |
+| 2 | `docs/bootstrap-implementation/codequality.md` | Lint, type and test gates | Done |
+| 3 | `docs/bootstrap-implementation/project_governance.md` | Every control that doesn't depend on the agent's purpose | Done |
+| 4 | `docs/bootstrap-implementation/agent_governance.md` | Tools, sandboxed verification, intent approval, independent review and evals for your agent | **You run this** |
 
 Getting going takes five steps: set up your clone, know what your agent is for,
 check the prerequisites, run file 4, then apply what it proposes.
@@ -77,14 +77,14 @@ Without these the run still finishes, but the checks that need them are recorded
 
 Start one Claude Code session at the repo root and say:
 
-> *"Implement docs/agent_governance_implementation.md in one run, from A01 to
+> *"Implement docs/bootstrap-implementation/agent_governance.md in one run, from A01 to
 > A06."*
 
 It starts with the questions from step 2. Once you confirm your answers, it needs
 nothing more from you until it ends. It:
 
 - creates the branch `governance-agent-purpose` and the plan
-  `docs/exec-plans/active/A00-agent-purpose.md`, and commits there after each part
+  `docs/execution-plans/plan/active/A00-agent-purpose.md`, and commits there after each part
   (A01 to A06). It never commits on `main` and never pushes.
 - builds the agent's tools, sandbox, intent approval, review and evals in `app/`,
   `scripts/` and `tests/`.
@@ -99,7 +99,7 @@ is expected: the live `governance/tools.yaml` has no entry for them yet.
 ### 5. Apply the proposal
 
 Do these yourself, on the `governance-agent-purpose` branch. The full list is in
-"After the run" in `docs/agent_governance_implementation.md`.
+"After the run" in `docs/bootstrap-implementation/agent_governance.md`.
 
 1. **Review** everything in `proposals/A00/`, especially `governance/profile.yaml`,
    `governance/tools.yaml` and the allowlists. Check that each tool's tier matches
@@ -107,7 +107,7 @@ Do these yourself, on the `governance-agent-purpose` branch. The full list is in
 2. **Choose the extra rules.** The run suggests new rules in
    `proposals/A00/governance/rules-additions.yaml`. Copy the ones you want into
    `proposals/A00/governance/rules.yaml`, add a row for each to
-   `docs/governance-activation.md`, then delete the additions file.
+   `docs/records/governance_activation.md`, then delete the additions file.
 3. **Check and apply** the proposal, then commit it:
 
    ```bash
@@ -125,10 +125,10 @@ Do these yourself, on the `governance-agent-purpose` branch. The full list is in
 6. **Start a new session.** The new tools now have tiers, so they run under the
    policy.
 7. **Run the deferred checks** listed in the report, and mark each control
-   `active` in `docs/governance-activation.md` once its check passes.
+   `active` in `docs/records/governance_activation.md` once its check passes.
 
 Before your first release, also hold the first evidence review and sign off
-`docs/SECURITY.md`, as items 8 and 9 of "After the run" describe.
+`docs/records/security.md`, as items 8 and 9 of "After the run" describe.
 
 From then on, build your agent one change at a time, with one execution plan per
 session, as described in [How it works](#how-it-works).
@@ -156,13 +156,13 @@ execution plan that states its scope, decisions and risks. The owner accepts eac
 before the next is written. Edits outside the plan's scope are blocked. Every commit records
 the governance hash and plan ID it was made under, so any change can be traced back to
 the rules and intent behind it. Runtime sessions go to a durable log that is never
-summarised away. `docs/QUALITY_SCORE.md` can only claim progress with linked evidence.
+summarised away. `docs/records/quality_score.md` can only claim progress with linked evidence.
 
 **Observability.** Every model call and tool call emits OpenTelemetry spans with the
 session, user, governance hash and guardrail result. When something fails, the span
 says whether the cause was the model, the harness, a tool, a policy or the sandbox.
 Metrics count blocked tool calls, confirmations, budget refusals and token use.
-`ops/observability/` holds a local collector, Tempo, Prometheus and Grafana stack, with
+`observability/` holds a local collector, Tempo, Prometheus and Grafana stack, with
 alerts.
 
 **Code quality.** Ruff, vulture, mypy (strict) and the unit tests run after every agent
@@ -204,7 +204,7 @@ because its extension points let governance live in the framework instead of in 
 
 ## How it works
 
-`docs/governance-activation.md` records which controls are active. The owner activates
+`docs/records/governance_activation.md` records which controls are active. The owner activates
 planned controls one at a time, as each one becomes real.
 
 ### Development process
@@ -216,12 +216,12 @@ accepts it before the next one is written.
 
 | Artifact | Where | Accepted by | Acceptance starts |
 | --- | --- | --- | --- |
-| Intent | `docs/exec-plans/intent/<ID>-<name>.md` | Owner sets `Status: accepted` | Writing the spec |
-| Spec | `docs/exec-plans/spec/<ID>-<name>.md` | Owner sets `Status: accepted` | Plan mode |
-| Plan | `docs/exec-plans/active/<ID>-<name>.md` | Owner approves the plan as Claude leaves plan mode | Building |
+| Intent | `docs/execution-plans/intent/<ID>-<name>.md` | Owner sets `Status: accepted` | Writing the spec |
+| Spec | `docs/execution-plans/spec/<ID>-<name>.md` | Owner sets `Status: accepted` | Plan mode |
+| Plan | `docs/execution-plans/plan/active/<ID>-<name>.md` | Owner approves the plan as Claude leaves plan mode | Building |
 
 All three share one ID and name, and each starts from its template in
-`docs/exec-plans/templates/`. The playbook names a product owner, a policy owner and
+`docs/execution-plans/templates/`. The playbook names a product owner, a policy owner and
 a tech lead. Here the owner plays every role. Agents draft intents and specs, but
 only the owner sets `Status: accepted`.
 
@@ -243,24 +243,24 @@ builds their output.
 
 1. Start Claude Code in plan mode: `claude --permission-mode plan`, or press Shift+Tab.
 2. Ask it to plan from the accepted spec, for example: *"Plan the change in
-   docs/exec-plans/spec/0018-x.md."*
+   docs/execution-plans/spec/0018-x.md."*
 3. Question the plan before you accept it. Ask what could break, which step is
    riskiest, and which options it didn't take. Iterate until an engineer who never saw
    the conversation could build the change from the plan alone.
 4. Approve it. Claude leaves plan mode and writes the plan to
-   `docs/exec-plans/active/` from the template. The edit gate exempts plan files.
+   `docs/execution-plans/plan/active/` from the template. The edit gate exempts plan files.
    Review the file, then commit the intent, spec and plan together.
 5. Build in the same session, or in a new one (GOV-006: one plan per session). When
    the build departs from the plan, update the plan in the same commit.
 6. Review and commit as in [Review after each commit](#code-quality), then move the
-   plan to `docs/exec-plans/completed/`.
+   plan to `docs/execution-plans/plan/completed/`.
 
 ### Governance
 
 The rules live in `governance/`, and `AGENTS.md` is the entry point for any coding
 agent. See `governance/README.md` for the rule format and change process.
 
-![Governance controls: each rule, why it exists, and where it is enforced](docs/images/governance-controls.svg)
+![Governance controls: each rule, why it exists, and where it is enforced](docs/diagrams/governance_controls.svg)
 
 The graphic is a snapshot of `governance/rules.yaml`, which wins if they differ.
 
@@ -270,7 +270,7 @@ one the session started with. Edits need exactly one active plan, and must stay 
 that plan's `scope_paths`. The product agent fails closed the same way at startup.
 
 **Protected paths.** Agents can't edit `governance/`,
-`docs/governance_implementation.md`, `docs/agent_governance_implementation.md`,
+`docs/bootstrap-implementation/project_governance.md`, `docs/bootstrap-implementation/agent_governance.md`,
 `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.github/`,
 `.githooks/`, the instruction files (`AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and
 `app/CLAUDE.md`), or the check config (`ruff.toml`, `pytest.ini` and `mypy.ini`).
@@ -280,13 +280,13 @@ that plan's `scope_paths`. The product agent fails closed the same way at startu
 place and commits.
 
 **Execution plans.** Each session after the bootstrap run works under one plan at
-`docs/exec-plans/active/<plan ID>-<name>.md`, written from
-`docs/exec-plans/templates/plan.md` as the
+`docs/execution-plans/plan/active/<plan ID>-<name>.md`, written from
+`docs/execution-plans/templates/plan.md` as the
 [development process](#development-process) describes. The gate reads its front
 matter: `id`, the `rules` it works under and the `scope_paths` it may edit.
 
 The session records its work there, lists its owner actions at the end, and moves the
-plan to `docs/exec-plans/completed/`. The edit gate allows plan files, so this is always
+plan to `docs/execution-plans/plan/completed/`. The edit gate allows plan files, so this is always
 possible. "Owner actions" are for the human: a session lists them and does not attempt
 them.
 
@@ -298,8 +298,8 @@ nothing unless you pass `--real`, which calls the paid model (COST-001):
 .venv/bin/python -m scripts.local_session "What is the status of demo?"
 ```
 
-`ops/observability/` holds the local telemetry stack, and `.venv/bin/python -m
-scripts.evidence_report` summarises the evidence for `docs/EVIDENCE_REVIEW.md`.
+`observability/` holds the local telemetry stack, and `.venv/bin/python -m
+scripts.evidence_report` summarises the evidence for `docs/records/evidence_review.md`.
 
 ### Coding agents
 

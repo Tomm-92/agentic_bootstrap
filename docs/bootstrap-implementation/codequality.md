@@ -16,19 +16,19 @@ conventions**. Instructions in `AGENTS.md`, which any coding agent reads,
 state the rules. Deterministic checks enforce every rule they can. Reviews
 handle the rules that need judgement.
 
-Put this file at `docs/codequality.md` in the new repo.
+Put this file at `docs/bootstrap-implementation/codequality.md` in the new repo.
 
 ## How to use this file
 
 - **One Claude Code session.** Start it with: *"Implement
-  docs/codequality.md."* Do the build steps in order.
+  docs/bootstrap-implementation/codequality.md."* Do the build steps in order.
 - **Open the session at the repo root.** Claude Code loads
   `.claude/settings.json` only from the folder it was launched in. A session
   opened from a parent folder runs none of the hooks.
 - **Ask, don't guess.** Ask the owner for anything this file marks
   `<like this>`: the source package, the language, the framework and any
   generated-output folder. Use the same folder for `output_root` in
-  `docs/governance_implementation.md`.
+  `docs/bootstrap-implementation/project_governance.md`.
 - **Verify before use.** Check every tool flag against its installed version,
   and every hook behaviour against https://code.claude.com/docs. "Verified
   facts" lists what has already been checked.

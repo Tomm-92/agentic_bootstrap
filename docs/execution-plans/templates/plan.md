@@ -7,14 +7,14 @@ scope_paths:
 
 # Plan <ID>: <name>
 
-<!-- Written to docs/exec-plans/active/<ID>-<name>.md when the owner approves it in plan
-mode. Moved to docs/exec-plans/completed/ when done. -->
+<!-- Written to docs/execution-plans/plan/active/<ID>-<name>.md when the owner approves it
+in plan mode. Moved to docs/execution-plans/plan/completed/ when done. -->
 
 ## Goal
 
-Intent: [<ID>-<name>](../intent/<ID>-<name>.md), or `Intent: none (<reason>)` for a small
+Intent: [<ID>-<name>](../../intent/<ID>-<name>.md), or `Intent: none (<reason>)` for a small
 change.
-Spec: [<ID>-<name>](../spec/<ID>-<name>.md)
+Spec: [<ID>-<name>](../../spec/<ID>-<name>.md)
 
 What this plan delivers, in a few sentences.
 
@@ -42,4 +42,5 @@ Choices made while planning or building, with the reason for each.
 
 ## Owner actions
 
-Steps only the owner can take, such as reviewing and applying `proposals/<ID>/`.
+Steps only the owner can take, such as reviewing and applying `proposals/<ID>/`. The
+commit that applies a proposal also deletes `proposals/<ID>/`.

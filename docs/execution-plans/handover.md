@@ -25,10 +25,10 @@ Stage 5 doesn't depend on it.
 
 - **One stage, one plan, one session (GOV-006).** Take the next free plan ID. IDs
   aren't reserved per stage. 0013 is spoken for by the tech-debt tracker. Check
-  `docs/exec-plans/` for the highest ID in use.
+  `docs/execution-plans/` for the highest ID in use.
 - **Follow plan 0017's process.** Read the README's "Development process" section
   first. Where it and this file disagree, the README wins.
-  - Write an intent in `docs/exec-plans/intent/` from the template, using the stage's
+  - Write an intent in `docs/execution-plans/intent/` from the template, using the stage's
     section below.
   - The owner accepts it, then you write the spec.
   - The owner accepts the spec, then you plan in plan mode.
@@ -47,7 +47,7 @@ Stage 5 doesn't depend on it.
   Check this at the start rather than assuming.
 - **Plan mode's own plan file** (`~/.claude/plans/*.md`) is exempt from the
   governance gate, so a plan can be drafted in plan mode before any plan is active.
-  On approval, copy it to `docs/exec-plans/active/` and commit it with the intent and
+  On approval, copy it to `docs/execution-plans/plan/active/` and commit it with the intent and
   spec.
 - **A protected file the owner edits during a plan must be in its `scope_paths`.**
   `scripts/check_scope.py` reads the plan's scope as of each commit, and the owner's
@@ -55,7 +55,7 @@ Stage 5 doesn't depend on it.
   edit. In plan 0018, the owner's `governance_gate.sh` fix failed the check, and the
   commit had to be amended.
 - **Finish every edit before moving the plan to `completed/`.** With no active plan,
-  the gate denies edits outside `docs/exec-plans/`. In plan 0019, a last fix to
+  the gate denies edits outside `docs/execution-plans/`. In plan 0019, a last fix to
   `proposals/0019/` was blocked after the move.
 - **A new subagent loads only in a new session.** After the owner copies a file into
   `.claude/agents/`, check it in a fresh session: it appears among the available agent
@@ -79,7 +79,7 @@ review", and leave generated paths out.
 
 **As built (plan 0018).** The playbook's design, with these departures from the
 original notes:
-- The evidence review is now `docs/EVIDENCE_REVIEW.md`, and lists PR review findings
+- The evidence review is now `docs/records/evidence_review.md`, and lists PR review findings
   among its inputs.
 - `REVIEW.md` is at the repo root. Its design principles are `ARCHITECTURE.md`, the
   "Code style" section of `AGENTS.md`, and `app/AGENTS.md`.
@@ -129,7 +129,7 @@ regression eval. The playbook's example workflow is `agent-evals.yml`. It trigge
 `--allowedTools` and `--output-format json` over `evals/*.json`, then a check script.
 
 **What exists.** Nothing for the coding agent. Phase A04 in
-`docs/agent_governance_implementation.md` plans evals for the **product agent**
+`docs/bootstrap-implementation/agent_governance.md` plans evals for the **product agent**
 (`tests/integration/evals/`, `.github/workflows/evals.yml`, MODEL-001). Don't reuse
 those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 `.github/workflows/agent-evals.yml`, so the two never collide.
@@ -180,7 +180,7 @@ policy change needs the policy owner's sign-off before the skill changes.
 **What exists.**
 - One skill: [adk-review](../../.claude/skills/adk-review/SKILL.md). Use it as the
   house style.
-- [docs/SECURITY.md](../SECURITY.md) is a release checklist (operational readiness
+- [docs/records/security.md](../records/security.md) is a release checklist (operational readiness
   review), not coding guidance.
 - The security policy an agent needs at design time is spread across
   `governance/rules.yaml` (SEC-001, SEC-002, DATA-001, DEP-001, TOOL-001, FS-001 and
@@ -215,8 +215,8 @@ obvious next two. Also who signs off a skill change. It's the owner today, but t
 - Triage it: fix now, schedule, or dismiss. Add an eval once it's fixed.
 
 **What exists.**
-- `ops/observability/` (collector, Tempo, Prometheus, Grafana) and
-  `ops/observability/alerts.yaml`, which has fixed thresholds such as
+- `observability/` (collector, Tempo, Prometheus, Grafana) and
+  `observability/alerts.yaml`, which has fixed thresholds such as
   `BlockedToolCallsRising` and `SessionTokenSpike`.
 - The sprint evidence review, which produces rule-change proposals rather than
   intents.
@@ -230,11 +230,11 @@ metadata. A first version could watch a build-side metric, then move to product
 metrics after A05. Ask the owner which.
 
 **Build, when unblocked.**
-1. `ops/observability/bands.yaml`.
+1. `observability/bands.yaml`.
 2. A detection script in `scripts/` with unit tests.
 3. A scheduled workflow (by proposal) that runs it. At 2σ or above it runs
    `claude -p` read-only to diagnose, and writes an intent to
-   `docs/exec-plans/intent/` as a PR.
+   `docs/execution-plans/intent/` as a PR.
 4. The evidence review then also triages those intents.
 
 Needs a COST-001 approval for the diagnosis calls.

@@ -4,7 +4,7 @@ Author: <name>
 Status: draft
 Accepted by: <owner>, <YYYY-MM-DD>
 
-<!-- Copy to docs/exec-plans/intent/<ID>-<name>.md. Only the owner sets Status: accepted.
+<!-- Copy to docs/execution-plans/intent/<ID>-<name>.md. Only the owner sets Status: accepted.
 Acceptance starts the spec. -->
 
 ## Problem
