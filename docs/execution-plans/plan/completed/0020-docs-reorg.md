@@ -118,6 +118,8 @@ docs change only through the proposal.
       `b1f8e55`.
 - [x] New session (GOV-006): run the checks, tick this plan, and move it to
       `docs/execution-plans/plan/completed/`.
+- [x] Reopened by the owner: add `proposals/.gitkeep`, then move this plan back to
+      `docs/execution-plans/plan/completed/`.
 
 ## Risks
 
@@ -170,6 +172,8 @@ Results from the close-out session, under governance `9a50dd0`, after `b1f8e55`:
 - All four bootstrap docs are updated, so a fresh bootstrap builds this layout (owner,
   2026-11-22).
 - `proposals/` keeps its name and stays at the top level. Applied proposals are deleted.
+  Deleting the last applied proposal left it empty, so git lost it. An empty
+  `proposals/.gitkeep` keeps it in a fresh clone (owner, 2026-11-22).
 - `governance/` is not reorganised.
 - The three proposed test files ship as `proposals/0020/tests.patch`, not as copies.
   The repo's ruff check lints `proposals/`, and `ruff.toml` (protected) exempts only
