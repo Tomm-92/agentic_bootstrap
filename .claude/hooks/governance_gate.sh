@@ -79,6 +79,8 @@ case $event in
       deny 'SCOPE-002: could not run .venv/bin/python to check the path.'
     rel=${f#"$CLAUDE_PROJECT_DIR"/}
     [[ $rel == docs/exec-plans/* ]] && exit 0
+    # Plan mode's own plan file, which is written before any plan is active.
+    [[ $f == "$HOME"/.claude/plans/*.md ]] && exit 0
     [[ ${#plans[@]} -eq 1 ]] ||
       deny "SCOPE-001: edits need exactly one plan in docs/exec-plans/active/ (found ${#plans[@]}). Draft or choose one first."
     reason=$(.venv/bin/python -I - "${plans[0]}" "$rel" 2>&1 <<'PY'

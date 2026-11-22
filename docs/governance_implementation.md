@@ -999,11 +999,12 @@ quality claims need proof.
 
    Phase A05 adds the sandbox and output items. The owner signs the
    checklist off before each release.
-3. **`docs/REVIEW.md`.** The evidence review each sprint:
+3. **`docs/EVIDENCE_REVIEW.md`.** The evidence review each sprint:
    - Inputs: coding-agent transcripts, commit trailers, product-agent
-     session logs and governance logs, traces, alerts and the tech-debt
-     tracker. Phase A05 adds verification reports, eval trends and run
-     records.
+     session logs and governance logs, traces, alerts, the tech-debt
+     tracker, and PR review findings (a recurring Important finding is a
+     candidate rule or `AGENTS.md` change). Phase A05 adds verification
+     reports, eval trends and run records.
    - Questions:
      - Which rules were escalated most?
      - Which were never triggered?

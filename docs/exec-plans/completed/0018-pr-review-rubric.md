@@ -12,6 +12,7 @@ scope_paths:
   - scripts/evidence_report.py
   - tests/governance/test_ai_review.py
   - proposals/0018/**
+  - .claude/hooks/governance_gate.sh
 ---
 
 # Plan 0018: PR review rubric

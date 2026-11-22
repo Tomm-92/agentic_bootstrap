@@ -457,7 +457,7 @@ Stage 9 cover what the product agent does.
    - Handling of the profile's outputs and intent artifacts
    - The sandbox isolation evidence
    - No interactive sandbox access
-3. **`docs/REVIEW.md`.** Add verification reports, eval trends and run
+3. **`docs/EVIDENCE_REVIEW.md`.** Add verification reports, eval trends and run
    records to the inputs. Add the question: how often does the verify gate
    block or need acknowledgement on the first pass?
 4. **`scripts/evidence_report.py`.** Include verification reports, eval
