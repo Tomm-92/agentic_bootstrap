@@ -21,7 +21,7 @@ elif [[ -n $(git status --porcelain -- governance) ]]; then
   problem='governance/ has uncommitted changes'
 fi
 shopt -s nullglob
-plans=(docs/exec-plans/active/*.md)
+plans=(docs/execution-plans/plan/active/*.md)
 case ${#plans[@]} in
   0) plan='No active execution plan: code edits are blocked until one exists.' ;;
   1) plan="Active execution plan: ${plans[0]}. Read it before working." ;;
@@ -74,13 +74,15 @@ case $event in
     ;;
   PreToolUse)
     f=$(jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' <<<"$input")
-    # Normalised, so docs/exec-plans/../../x can't borrow the plan exemption.
+    # Normalised, so docs/execution-plans/../../x can't borrow the plan exemption.
     f=$(.venv/bin/python -I -c 'import os, sys; print(os.path.normpath(sys.argv[1]))' "$f") ||
       deny 'SCOPE-002: could not run .venv/bin/python to check the path.'
     rel=${f#"$CLAUDE_PROJECT_DIR"/}
-    [[ $rel == docs/exec-plans/* ]] && exit 0
+    [[ $rel == docs/execution-plans/* ]] && exit 0
+    # Plan mode's own plan file, which is written before any plan is active.
+    [[ $f == "$HOME"/.claude/plans/*.md ]] && exit 0
     [[ ${#plans[@]} -eq 1 ]] ||
-      deny "SCOPE-001: edits need exactly one plan in docs/exec-plans/active/ (found ${#plans[@]}). Draft or choose one first."
+      deny "SCOPE-001: edits need exactly one plan in docs/execution-plans/plan/active/ (found ${#plans[@]}). Draft or choose one first."
     reason=$(.venv/bin/python -I - "${plans[0]}" "$rel" 2>&1 <<'PY'
 import fnmatch, sys, yaml
 

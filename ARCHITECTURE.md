@@ -8,7 +8,7 @@ App 'app' (app/agent.py), with GovernancePlugin attached
     └── get_project_status (free tier)
 ```
 
-This is a placeholder. Phase A03 of `docs/agent_governance_implementation.md` replaces
+This is a placeholder. Phase A03 of `docs/bootstrap-implementation/agent_governance.md` replaces
 it.
 
 ## Trust boundaries
@@ -72,5 +72,5 @@ Metrics: `governance.tool_calls.blocked`, `governance.confirmations` (`outcome`:
 approved or rejected), `governance.budget_refusals` and the gauge
 `governance.session_tokens`.
 
-The local stack is in `ops/observability/`. Run it from your own terminal, because the
+The local stack is in `observability/`. Run it from your own terminal, because the
 sandbox blocks `docker`.

@@ -1,6 +1,8 @@
 # REV-001 on pull requests: posts findings only, and the human decides the merge. Advisory.
 # It runs only once the owner adds ANTHROPIC_API_KEY as a repo secret, which starts paid calls
 # on every pull request (COST-001). An `ai-review: no` trailer on the PR's head commit skips it.
+# The job checks out the base commit, so the script, its dependencies and the rubric that run
+# with the API key come from the base branch, not the PR. It reads the PR only as data, through git.
 name: ai-review
 on:
   pull_request:
@@ -21,6 +23,7 @@ jobs:
       - uses: actions/checkout@v7
         if: ${{ env.ANTHROPIC_API_KEY != '' }}
         with:
+          ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
       - name: Read the ai-review trailer
         id: trailer

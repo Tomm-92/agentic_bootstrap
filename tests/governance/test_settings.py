@@ -15,8 +15,12 @@ SETTINGS = json.loads(
 
 PROTECTED = {
   'Edit(/governance/**)': './governance',
-  'Edit(/docs/governance_implementation.md)': './docs/governance_implementation.md',
-  'Edit(/docs/agent_governance_implementation.md)': './docs/agent_governance_implementation.md',
+  'Edit(/docs/bootstrap-implementation/project_governance.md)': (
+    './docs/bootstrap-implementation/project_governance.md'
+  ),
+  'Edit(/docs/bootstrap-implementation/agent_governance.md)': (
+    './docs/bootstrap-implementation/agent_governance.md'
+  ),
   'Edit(/.claude/settings.json)': './.claude/settings.json',
   'Edit(/.claude/settings.local.json)': './.claude/settings.local.json',
   'Edit(/.claude/hooks/**)': './.claude/hooks',

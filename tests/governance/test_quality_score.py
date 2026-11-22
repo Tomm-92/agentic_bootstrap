@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-DOCS = Path(__file__).parent.parent.parent / 'docs'
+RECORDS = Path(__file__).parent.parent.parent / 'docs/records'
 
 
 def problems(text, docs):
@@ -16,15 +16,15 @@ def problems(text, docs):
       path = (docs / link).resolve()
       if not path.exists():
         found.append(f'{area}: {link} does not exist')
-      if 'proposals' in path.relative_to(docs.parent.resolve()).parts:
+      if 'proposals' in path.relative_to(docs.parent.parent.resolve()).parts:
         found.append(f'{area}: {link} is deleted when the proposal is applied')
   return found
 
 
 def test_every_score_above_one_has_existing_evidence():
-  text = (DOCS / 'QUALITY_SCORE.md').read_text()
+  text = (RECORDS / 'quality_score.md').read_text()
   assert len(re.findall(r'^\| [^|]+ \| \d \| ', text, re.M)) == 8
-  assert problems(text, DOCS.resolve()) == []
+  assert problems(text, RECORDS.resolve()) == []
 
 
 def test_a_score_with_no_link_fails(tmp_path):
@@ -44,10 +44,10 @@ def test_a_missing_path_fails(tmp_path):
 
 
 def test_a_link_under_proposals_fails(tmp_path):
-  docs = tmp_path / 'docs'
-  docs.mkdir()
+  records = tmp_path / 'docs/records'
+  records.mkdir(parents=True)
   target = tmp_path / 'proposals/0001/x.py'
   target.parent.mkdir(parents=True)
   target.write_text('x')
-  found = problems('| Area | 3 | [x](../proposals/0001/x.py) |\n', docs.resolve())
-  assert found == ['Area: ../proposals/0001/x.py is deleted when the proposal is applied']
+  found = problems('| Area | 3 | [x](../../proposals/0001/x.py) |\n', records.resolve())
+  assert found == ['Area: ../../proposals/0001/x.py is deleted when the proposal is applied']

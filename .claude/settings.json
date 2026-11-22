@@ -11,8 +11,8 @@
       "Edit(/.github/workflows/**)",
       "Read(**/.env)",
       "Edit(/governance/**)",
-      "Edit(/docs/governance_implementation.md)",
-      "Edit(/docs/agent_governance_implementation.md)",
+      "Edit(/docs/bootstrap-implementation/project_governance.md)",
+      "Edit(/docs/bootstrap-implementation/agent_governance.md)",
       "Edit(/.github/**)",
       "Edit(/.githooks/**)",
       "Edit(/AGENTS.md)",
@@ -35,8 +35,8 @@
     "filesystem": {
       "denyWrite": [
         "./governance",
-        "./docs/governance_implementation.md",
-        "./docs/agent_governance_implementation.md",
+        "./docs/bootstrap-implementation/project_governance.md",
+        "./docs/bootstrap-implementation/agent_governance.md",
         "./.claude/settings.json",
         "./.claude/settings.local.json",
         "./.claude/hooks",

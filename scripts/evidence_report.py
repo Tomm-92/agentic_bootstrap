@@ -1,4 +1,4 @@
-"""Summarises the available evidence for the evidence review in docs/REVIEW.md (EVID-001)."""
+"""Summarises the evidence for the EVID-001 review in docs/records/evidence_review.md."""
 
 import json
 import re
@@ -31,10 +31,10 @@ def _commits(repo: Path) -> list[str]:
 
 
 def _plans(repo: Path) -> list[str]:
-  exec_plans = repo / 'docs/exec-plans'
-  active = sorted(p.name for p in exec_plans.glob('active/*.md'))
-  completed = sorted(p.name for p in exec_plans.glob('completed/*.md'))
-  tracker = exec_plans / 'tech-debt-tracker.md'
+  plans = repo / 'docs/execution-plans/plan'
+  active = sorted(p.name for p in plans.glob('active/*.md'))
+  completed = sorted(p.name for p in plans.glob('completed/*.md'))
+  tracker = repo / 'docs/tech_debt_tracker.md'
   gaps = tracker.read_text().count('\n| ') - 2 if tracker.exists() else 0
   return [
     f'Active plans: {active}.',
@@ -44,7 +44,7 @@ def _plans(repo: Path) -> list[str]:
 
 
 def _ledger(repo: Path) -> list[str]:
-  ledger = repo / 'docs/governance-activation.md'
+  ledger = repo / 'docs/records/governance_activation.md'
   if not ledger.exists():
     return ['No activation ledger.']
   rows = [line.split(' | ') for line in ledger.read_text().splitlines() if line.startswith('| ')]
@@ -100,7 +100,7 @@ def report(repo: Path) -> str:
     f'{title}:\n' + '\n'.join(f'- {line}' for line in section(repo))
     for title, section in sections.items()
   ]
-  return '\n\n'.join(lines) + '\n\nTraces and alerts: see ops/observability/ and Grafana.\n'
+  return '\n\n'.join(lines) + '\n\nTraces and alerts: see observability/ and Grafana.\n'
 
 
 if __name__ == '__main__':
