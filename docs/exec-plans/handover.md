@@ -16,7 +16,7 @@ depends on it.
 | --- | --- | --- | --- |
 | 1 | Process docs: intent → spec → plan, plan mode by default | 01, 02, 03, 04 | Done (plan 0017) |
 | 2 | PR review rubric | 10 | Done (plan 0018) |
-| 3 | Verifier subagent, failing test first, parallel sessions | 07, 08 | Not started |
+| 3 | Verifier subagent, failing test first | 07, 08 | Intent 0019 accepted; spec drafted |
 | 4 | Coding-agent evals in CI | 09 | Not started, needs a COST-001 approval |
 | 5 | Policy skills, starting with security | 05, 02 | Not started |
 | 6 | Closing the loop: bands, detection, breach → intent | 13 | Blocked, see its section |
@@ -86,7 +86,7 @@ original notes:
 - The `@claude` fix-on-comment loop is deferred, with a row in the tech-debt tracker.
   Revisit it with stage 4.
 
-## Stage 3: verifier subagent, failing test first, parallel sessions (plays 07, 08)
+## Stage 3: verifier subagent, failing test first (plays 07, 08)
 
 **Why.**
 - The playbook uses scoped subagents in `.claude/agents/*.md`, for example a
@@ -94,7 +94,6 @@ original notes:
 - For bug fixes, it wants a failing test written and committed first, then the fix,
   with a hook stopping the agent editing that test.
 - "Done" means the check output has been pasted, not just claimed.
-- Parallel work runs in git worktrees, at two or three sessions to start.
 
 **What exists.**
 - `checks_on_stop.sh` is the single check command, shared with CI. That covers the
@@ -116,11 +115,6 @@ original notes:
    current plan marks as fixed. For example, a `locked_tests:` front-matter key read
    by `governance_gate.sh`. Keep it fast and limited to the file being edited, as the
    playbook advises.
-4. README: how to run parallel sessions. Each worktree is its own checkout with its
-   own `docs/exec-plans/active/`, so SCOPE-001's "exactly one active plan" check holds
-   per worktree. Confirm this rather than assuming it.
-   The sandbox makes `.git/worktrees` read-only, so the owner runs
-   `git worktree add` or `claude --worktree <name>`.
 
 **Owner decisions.** Whether to build the locked-test hook now, or wait until the
 evidence review shows an agent editing a test to make it pass.
@@ -261,6 +255,11 @@ stage when they fit, or give them their own plan.
   blast radius, and tested code.
 - **Separate commits per gate.** Plan 0017 commits the intent, spec and plan together,
   because `check_trailers.sh` needs a `Plan:` trailer that names an existing plan.
+- **Play 08, parallel sessions in git worktrees.** Dropped from stage 3 by the owner
+  (intent 0019): the owner accepts and applies every artifact, so more sessions mostly
+  lengthen the review queue. If it's revisited, a new worktree has no `.venv`, which
+  the gate and checks need, and the owner must create worktrees because the sandbox
+  makes `.git/worktrees` read-only.
 - **Checking the chain.** Check in CI that every new plan links an accepted intent and
   spec, or gives an exemption reason. Plan 0017's tech-debt entries cover this and the
   plan–diff sync check.
