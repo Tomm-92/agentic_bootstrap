@@ -2,8 +2,8 @@
 # Format and change process: governance/README.md. <profile.x> refers to
 # governance/profile.yaml. A control's status moves from planned to active
 # only through an owner PR, in the change that makes the control real.
-# "(S0N)" names the stage in docs/governance_implementation.md, and "(A0N)"
-# the phase in docs/agent_governance_implementation.md, that builds a planned
+# "(S0N)" names the stage in docs/bootstrap-implementation/project_governance.md, and "(A0N)"
+# the phase in docs/bootstrap-implementation/agent_governance.md, that builds a planned
 # control.
 rules:
   # --- Governance itself -------------------------------------------------
@@ -72,7 +72,7 @@ rules:
   # --- Scope -------------------------------------------------------------
   - id: SCOPE-001
     applies_to: [build]
-    rule: Code edits need exactly one active execution plan in docs/exec-plans/active/
+    rule: Code edits need exactly one active execution plan in docs/execution-plans/plan/active/
     because: an agent without one declared intent makes broader changes than anyone reviewed.
     tier: deny
     kind: safety
@@ -239,7 +239,7 @@ rules:
 
   - id: QUAL-001
     applies_to: [build, runtime]
-    rule: A score in docs/QUALITY_SCORE.md rises above 1 only with linked evidence that exists
+    rule: A score in docs/records/quality_score.md rises above 1 only with linked evidence that exists
     because: scores without evidence let people and agents declare victory early.
     tier: deny
     kind: safety

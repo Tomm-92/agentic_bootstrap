@@ -3,21 +3,21 @@
 These instructions finish governing the product agent once its purpose is
 known: what it does, what it produces, what users approve first, and which
 tools it needs. An AI coding assistant implements all of them **in one run**,
-from A01 to A06. They follow `docs/governance_implementation.md`, which builds
+from A01 to A06. They follow `docs/bootstrap-implementation/project_governance.md`, which builds
 every control that doesn't depend on the agent's purpose, including the
 runtime governance layer, the tool policy engine and observability.
 
 The product agent is one Google ADK agent tree, a root agent and its
 sub-agents, at `<profile.product_agent.path>`. One profile describes it.
 
-The owner's proposal from `docs/governance_implementation.md` makes this file
+The owner's proposal from `docs/bootstrap-implementation/project_governance.md` makes this file
 read-only for agents.
 
 ## Before you start
 
 The owner does these before the run, because the assistant must not:
 
-- [ ] Stages 1 to 11 of `docs/governance_implementation.md` are complete, and
+- [ ] Stages 1 to 11 of `docs/bootstrap-implementation/project_governance.md` are complete, and
       "After the run" in that file is done.
 - [ ] The owner can say, in a sentence each, what the agent is for and what it
       produces. The purpose interview guides them through everything else.
@@ -28,7 +28,7 @@ The owner does these before the run, because the assistant must not:
 
 Start one session at the repo root with:
 
-> *"Implement docs/agent_governance_implementation.md in one run, from A01 to
+> *"Implement docs/bootstrap-implementation/agent_governance.md in one run, from A01 to
 > A06."*
 
 If the owner has already written some purpose inputs down, they can add *"The
@@ -62,7 +62,7 @@ until it ends:
 
 "Principles", "Concepts used throughout", "Runtime hook points", "Project
 profile", "Rule catalogue", "Thresholds and allowlists" and "Verified facts" in
-`docs/governance_implementation.md` apply here and are not repeated. In the rule
+`docs/bootstrap-implementation/project_governance.md` apply here and are not repeated. In the rule
 catalogue, `(A0N)` names the part of this file that builds a planned control.
 
 - **One plan, one intent.** Work under the single plan from A01, inside its
@@ -82,7 +82,7 @@ catalogue, `(A0N)` names the part of this file that builds a planned control.
 name the part and rule IDs you are working under.
 
 **At the end of each part,** tick it in the plan, update its rows in
-`docs/governance-activation.md`, and make a checkpoint commit on the branch with
+`docs/records/governance_activation.md`, and make a checkpoint commit on the branch with
 the trailers `Governance: <git rev-parse HEAD:governance>` and `Plan: A00`.
 
 **To resume,** read the plan and continue from the first unticked part.
@@ -134,7 +134,7 @@ parts that depend on it as `blocked`.
 | Verification stages | `profile.product_agent.verification` | Only the stages from A02's table that apply to the output type, each with a one-line reason. |
 | Package ecosystems and allowed packages | `profile.product_agent.package_ecosystems`, `packages.yaml` | The registries the output's language or format uses, and a short starting list of packages. None if the output has no dependencies. |
 | External targets | `profile.product_agent.external_targets`, `services.yaml` | None, unless the purpose says the agent acts on another system. |
-| Reviewer model | `models.yaml` | The model with `use: reviewer` in `allowlists/models.yaml`. Its ID must differ from the executor's, but it may be the same family (see "Known gaps" in `docs/governance_implementation.md`). |
+| Reviewer model | `models.yaml` | The model with `use: reviewer` in `allowlists/models.yaml`. Its ID must differ from the executor's, but it may be the same family (see "Known gaps" in `docs/bootstrap-implementation/project_governance.md`). |
 | Paid-model approval | The plan | Recommend none. Explain that in Claude-only dev mode, A03's end-to-end runs and A04's eval gate are paid calls, and A04 costs `eval_runs` runs per eval case. Ask about each separately. Without approval, those checks are `deferred`. |
 
 ---
@@ -148,20 +148,20 @@ user.
 
 **Rules:** TOOL-001 (tool entries), DEP-001 (runtime).
 
-**Scope paths:** `proposals/A00/**`, `docs/exec-plans/**`,
-`docs/governance-activation.md`, `<profile.product_agent.path>/**`, `scripts/**`,
+**Scope paths:** `proposals/A00/**`, `docs/execution-plans/**`,
+`docs/records/governance_activation.md`, `<profile.product_agent.path>/**`, `scripts/**`,
 `tests/**`.
 
 ### Build
 
 1. **Interview, plan and branch.** Run the purpose interview in "Purpose
    inputs". Switch to the branch `governance-agent-purpose`, and write
-   `docs/exec-plans/active/A00-agent-purpose.md` with `id: 'A00'`, every rule ID
+   `docs/execution-plans/plan/active/A00-agent-purpose.md` with `id: 'A00'`, every rule ID
    this file names, the confirmed purpose inputs, a checklist of A01 to A06 with
    their acceptance criteria, and the union of their scope paths plus the
    protected paths the proposal will change, so the applied commit stays in
    scope. This file's controls are the `pending` rows in
-   `docs/governance-activation.md`; each part updates its own.
+   `docs/records/governance_activation.md`; each part updates its own.
 2. **`scripts/proving_repo.sh <dir>`.** Clones the repo at `HEAD` into `<dir>`,
    copies the working tree's changes over it, overlays `proposals/A00/`, and
    commits there, so `governance/` is clean and committed. It never writes to the
@@ -391,7 +391,7 @@ degrade quality, and every trace carries the intent it served.
 **Rules:** MODEL-001 (eval gate), OBS-001 (intent attributes).
 
 **Scope paths:** `tests/**`, `proposals/A00/**`, `scripts/**`,
-`<profile.product_agent.path>/**`, `ops/observability/**`,
+`<profile.product_agent.path>/**`, `observability/**`,
 `ARCHITECTURE.md`.
 
 ### Build
@@ -450,14 +450,14 @@ Stage 9 cover what the product agent does.
 
 ### Build
 
-1. **`docs/QUALITY_SCORE.md`.** Add these areas: intent conformance,
+1. **`docs/records/quality_score.md`.** Add these areas: intent conformance,
    prompt-injection resistance, sandbox isolation and eval pass rate. Each
    score above 1 links to evidence, as QUAL-001 already requires.
-2. **`docs/SECURITY.md`.** Add these to the readiness checklist:
+2. **`docs/records/security.md`.** Add these to the readiness checklist:
    - Handling of the profile's outputs and intent artifacts
    - The sandbox isolation evidence
    - No interactive sandbox access
-3. **`docs/EVIDENCE_REVIEW.md`.** Add verification reports, eval trends and run
+3. **`docs/records/evidence_review.md`.** Add verification reports, eval trends and run
    records to the inputs. Add the question: how often does the verify gate
    block or need acknowledgement on the first pass?
 4. **`scripts/evidence_report.py`.** Include verification reports, eval
@@ -504,7 +504,7 @@ statement of what is proven and what isn't.
 4. **Tech-debt tracker.** Add every deferred item and every gap found.
 5. **Close the plan.** List every open owner action from "After the run" that
    applies, each deferred check and each part that was blocked. Tick the parts,
-   and move the plan to `docs/exec-plans/completed/`. Commit with the trailers.
+   and move the plan to `docs/execution-plans/plan/completed/`. Commit with the trailers.
 6. **Stop.** Give the final report:
    - Parts completed, deferred and blocked.
    - The controls proposed as `active`, and those staying `planned`, and why.
@@ -555,7 +555,7 @@ them. Every per-part owner action is here.
    `active`, in a governance commit, only when its check passes.
 8. **Hold the first evidence review,** covering a product-agent run. Then set
    EVID-001 review to `active` in a governance commit.
-9. **Sign off the updated `SECURITY.md`** before the first release. Then set DATA-001
+9. **Sign off the updated `docs/records/security.md`** before the first release. Then set DATA-001
    ORR to `active` in a governance commit.
 
 After that, normal working applies: **one plan per session**, and every change

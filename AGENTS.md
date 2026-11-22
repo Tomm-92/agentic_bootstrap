@@ -8,7 +8,7 @@ framework's conventions.
 ## Before changing anything
 
 - Read `governance/rules.yaml`, `governance/profile.yaml`, the single active plan
-  in `docs/exec-plans/active/`, and the intent and spec it links to.
+  in `docs/execution-plans/plan/active/`, and the intent and spec it links to.
 - Name the plan and the rule IDs you are working under.
 
 ## While working
@@ -19,7 +19,7 @@ framework's conventions.
 - Keep each session to one plan. Start a new session for the next plan, or when the
   governance hash changes (GOV-006).
 - Record assumptions, decisions and risks in the plan. Add deferred gaps to
-  `docs/exec-plans/tech-debt-tracker.md`.
+  `docs/tech_debt_tracker.md`.
 - Never read, print or commit `.env` files (SEC-001).
 - Never set `Status: accepted` on an intent or spec. Only the owner accepts them.
 
@@ -32,8 +32,8 @@ When an agent makes the same mistake twice, propose a line for it here.
 Never write to these, and never do so indirectly through a script or command (GOV-002):
 
 - `governance/`, including the profile
-- `docs/governance_implementation.md`
-- `docs/agent_governance_implementation.md`
+- `docs/bootstrap-implementation/project_governance.md`
+- `docs/bootstrap-implementation/agent_governance.md`
 - `.claude/settings.json`, `.claude/settings.local.json` and `.claude/hooks/`
 - `.github/` and `.githooks/`
 - `AGENTS.md`, `CLAUDE.md`, `app/AGENTS.md` and `app/CLAUDE.md`
@@ -113,10 +113,14 @@ tests/                  not a package: no `__init__.py` here or in subfolders
   unittests/            free tests using the fake model; conftest.py holds the fake
   integration/          real-model tests; spend credits
   governance/           rule catalogue and profile tests; also free
-docs/                   project setup instructions and the activation ledger
-  exec-plans/           intents, specs, plans and their templates
+docs/
+  bootstrap-implementation/  the instructions that built this project
+  execution-plans/      intents, specs, plans, their templates and the handover
+  records/              evidence review, quality score, security sign-off and activation ledger
+  diagrams/             governance controls diagram
+  tech_debt_tracker.md  deferred gaps
 governance/             rules, profile, thresholds, allowlists and tool tiers
 scripts/                local session, evidence report, activation and scope checks; not a package
-ops/                    observability stack
+observability/          local telemetry stack
 proposals/              owner-applied changes to protected paths
 ```

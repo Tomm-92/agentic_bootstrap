@@ -99,7 +99,7 @@ def repo(tmp_path):
 
 
 def add_plan(repo, name='0001-a.md', text=PLAN):
-  repo.write(f'docs/exec-plans/active/{name}', text)
+  repo.write(f'docs/execution-plans/plan/active/{name}', text)
 
 
 # --- SessionStart and UserPromptSubmit -------------------------------------------------
@@ -197,7 +197,7 @@ def test_edit_needs_exactly_one_plan(repo, plans, is_denied):
 
 
 def test_plan_files_are_editable_with_no_plan(repo):
-  assert not denied(repo.edit(repo.path / 'docs/exec-plans/active/0002-new.md'))
+  assert not denied(repo.edit(repo.path / 'docs/execution-plans/plan/active/0002-new.md'))
 
 
 @pytest.mark.parametrize('path', ['app/deep/x.py', 'scripts/x.sh'])
@@ -226,9 +226,9 @@ def test_scope_missing_front_matter_denied(repo):
 
 
 def test_scope_path_cannot_borrow_the_plan_exemption(repo):
-  assert denied(repo.edit(f'{repo.path}/docs/exec-plans/../../x'))
+  assert denied(repo.edit(f'{repo.path}/docs/execution-plans/../../x'))
   add_plan(repo)
-  assert denied(repo.edit(f'{repo.path}/docs/exec-plans/../../x'))
+  assert denied(repo.edit(f'{repo.path}/docs/execution-plans/../../x'))
 
 
 # --- Branch guard ----------------------------------------------------------------------
@@ -315,7 +315,7 @@ def test_commit_msg_accepts_valid_trailers(repo):
 
 
 def test_commit_msg_accepts_a_plan_in_completed(repo):
-  repo.write('docs/exec-plans/completed/0001-a.md', PLAN)
+  repo.write('docs/execution-plans/plan/completed/0001-a.md', PLAN)
   assert repo.commit_msg(trailers(repo)).returncode == 0
 
 
@@ -338,7 +338,7 @@ def test_commit_msg_rejects_bad_trailers(repo, make_message, expected):
 
 
 def test_commit_msg_ignores_a_plan_outside_active_and_completed(repo):
-  repo.write('docs/exec-plans/abandoned/0001-a.md', PLAN)
+  repo.write('docs/execution-plans/plan/abandoned/0001-a.md', PLAN)
   assert repo.commit_msg(trailers(repo)).returncode != 0
 
 
@@ -353,7 +353,7 @@ def test_commit_msg_on_the_commit_that_first_adds_governance(tmp_path):
   repo = Repo(tmp_path / 'fresh')
   repo.path.mkdir()
   repo.git('init', '-q', '-b', 'main')
-  repo.write('docs/exec-plans/active/0001-a.md', PLAN)
+  repo.write('docs/execution-plans/plan/active/0001-a.md', PLAN)
   repo.commit()
   repo.write('governance/rules.yaml', 'rules: []\n')
   assert repo.commit_msg('m\n\nPlan: 0001\n').returncode == 0

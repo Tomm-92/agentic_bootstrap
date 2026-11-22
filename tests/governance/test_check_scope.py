@@ -16,7 +16,7 @@ def test_paths_inside_any_glob_pass(path):
 
 
 def test_plan_files_are_exempt():
-  assert out_of_scope(GLOBS, set(), ['docs/exec-plans/active/0002-x.md']) == []
+  assert out_of_scope(GLOBS, set(), ['docs/execution-plans/plan/active/0002-x.md']) == []
 
 
 def test_paths_outside_every_glob_fail():
@@ -58,7 +58,7 @@ def repo(tmp_path, monkeypatch):
 
   git('init', '-q', '-b', 'main')
   plan = "---\nid: '0001'\nscope_paths:\n  - app/**\n  - proposals/0001/**\n---\n"
-  commit({'docs/exec-plans/active/0001-x.md': plan})
+  commit({'docs/execution-plans/plan/active/0001-x.md': plan})
   return commit, git
 
 
@@ -80,8 +80,10 @@ def test_the_repo_history_reports_only_out_of_scope_changes(repo):
 def test_intents_and_specs_are_not_read_as_plans(repo):
   commit, _ = repo
   intent = '# Intent\n\nStatus: draft\n'
-  commit({'docs/exec-plans/intent/0001-x.md': intent, 'docs/exec-plans/spec/0001-x.md': intent})
+  commit(
+    {'docs/execution-plans/intent/0001-x.md': intent, 'docs/execution-plans/spec/0001-x.md': intent}
+  )
   commit({'app/a.py': 'x'})
-  commit({'docs/exec-plans/intent/0002-y.md': intent}, plan='0002')
+  commit({'docs/execution-plans/intent/0002-y.md': intent}, plan='0002')
   commit({'scripts/x.py': 'x'}, plan='0002')
   assert problems(['HEAD']) == []

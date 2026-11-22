@@ -25,16 +25,16 @@ def out_of_scope(globs: list[str], proposed: set[str], changed: list[str]) -> li
   return [
     path
     for path in changed
-    if not path.startswith('docs/exec-plans/')
+    if not path.startswith('docs/execution-plans/')
     and path not in proposed
     and not any(fnmatch(path, glob) for glob in globs)
   ]
 
 
 def _plan_globs(commit: str, plan_id: str) -> list[str] | None:
-  plan_folders = ('docs/exec-plans/active', 'docs/exec-plans/completed')
+  plan_folders = ('docs/execution-plans/plan/active', 'docs/execution-plans/plan/completed')
   for path in _git('ls-tree', '-r', '--name-only', commit, '--', *plan_folders).split():
-    if fnmatch(path, f'docs/exec-plans/*/{plan_id}-*.md'):
+    if fnmatch(path, f'docs/execution-plans/plan/*/{plan_id}-*.md'):
       front = _git('show', f'{commit}:{path}').split('---\n', 2)[1]
       return list(yaml.safe_load(front)['scope_paths'])
   return None

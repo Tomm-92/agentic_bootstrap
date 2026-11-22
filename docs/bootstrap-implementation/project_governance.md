@@ -17,7 +17,7 @@ This file bootstraps every control that can be built before anyone knows
 what the product agent will do: build-time controls for coding agents, CI,
 and the runtime governance layer, tool policy and observability that will
 wrap the agent. Once the agent's purpose is known,
-`docs/agent_governance_implementation.md` adds the controls that depend on
+`docs/bootstrap-implementation/agent_governance.md` adds the controls that depend on
 it, also in one run: the agent's tools, the verification sandbox, the
 intent-first workflow and evals. Until then, the controls it builds stay
 `planned`.
@@ -26,16 +26,16 @@ Both files describe the project through `governance/profile.yaml`. Stage 2
 fills the keys known at bootstrap, and phase A01 of the second file fills the
 rest. The rules and stages refer to the profile, never to a specific product.
 
-Put this file at `docs/governance_implementation.md` in the new repo, and the
-second file at `docs/agent_governance_implementation.md`. Run this file after
-`docs/initial_install.md` and `docs/codequality.md`. Both instruction files become
+Put this file at `docs/bootstrap-implementation/project_governance.md` in the new repo, and the
+second file at `docs/bootstrap-implementation/agent_governance.md`. Run this file after
+`docs/bootstrap-implementation/initial_install.md` and `docs/bootstrap-implementation/codequality.md`. Both instruction files become
 read-only for agents when the owner applies this run's proposal.
 
 ## How to run this file
 
 Start one session at the repo root with:
 
-> *"Implement docs/governance_implementation.md in one run, from Stage 1 to
+> *"Implement docs/bootstrap-implementation/project_governance.md in one run, from Stage 1 to
 > Stage 11. The run inputs are in <path>."*
 
 Start it with permissions that let it edit files and run commands in the repo
@@ -52,7 +52,7 @@ built and tested, and no control is skipped:
 
 1. **Build disarmed.** Hooks, git hooks and deny rules exist as files but are
    not wired in. Tests exercise them directly, against temporary repos.
-2. **Respect the locks.** `docs/codequality.md` denies edits to
+2. **Respect the locks.** `docs/bootstrap-implementation/codequality.md` denies edits to
    `.claude/settings.json`, `.claude/hooks/` and `.github/workflows/`. Everything
    this run adds or changes there goes under `proposals/0001/` at the same relative
    path. Never write to those paths directly or through a script.
@@ -145,7 +145,7 @@ rules alone don't count. The governance hash can't change during a session, so
 this is still one run with one proposal at the end:
 
 - Start at the first stage whose controls aren't built, under one plan,
-  `docs/exec-plans/active/0002-<name>.md`, with `id: '0002'`.
+  `docs/execution-plans/plan/active/0002-<name>.md`, with `id: '0002'`.
 - Write every protected file, including anything under `governance/`, to
   `proposals/0002/` at the same relative path. Test hooks with `HOOKS_DIR` and
   settings with `SETTINGS_PATH`.
@@ -154,14 +154,14 @@ this is still one run with one proposal at the end:
 
 ## Before you start
 
-Only the run inputs are needed to start, and `docs/initial_install.md` and
-`docs/codequality.md` must be done. The rest decides how much the run can prove
+Only the run inputs are needed to start, and `docs/bootstrap-implementation/initial_install.md` and
+`docs/bootstrap-implementation/codequality.md` must be done. The rest decides how much the run can prove
 itself. Anything missing never stops it: the check is `deferred`, and step 4 of
 "After the run" clears it.
 
 - [ ] The run inputs below are filled in, and the assumptions below hold or are
       changed here first.
-- [ ] The tools from step 1 of `docs/initial_install.md` are installed: Python 3.14,
+- [ ] The tools from step 1 of `docs/bootstrap-implementation/initial_install.md` are installed: Python 3.14,
       `jq`, `git` 2.32 or newer, `shasum`, and:
       `brew install actionlint gitleaks osv-scanner`.
 - [ ] A container runtime with Compose is installed **and running**.
@@ -207,7 +207,7 @@ Nothing here depends on the agent's purpose.
 | Framework and pinned version | `profile.product_agent.framework` | `google-adk==2.14.0` | |
 | Output folder | `profile.product_agent.output_root` | `output` | |
 | Exact model IDs for planner, executor and reviewer | `models.yaml`, `services.yaml` | Planner and executor: `claude-haiku-5-5`. Reviewer: `claude-sonnet-5-5`. All use `AnthropicLlm` with the Anthropic API. | The reviewer's ID must differ, but it may be the same family (see "Known gaps"). |
-| Telemetry backend | `ops/observability/`, `services.yaml` | Local stack | The local stack is the collector, Tempo, Prometheus, Loki and Grafana, as Stage 2 and Stage 8 spell out. Another backend needs its own exporter values here. |
+| Telemetry backend | `observability/`, `services.yaml` | Local stack | The local stack is the collector, Tempo, Prometheus, Loki and Grafana, as Stage 2 and Stage 8 spell out. Another backend needs its own exporter values here. |
 | Paid-model approval | The plan | Approved for the Claude API, only for the Stage 6 manual run and integration tests. | Any other paid call needs new owner approval. |
 | Reviewer key in CI | "After the run" step 2 | No | Yes starts paid `claude-sonnet-5-5` calls on every PR, which the approval above doesn't cover (COST-001). For yes, also set `REVIEWER_API_KEY` in the terminal that runs step 2. The answer can change later with `gh secret set ANTHROPIC_API_KEY`. |
 
@@ -217,7 +217,7 @@ Nothing here depends on the agent's purpose.
 
 Later stages depend only on earlier ones. In the rule catalogue, `(S0N)` names
 the stage that builds a planned control, and `(A0N)` the phase in
-`docs/agent_governance_implementation.md`.
+`docs/bootstrap-implementation/agent_governance.md`.
 
 | Stage | Builds | Earlier phase |
 | --- | --- | --- |
@@ -250,10 +250,10 @@ governance file is written.
    then `git switch -c governance_bootstrap`. If the tree isn't
    clean, the changes come with you: leave them unchanged, include them in the
    Stage 1 checkpoint commit, and list them in the plan for the owner's review.
-3. **`docs/exec-plans/active/`, `completed/` and `tech-debt-tracker.md`.** Put a
+3. **`docs/execution-plans/plan/active/`, `plan/completed/` and `docs/tech_debt_tracker.md`.** Put a
    `.gitkeep` in both folders, because git drops an empty folder when the plan
    moves. Seed the tracker from "Known gaps".
-4. **`docs/exec-plans/active/0001-bootstrap.md`.** The run's one plan:
+4. **`docs/execution-plans/plan/active/0001-bootstrap.md`.** The run's one plan:
 
    ```yaml
    ---
@@ -265,7 +265,7 @@ governance file is written.
      - docs/**
      - scripts/**
      - tests/**
-     - ops/observability/**
+     - observability/**
      - proposals/0001/**
      - .claude/**
      - .github/**
@@ -286,7 +286,7 @@ governance file is written.
    each stage's acceptance criteria, the inputs received, and any paid-model
    approval. Record assumptions, decisions and risks there as you go. Add
    deferred gaps to the tech-debt tracker.
-5. **`docs/governance-activation.md`.** The ledger: one row for each control
+5. **`docs/records/governance_activation.md`.** The ledger: one row for each control
    that "Rule catalogue" below marks `planned`, with these columns. `Control` is
    the control's `by` text exactly, because `scripts/check_activation.py` matches
    on it:
@@ -296,7 +296,7 @@ governance file is written.
 
    `Evidence` is a test ID, command or report path. `Result` is `pass`,
    `deferred`, `blocked` or `failed`, or `pending` for controls that
-   `docs/agent_governance_implementation.md` builds. `Owner check` is what only a human can
+   `docs/bootstrap-implementation/agent_governance.md` builds. `Owner check` is what only a human can
    confirm, or `none`.
 6. **Prerequisites.** Check for Python 3.14, `jq`, `git` 2.32 or newer, `shasum`, a
    running container runtime with Compose (`docker info` and `docker compose version`,
@@ -334,7 +334,7 @@ runtime layer has a governance hash to check.
      `pytest>=9,<10` and `pyyaml>=6,<7`, and `types-PyYAML` if the repo
      type-checks.
    - The existing Python 3.14 `.venv`, with the dev requirements installed.
-     Re-lock `requirements-dev.lock` as `docs/codequality.md` describes.
+     Re-lock `requirements-dev.lock` as `docs/bootstrap-implementation/codequality.md` describes.
    - Check that `pytest.ini` collects `tests/governance/`. If it needs a change,
      put that under `proposals/0001/`.
 3. **`.gitignore`.** Covers `.env`, the virtualenv, caches,
@@ -402,7 +402,7 @@ agent is told how to work here.
    everything any agent can use. It defines no governance rules of its own. Keep
    code quality's sections (code style, checks, tests and the layout tree), and
    add the new folders to the tree: `governance/`, `tests/governance/`,
-   `scripts/`, `ops/` and `proposals/`. It must state:
+   `scripts/`, `observability/` and `proposals/`. It must state:
    - Before working in `<profile.product_agent.path>/`, read
      `<profile.product_agent.path>/AGENTS.md`.
    - Read `governance/rules.yaml`, `governance/profile.yaml` and the single
@@ -425,17 +425,17 @@ agent is told how to work here.
    `<profile.product_agent.path>/` pair from code quality as it is. Governance
    rules are cited by ID, never restated.
 4. **`.github/CODEOWNERS`.** Assigns `@Tomm-92` to `governance/`,
-   `docs/governance_implementation.md`,
-   `docs/agent_governance_implementation.md`, `AGENTS.md`, `CLAUDE.md`,
+   `docs/bootstrap-implementation/project_governance.md`,
+   `docs/bootstrap-implementation/agent_governance.md`, `AGENTS.md`, `CLAUDE.md`,
    `<profile.product_agent.path>/AGENTS.md`, `<profile.product_agent.path>/CLAUDE.md`,
    `ruff.toml`, `pytest.ini`, `mypy.ini`, `.claude/`, `.github/`, `.githooks/` and
    every dependency manifest. Comment that it is dormant until branch protection
    exists.
 5. **`README.md`.** A Governance section that explains the gate, the protected
    paths, the proposals route and the execution-plan workflow. Each session
-   after the run writes a plan at `docs/exec-plans/active/<plan ID>-<name>.md`
+   after the run writes a plan at `docs/execution-plans/plan/active/<plan ID>-<name>.md`
    with the front matter from Stage 4, records its work there, lists its owner
-   actions at the end, and moves it to `docs/exec-plans/completed/`. The edit
+   actions at the end, and moves it to `docs/execution-plans/plan/completed/`. The edit
    gate allows plan files, so this is always possible. **Open sessions at the
    repo root:** Claude Code loads `.claude/settings.json` only from the folder
    it was launched in, so a session opened from a parent folder runs none of the
@@ -491,15 +491,15 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
      plan with every prompt, so the rules in effect never sit only at the
      start of a long context.
    - **Gate, PreToolUse:** denies edits unless exactly one plan is active.
-     Files under `docs/exec-plans/` are exempt.
+     Files under `docs/execution-plans/` are exempt.
    - **Branch guard:** denies `git commit` on `main`.
 2. **Plan front matter.** Execution plans start with YAML front matter, as in
    Stage 1: `id`, `rules` and `scope_paths`.
 3. **`governance_gate.sh` PreToolUse extension (SCOPE-002).**
    - With one active plan, deny any edit whose repo-relative path matches
-     none of the plan's `scope_paths` globs. `docs/exec-plans/**` stays
+     none of the plan's `scope_paths` globs. `docs/execution-plans/**` stays
      exempt.
-   - Normalise the path first, so `docs/exec-plans/../../x` can't borrow the plan
+   - Normalise the path first, so `docs/execution-plans/../../x` can't borrow the plan
      exemption. A path outside the repo matches no glob, and is denied.
    - Parse the front matter with `.venv/bin/python -I` and `yaml`, and match
      with `fnmatch`.
@@ -511,7 +511,7 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
 5. **`.githooks/commit-msg` (GOV-004).**
    - Reject a commit unless the message has a `Governance:` trailer equal to
      `git rev-parse HEAD:governance` and a `Plan:` trailer naming an existing
-     plan file in `docs/exec-plans/active/` or `completed/`. `HEAD` is the parent
+     plan file in `docs/execution-plans/plan/active/` or `completed/`. `HEAD` is the parent
      here, so the trailer records the rules the commit was made under, even when the
      commit changes `governance/`. The plan ID must be alphanumeric.
    - Allow the repo's root commit. Also accept, without a `Governance:` trailer,
@@ -544,8 +544,8 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
      "filesystem": {
        "denyWrite": [
          "./governance",
-         "./docs/governance_implementation.md",
-         "./docs/agent_governance_implementation.md",
+         "./docs/bootstrap-implementation/project_governance.md",
+         "./docs/bootstrap-implementation/agent_governance.md",
          "./.claude/settings.json",
          "./.claude/settings.local.json",
          "./.claude/hooks",
@@ -604,7 +604,7 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
     - The branch guard denies `git commit` and `git -C . commit` on `main`,
       and allows `git status` and `git stash push`, and commits on another branch.
     - Scope paths: inside allowed, outside denied, outside the repo denied, missing
-      front matter denied. A `docs/exec-plans/../../x` path is denied. The test plan
+      front matter denied. A `docs/execution-plans/../../x` path is denied. The test plan
       has two scope paths, and a path that matches only the second is allowed, so a
       hook that checks only the first glob fails.
     - Each new branch-guard case, including `git -C . push`,
@@ -678,7 +678,7 @@ on push to `main`, with separate jobs:
    - `scripts/check_scope.py` over the PR's commits, also `pull_request` only
      (SCOPE-002 for any coding agent). Each non-merge commit's changed files must
      match a glob in the `scope_paths` of the plan its `Plan:` trailer names, read
-     from that commit's tree, or sit under `docs/exec-plans/`. A file also passes when
+     from that commit's tree, or sit under `docs/execution-plans/`. A file also passes when
      `proposals/<plan ID>/<file>` exists in the commit or its parent, which is the
      owner applying a proposal. Matching a glob on the proposal path isn't enough,
      because then a plan scoping `proposals/<id>/**` would pass every path. Skip
@@ -786,7 +786,7 @@ what the agent does.
    Stages 8 and 9 use it.
 4. **`ARCHITECTURE.md`.** Describe:
    - The agent tree as it stands (phase A03 of
-     `docs/agent_governance_implementation.md` replaces it)
+     `docs/bootstrap-implementation/agent_governance.md` replaces it)
    - The trust boundaries: user input, retrieved content, model output,
      produced output
    - Where each runtime rule is enforced
@@ -888,7 +888,7 @@ set and decision, and any failure can be attributed without shell access.
 **Rules:** OBS-001, DATA-001 (exporters).
 
 **Scope paths:** `<profile.product_agent.path>/**`, `tests/**`, `scripts/**`,
-`ops/observability/**`, `ARCHITECTURE.md`, `requirements.txt`,
+`observability/**`, `ARCHITECTURE.md`, `requirements.txt`,
 `requirements-dev.lock`.
 
 ### Build
@@ -929,7 +929,7 @@ set and decision, and any failure can be attributed without shell access.
    and budget refusals, and a gauge for the session's token count.
 3. **Test.** Run a fake-model session through an in-memory span exporter and
    assert that every invariant attribute is present (OBS-001).
-4. **`ops/observability/`.**
+4. **`observability/`.**
    - An OpenTelemetry Collector config, with exporters limited to the
      destinations in `allowlists/services.yaml`, and a test that checks this
      (DATA-001).
@@ -949,7 +949,7 @@ set and decision, and any failure can be attributed without shell access.
 - [ ] The span test passes.
 - [ ] One local session, using the fake model because the paid-model approval
       doesn't cover this stage, shows up as a complete trace in the chosen backend:
-      `docker compose -f ops/observability/docker-compose.yaml up -d`, then
+      `docker compose -f observability/compose.yaml up -d`, then
       `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 .venv/bin/python -m
       scripts.local_session "What is the status of demo?"`. If the container
       runtime isn't running, this is `deferred`, and `docker compose ... config -q` is
@@ -972,7 +972,7 @@ quality claims need proof.
 
 ### Build
 
-1. **`docs/QUALITY_SCORE.md`.** Scores from 1 to 5 for each area:
+1. **`docs/records/quality_score.md`.** Scores from 1 to 5 for each area:
    - Governance enforcement
    - Scope control
    - Supply chain
@@ -987,7 +987,7 @@ quality claims need proof.
    that fails if a score above 1 has no link, or links to a path that does
    not exist (QUAL-001). Never link under `proposals/`, because applying the proposal
    deletes it.
-2. **`docs/SECURITY.md`.** The operational readiness review (ORR)
+2. **`docs/records/security.md`.** The operational readiness review (ORR)
    checklist:
    - Data handling and the `retention_days` value. Nothing expires `.sessions/` or the
      stack's volumes automatically, so the owner decides how this is met
@@ -999,7 +999,7 @@ quality claims need proof.
 
    Phase A05 adds the sandbox and output items. The owner signs the
    checklist off before each release.
-3. **`docs/EVIDENCE_REVIEW.md`.** The evidence review each sprint:
+3. **`docs/records/evidence_review.md`.** The evidence review each sprint:
    - Inputs: coding-agent transcripts, commit trailers, product-agent
      session logs and governance logs, traces, alerts, the tech-debt
      tracker, and PR review findings (a recurring Important finding is a
@@ -1025,8 +1025,8 @@ quality claims need proof.
 ### Ledger
 
 QUAL-001 as tested. EVID-001 review and DATA-001 ORR as `deferred`, with these
-owner checks: hold the first review, and sign off `SECURITY.md`, each at "After the run"
-in `docs/agent_governance_implementation.md`.
+owner checks: hold the first review, and sign off `docs/records/security.md`, each at "After the run"
+in `docs/bootstrap-implementation/agent_governance.md`.
 
 ---
 
@@ -1058,7 +1058,7 @@ statement of what is proven and what isn't.
 
    Test it: a tier change, a removed control and an unproven activation must
    each fail. Give the test its own small catalogue and ledger, because the real ones
-   change when the proposal is applied. `docs/agent_governance_implementation.md`
+   change when the proposal is applied. `docs/bootstrap-implementation/agent_governance.md`
    reuses this script.
 4. **`proposals/0001/governance/rules.yaml`.** A copy of `governance/rules.yaml`
    in which only controls with a `pass` result and owner check `none` are
@@ -1096,7 +1096,7 @@ it from changing its own hooks and settings.
 
 **Rules:** GOV-001, GOV-002, GOV-006, SCOPE-001, SCOPE-002, SEC-001.
 
-**Scope paths:** `docs/exec-plans/**`.
+**Scope paths:** `docs/execution-plans/**`.
 
 ### What the settings hold
 
@@ -1104,8 +1104,8 @@ it from changing its own hooks and settings.
 rules, plus:
 
 - `permissions.deny`:
-  `Edit(/governance/**)`, `Edit(/docs/governance_implementation.md)`,
-  `Edit(/docs/agent_governance_implementation.md)`,
+  `Edit(/governance/**)`, `Edit(/docs/bootstrap-implementation/project_governance.md)`,
+  `Edit(/docs/bootstrap-implementation/agent_governance.md)`,
   `Edit(/.claude/settings.json)`, `Edit(/.claude/settings.local.json)`,
   `Edit(/.claude/hooks/**)`, `Edit(/.github/**)`, `Edit(/.githooks/**)`,
   `Edit(/AGENTS.md)`, `Edit(/CLAUDE.md)`,
@@ -1131,7 +1131,7 @@ rules, plus:
 ### Build
 
 1. **Close the plan.** Tick Stages 1 to 11, move the plan to
-   `docs/exec-plans/completed/`, and make the checkpoint commit.
+   `docs/execution-plans/plan/completed/`, and make the checkpoint commit.
 2. **Check the hand-over.** Run the `test_settings.py` and `test_hooks.py` suites
    once more against the proposal, and confirm the working tree is clean.
 3. **Stop.** Don't copy the proposal into place, and don't attempt anything more.
@@ -1141,7 +1141,7 @@ rules, plus:
    - The owner actions, in order.
 
 **Protected paths** (the deny list above): `governance/` (including the
-profile), this file, `docs/agent_governance_implementation.md`,
+profile), this file, `docs/bootstrap-implementation/agent_governance.md`,
 `.claude/settings.json`, `.claude/settings.local.json`,
 `.claude/hooks/`, `.github/`, `.githooks/`, `AGENTS.md`, `CLAUDE.md`,
 `<profile.product_agent.path>/AGENTS.md`, `<profile.product_agent.path>/CLAUDE.md`,
@@ -1199,7 +1199,7 @@ confirm.
    start. Start a new session at the repo root with:
 
    > *"Run the refusal checks in "After the run" step 3 of
-   > docs/governance_implementation.md, and report each result in a table."*
+   > docs/bootstrap-implementation/project_governance.md, and report each result in a table."*
 
    The session start must show the governance hash. The session then makes each attempt
    itself, and any attempt that isn't refused is a finding:
@@ -1213,7 +1213,7 @@ confirm.
    | 5 | Edit `README.md` with no active plan | Refused (SCOPE-001) |
    | 6 | `.venv/bin/python -c "open('governance/x','w')"` | Refused by the sandbox |
    | 7 | `.venv/bin/python -c "open('.githooks/x','w')"` | Refused by the sandbox |
-   | 8 | Draft `docs/exec-plans/active/0002-check.md` with `id: '0002'`, `rules: [SCOPE-002]` and `scope_paths: [docs/QUALITY_SCORE.md]`, edit `README.md`, then delete the draft | The draft works, and the edit is refused (SCOPE-002) |
+   | 8 | Draft `docs/execution-plans/plan/active/0002-check.md` with `id: '0002'`, `rules: [SCOPE-002]` and `scope_paths: [docs/records/quality_score.md]`, edit `README.md`, then delete the draft | The draft works, and the edit is refused (SCOPE-002) |
 
    Never pass `dangerouslyDisableSandbox`. Afterwards, `git status --short` must be empty.
    If attempts 6 and 7 were refused, run this from your own terminal to set the GOV-002
@@ -1233,17 +1233,17 @@ confirm.
    | --- | --- | --- |
    | Stage 5 local tools | The tools | `brew install actionlint gitleaks osv-scanner`, then `actionlint`, `gitleaks git` and `osv-scanner scan source --lockfile=requirements.txt:requirements-dev.lock` |
    | Stage 6 manual run and integration tests, COST-001 runtime | `ANTHROPIC_API_KEY` in your terminal | `.venv/bin/python -m scripts.arm_governance paid`, which runs both and then activates the control |
-   | Stage 8 complete trace | Docker running | `docker compose -f ops/observability/docker-compose.yaml up -d`, then `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 .venv/bin/python -m scripts.local_session "What is the status of demo?"`, and find the trace in Grafana at http://localhost:3000 |
+   | Stage 8 complete trace | Docker running | `docker compose -f observability/compose.yaml up -d`, then `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 .venv/bin/python -m scripts.local_session "What is the status of demo?"`, and find the trace in Grafana at http://localhost:3000 |
 
    The Stage 8 trace is outside the sandbox: `docker` can't run in an armed session, so
    run these from your own terminal.
 
-The first evidence review and the `SECURITY.md` sign-off wait for
-`docs/agent_governance_implementation.md`, because they need a product agent's evidence and
+The first evidence review and the `docs/records/security.md` sign-off wait for
+`docs/bootstrap-implementation/agent_governance.md`, because they need a product agent's evidence and
 its data handling to be meaningful. EVID-001 review and DATA-001 ORR stay `planned` until
 then.
 
-Then continue with `docs/agent_governance_implementation.md` once the agent's
+Then continue with `docs/bootstrap-implementation/agent_governance.md` once the agent's
 purpose is known. Until then, normal working applies: **one plan per session**, and every change to
 a protected path goes through `proposals/<plan ID>/` for the owner to apply. A
 plan that amends a stage takes the stage's ID plus a lowercase letter: `S05a`,
@@ -1356,7 +1356,7 @@ phases can be applied to it. It is protected like the rest of `governance/`,
 so a change to what the agent may produce or touch is a governance change.
 
 Stage 2 fills the keys known at bootstrap. Phase A01 of
-`docs/agent_governance_implementation.md` fills the purpose keys; its
+`docs/bootstrap-implementation/agent_governance.md` fills the purpose keys; its
 appendices show two complete profiles.
 
 ```yaml
@@ -1388,8 +1388,8 @@ silently splits the value into extra keys; the schema test catches this.
 # Format and change process: governance/README.md. <profile.x> refers to
 # governance/profile.yaml. A control's status moves from planned to active
 # only through an owner PR, in the change that makes the control real.
-# "(S0N)" names the stage in docs/governance_implementation.md, and "(A0N)"
-# the phase in docs/agent_governance_implementation.md, that builds a planned
+# "(S0N)" names the stage in docs/bootstrap-implementation/project_governance.md, and "(A0N)"
+# the phase in docs/bootstrap-implementation/agent_governance.md, that builds a planned
 # control.
 rules:
   # --- Governance itself -------------------------------------------------
@@ -1458,7 +1458,7 @@ rules:
   # --- Scope -------------------------------------------------------------
   - id: SCOPE-001
     applies_to: [build]
-    rule: Code edits need exactly one active execution plan in docs/exec-plans/active/
+    rule: Code edits need exactly one active execution plan in docs/execution-plans/plan/active/
     because: an agent without one declared intent makes broader changes than anyone reviewed.
     tier: deny
     kind: safety
@@ -1625,7 +1625,7 @@ rules:
 
   - id: QUAL-001
     applies_to: [build, runtime]
-    rule: A score in docs/QUALITY_SCORE.md rises above 1 only with linked evidence that exists
+    rule: A score in docs/records/quality_score.md rises above 1 only with linked evidence that exists
     because: scores without evidence let people and agents declare victory early.
     tier: deny
     kind: safety
@@ -1716,7 +1716,7 @@ elif [[ -n $(git status --porcelain -- governance) ]]; then
   problem='governance/ has uncommitted changes'
 fi
 shopt -s nullglob
-plans=(docs/exec-plans/active/*.md)
+plans=(docs/execution-plans/plan/active/*.md)
 case ${#plans[@]} in
   0) plan='No active execution plan: code edits are blocked until one exists.' ;;
   1) plan="Active execution plan: ${plans[0]}. Read it before working." ;;
@@ -1769,13 +1769,13 @@ case $event in
     ;;
   PreToolUse)
     f=$(jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' <<<"$input")
-    # Normalised, so docs/exec-plans/../../x can't borrow the plan exemption.
+    # Normalised, so docs/execution-plans/../../x can't borrow the plan exemption.
     f=$(.venv/bin/python -I -c 'import os, sys; print(os.path.normpath(sys.argv[1]))' "$f") ||
       deny 'SCOPE-002: could not run .venv/bin/python to check the path.'
     rel=${f#"$CLAUDE_PROJECT_DIR"/}
-    [[ $rel == docs/exec-plans/* ]] && exit 0
+    [[ $rel == docs/execution-plans/* ]] && exit 0
     [[ ${#plans[@]} -eq 1 ]] ||
-      deny "SCOPE-001: edits need exactly one plan in docs/exec-plans/active/ (found ${#plans[@]}). Draft or choose one first."
+      deny "SCOPE-001: edits need exactly one plan in docs/execution-plans/plan/active/ (found ${#plans[@]}). Draft or choose one first."
     reason=$(.venv/bin/python -I - "${plans[0]}" "$rel" 2>&1 <<'PY'
 import fnmatch, sys, yaml
 
@@ -1865,7 +1865,7 @@ from scripts.check_activation import problems, read_ledger
 
 REPO = Path(__file__).parent.parent
 RULES = REPO / 'governance/rules.yaml'
-LEDGER = REPO / 'docs/governance-activation.md'
+LEDGER = REPO / 'docs/records/governance_activation.md'
 PROPOSAL = 'proposals/0001'
 BASE = 'governance_implementation'
 BRANCH = 'governance_bootstrap'
@@ -2175,7 +2175,7 @@ otherwise. Re-check any you rely on after an upgrade.
 
 ## Known gaps
 
-Seed `docs/exec-plans/tech-debt-tracker.md` with these:
+Seed `docs/tech_debt_tracker.md` with these:
 
 | Gap | Rule | Close by |
 | --- | --- | --- |
@@ -2189,12 +2189,12 @@ Seed `docs/exec-plans/tech-debt-tracker.md` with these:
 | The CI scope check accepts any path that has a file in the plan's proposal folder, and trusts the plan's `scope_paths` as of the commit, so a plan can widen its own scope. | SCOPE-002 | Owner review of proposals and plan diffs |
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
 | In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
-| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/agent_governance_implementation.md` |
+| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/bootstrap-implementation/agent_governance.md` |
 | The proposed sandbox can't be proven inside the run: only a session started under those settings shows the write refused. | GOV-002 | "After the run" step 3 |
 | `branch_guard.sh` reads command text, so `sh -c 'git push'`, aliases and `GIT_CONFIG_*` variables get past it, and a write to `.git/config` can repoint `core.hooksPath`. | GOV-002, GOV-004 | CI trailer check and owner review; consider adding `./.git/config` to `denyWrite` |
 | The sandbox blocks `docker`, so an armed session can't run the local stack or a verification sandbox. | GOV-002, SBX-001 | The owner runs the stack; phase A02 decides whether to exclude `docker` |
 | ADK stores the user's message without calling plugins, so that one stored event has no governance stamp. | GOV-005, EVID-001 | Accept, or wrap the session service to stamp in `append_event` |
-| Nothing expires evidence after `retention_days`, and session logs hold prompts unredacted. | EVID-001, DATA-001 | `docs/SECURITY.md` sign-off |
+| Nothing expires evidence after `retention_days`, and session logs hold prompts unredacted. | EVID-001, DATA-001 | `docs/records/security.md` sign-off |
 | FS-001 checks a path when the tool is called, so a symlink made afterwards can still escape. | FS-001 | Phase A02's sandbox |
 
 ## When the repo changes

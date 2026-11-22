@@ -15,8 +15,8 @@ check() {
     fi
   fi
   plan=$(sed -n 's/^Plan: *//p' <<<"$trailers")
-  if [[ ! $plan =~ ^[[:alnum:]]+$ ]] || ! compgen -G "docs/exec-plans/*/$plan-*.md" | grep -qE '/(active|completed)/'; then
-    echo "$label: needs a 'Plan: <ID>' trailer naming a plan in docs/exec-plans/active/ or completed/" >&2
+  if [[ ! $plan =~ ^[[:alnum:]]+$ ]] || ! compgen -G "docs/execution-plans/plan/*/$plan-*.md" | grep -qE '/(active|completed)/'; then
+    echo "$label: needs a 'Plan: <ID>' trailer naming a plan in docs/execution-plans/plan/active/ or completed/" >&2
     problems=1
   fi
 }
