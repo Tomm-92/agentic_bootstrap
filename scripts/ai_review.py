@@ -22,7 +22,7 @@ INSTRUCTIONS = {
   'app_agents': 'app/AGENTS.md',
   'architecture': 'ARCHITECTURE.md',
 }
-EXEC_DOCS = {'plan': ('active', 'completed'), 'intent': ('intent',), 'spec': ('spec',)}
+EXEC_DOCS = {'plan': ('plan/active', 'plan/completed'), 'intent': ('intent',), 'spec': ('spec',)}
 
 
 def _git(*args: str) -> str:
@@ -37,7 +37,8 @@ def reviewer_model() -> str:
 
 def exec_doc(head: str, name: str, plan_id: str) -> str:
   for folder in EXEC_DOCS[name]:
-    for path in _git('ls-tree', '--name-only', head, f'docs/exec-plans/{folder}/').splitlines():
+    listing = _git('ls-tree', '--name-only', head, f'docs/execution-plans/{folder}/')
+    for path in listing.splitlines():
       if Path(path).name.startswith(f'{plan_id}-'):
         return _git('show', f'{head}:{path}')
   return f'No {name} for plan {plan_id!r}.'

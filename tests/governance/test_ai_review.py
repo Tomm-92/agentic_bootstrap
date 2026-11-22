@@ -15,12 +15,12 @@ FILES = {
     'AGENTS.md': 'AGENTS',
     'app/AGENTS.md': 'APP_AGENTS',
     'ARCHITECTURE.md': 'ARCHITECTURE',
-    'docs/exec-plans/spec/0001-x.md': 'BASE_SPEC',
+    'docs/execution-plans/spec/0001-x.md': 'BASE_SPEC',
   },
   'head': {
-    'docs/exec-plans/active/0001-x.md': 'PLAN',
-    'docs/exec-plans/intent/0001-x.md': 'INTENT',
-    'docs/exec-plans/spec/0001-x.md': 'SPEC',
+    'docs/execution-plans/plan/active/0001-x.md': 'PLAN',
+    'docs/execution-plans/intent/0001-x.md': 'INTENT',
+    'docs/execution-plans/spec/0001-x.md': 'SPEC',
     'REVIEW.md': 'HEAD_RUBRIC',
   },
 }

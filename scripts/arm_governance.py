@@ -27,7 +27,7 @@ from scripts.check_activation import problems, read_ledger
 
 REPO = Path(__file__).parent.parent
 RULES = REPO / 'governance/rules.yaml'
-LEDGER = REPO / 'docs/governance-activation.md'
+LEDGER = REPO / 'docs/records/governance_activation.md'
 PROPOSAL = 'proposals/0001'
 BASE = 'governance_implementation'
 BRANCH = 'governance_bootstrap'

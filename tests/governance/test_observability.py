@@ -7,9 +7,9 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).parent.parent.parent
-STACK = PROJECT / 'ops/observability'
+STACK = PROJECT / 'observability'
 COLLECTOR = yaml.safe_load((STACK / 'collector.yaml').read_text())
-COMPOSE = yaml.safe_load((STACK / 'docker-compose.yaml').read_text())
+COMPOSE = yaml.safe_load((STACK / 'compose.yaml').read_text())
 SERVICES = yaml.safe_load((PROJECT / 'governance/allowlists/services.yaml').read_text())
 
 

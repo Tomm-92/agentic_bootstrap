@@ -79,7 +79,7 @@ if __name__ == '__main__':
   found = problems(
     yaml.safe_load((repo / 'governance/rules.yaml').read_text())['rules'],
     yaml.safe_load(Path(sys.argv[1]).read_text())['rules'],
-    read_ledger((repo / 'docs/governance-activation.md').read_text()),
+    read_ledger((repo / 'docs/records/governance_activation.md').read_text()),
   )
   sys.stderr.write(''.join(f'{problem}\n' for problem in found))
   sys.stdout.write('The proposal passes.\n' if not found else '')
