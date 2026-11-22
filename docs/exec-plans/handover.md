@@ -4,13 +4,13 @@ The owner has made the
 [AI-native SDLC playbook](https://claude.com/resources/articles/the-ai-native-sdlc-playbook)
 this repo's default development process. A gap analysis (19 Nov 2026) compared its 15
 "plays" with the repo and split the work into six stages, built one at a time. This
-file hands the remaining four to the sessions that will build them.
+file hands the remaining three to the sessions that will build them.
 
 Keep this file current. When a stage's plan completes, mark its row and correct
 anything in its section that turned out to be wrong.
 
-**Next:** stage 4, as plan 0020. It needs a COST-001 approval first. Stage 5 doesn't
-depend on it.
+**Next:** stage 4, under the next free plan ID. It needs a COST-001 approval first.
+Stage 5 doesn't depend on it.
 
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
@@ -24,8 +24,8 @@ depend on it.
 ## How to pick up a stage
 
 - **One stage, one plan, one session (GOV-006).** Take the next free plan ID. IDs
-  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker, and 0020 is
-  the next free ID.
+  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker. Check
+  `docs/exec-plans/` for the highest ID in use.
 - **Follow plan 0017's process.** Read the README's "Development process" section
   first. Where it and this file disagree, the README wins.
   - Write an intent in `docs/exec-plans/intent/` from the template, using the stage's
@@ -54,6 +54,12 @@ depend on it.
   commits are checked too. Add the path to the plan before the owner commits the
   edit. In plan 0018, the owner's `governance_gate.sh` fix failed the check, and the
   commit had to be amended.
+- **Finish every edit before moving the plan to `completed/`.** With no active plan,
+  the gate denies edits outside `docs/exec-plans/`. In plan 0019, a last fix to
+  `proposals/0019/` was blocked after the move.
+- **A new subagent loads only in a new session.** After the owner copies a file into
+  `.claude/agents/`, check it in a fresh session: it appears among the available agent
+  types. Claude Code no longer has an `/agents` command to list them.
 - **A stage that adds a CI check also updates `REVIEW.md`.** Its "Do not report"
   section lists what CI already enforces, so the reviewer doesn't repeat it.
 - **Paid calls need the owner's approval first (COST-001).** That covers anything
@@ -131,7 +137,7 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 **Build.**
 1. An eval format and check script, run from Python rather than shell, to match the
    repo.
-2. Tasks taken from this repo's own history. Completed plans 0001 to 0018 are real
+2. Tasks taken from this repo's own history. Completed plans 0001 to 0019 are real
    tasks. The richest checks are governance behaviour:
    - It writes a plan before editing.
    - It refuses to edit a protected path, and writes a proposal instead.
