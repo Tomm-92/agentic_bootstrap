@@ -91,6 +91,16 @@ the code and say why after it: `# noqa: E501 - <why>` or
   `tests/unittests/conftest.py`, which also refuses network connections.
 - Real-model tests go in `tests/integration/`, marked `@pytest.mark.integration`.
   They spend credits, so ask before running them (COST-001).
+- For a bug fix, first commit a test that reproduces the bug, marked
+  `@pytest.mark.xfail(strict=True, reason='<the bug>')`. Then fix the code. The fix
+  commit removes that marker, and changes nothing else in the test.
+- When a test fails, assume the code is wrong. Change a test only when the active
+  plan says the behaviour it checks is changing, or when you can say why the test
+  itself is wrong.
+- Change a test in its own commit, and give the reason in the commit message. If the
+  test is a bug fix's reproducing test, stop and ask the owner instead.
+- Before reporting a task done, run the checks, or ask the `verifier` subagent to,
+  and paste the output into the report.
 
 ## Layout
 
