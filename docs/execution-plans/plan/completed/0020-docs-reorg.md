@@ -22,10 +22,10 @@ scope_paths:
 
 # Plan 0020: docs reorganisation
 
-Status: in progress. The owner approved it in plan mode on 2026-11-22.
+Status: done. The owner approved it in plan mode on 2026-11-22.
 
-<!-- Written to docs/exec-plans/active/<ID>-<name>.md when the owner approves it in plan
-mode. Moved to docs/exec-plans/completed/ when done. -->
+<!-- Written to docs/execution-plans/plan/active/<ID>-<name>.md when the owner approves it
+in plan mode. Moved to docs/execution-plans/plan/completed/ when done. -->
 
 ## Goal
 
@@ -114,9 +114,10 @@ docs change only through the proposal.
       `5deb799` and `e3ac2aa`.
 - [x] Write `proposals/0020/`, then commit it.
 - [x] Run the checks, both in the repo and in a copy with the proposal applied.
-- [ ] Owner applies `proposals/0020/` in one commit (see Owner actions).
-- [ ] New session (GOV-006): run the checks with the verifier, tick this plan, and move
-      it to `docs/execution-plans/plan/completed/`.
+- [x] Owner applies `proposals/0020/` in one commit (see Owner actions). Done in
+      `b1f8e55`.
+- [x] New session (GOV-006): run the checks, tick this plan, and move it to
+      `docs/execution-plans/plan/completed/`.
 
 ## Risks
 
@@ -136,6 +137,27 @@ docs change only through the proposal.
   edit outside `scope_paths` is denied.
 - `.githooks/check_trailers.sh main..HEAD` and
   `.venv/bin/python scripts/check_scope.py main..HEAD` pass.
+
+Results from the close-out session, under governance `9a50dd0`, after `b1f8e55`:
+
+- Each applied file is byte-identical to its copy in `proposals/0020/`, and the tests
+  patch applied exactly.
+- The grep finds only this plan's own path table and upstream `docker-compose`
+  references (`observability/tempo.yaml` and the Tempo step of
+  `project_governance.md`).
+- SessionStart reported `docs/execution-plans/plan/active/0020-docs-reorg.md`. The gate
+  denied `app/agent.py` and `docs/execution-plans/../../app/agent.py` with SCOPE-002,
+  and allowed `README.md`.
+- `check_trailers.sh main..HEAD` and `check_scope.py main..HEAD` exit 0.
+- The checks, run one by one (the stop hook skips them on a clean tree):
+
+  ```text
+  All checks passed!
+  26 files already formatted
+  vulture ok
+  Success: no issues found in 26 source files
+  294 passed, 1 deselected in 14.56s
+  ```
 
 ## Decisions
 
