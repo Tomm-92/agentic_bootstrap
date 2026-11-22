@@ -9,14 +9,14 @@ file hands the remaining four to the sessions that will build them.
 Keep this file current. When a stage's plan completes, mark its row and correct
 anything in its section that turned out to be wrong.
 
-**Next:** stage 3, as plan 0019. Stage 3 doesn't need a COST-001 approval, and stage 4
-depends on it.
+**Next:** stage 4, as plan 0020. It needs a COST-001 approval first. Stage 5 doesn't
+depend on it.
 
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
 | 1 | Process docs: intent → spec → plan, plan mode by default | 01, 02, 03, 04 | Done (plan 0017) |
 | 2 | PR review rubric | 10 | Done (plan 0018) |
-| 3 | Verifier subagent, failing test first | 07, 08 | Intent 0019 accepted; spec drafted |
+| 3 | Verifier subagent, failing test first | 07, 08 | Done (plan 0019) |
 | 4 | Coding-agent evals in CI | 09 | Not started, needs a COST-001 approval |
 | 5 | Policy skills, starting with security | 05, 02 | Not started |
 | 6 | Closing the loop: bands, detection, breach → intent | 13 | Blocked, see its section |
@@ -24,7 +24,7 @@ depends on it.
 ## How to pick up a stage
 
 - **One stage, one plan, one session (GOV-006).** Take the next free plan ID. IDs
-  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker, and 0019 is
+  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker, and 0020 is
   the next free ID.
 - **Follow plan 0017's process.** Read the README's "Development process" section
   first. Where it and this file disagree, the README wins.
@@ -95,29 +95,23 @@ original notes:
   with a hook stopping the agent editing that test.
 - "Done" means the check output has been pasted, not just claimed.
 
-**What exists.**
-- `checks_on_stop.sh` is the single check command, shared with CI. That covers the
-  playbook's `make test`; there is no `Makefile`, and none is needed.
-- `scripts/local_session.py` runs the agent for free with a scripted model.
-- No `.claude/agents/`.
-
-**Build.**
-1. `.claude/agents/verifier.md`:
-   - Tools: Bash and Read only.
-   - It runs `checks_on_stop.sh` and the scripted `local_session`, never `--real`.
-   - It reports the literal output, and doesn't edit.
-   - Consider a second one, `simplifier` or `researcher`, only if a real need shows up.
-2. `AGENTS.md` proposal, under Tests:
-   - For a bug fix, commit a failing test first, then fix the code without editing
-     that test. If a test fails, fix the code, not the test.
-   - Before reporting a task done, run the checks and paste the output.
-3. Optional hook proposal: a PreToolUse check that denies edits to test files the
-   current plan marks as fixed. For example, a `locked_tests:` front-matter key read
-   by `governance_gate.sh`. Keep it fast and limited to the file being edited, as the
-   playbook advises.
-
-**Owner decisions.** Whether to build the locked-test hook now, or wait until the
-evidence review shows an agent editing a test to make it pass.
+**As built (plan 0019).** The playbook's design, with these departures from the
+original notes:
+- `.claude/agents/verifier.md` has Bash and Read only, and its description tells
+  Claude to call it proactively before reporting a task done. It removes the Stop
+  hook's fingerprint and runs the hook exactly as CI does, because run as is the hook
+  can skip the checks. It runs the scripted `local_session` only for `app/` changes,
+  so scripted sessions don't fill the evidence log. The sandbox blocks
+  `.claude/agents/`, so it went in by proposal.
+- A bug fix starts with a reproducing test marked
+  `@pytest.mark.xfail(strict=True, ...)`, and the fix commit removes only the marker.
+  A plain failing test would block the Stop hook and fail CI on that commit.
+- A test changes only when the plan changes the behaviour it checks, or for a stated
+  reason, and always in its own commit with that reason. These rules are in
+  `AGENTS.md`'s Tests section.
+- No locked-test hook. The owner chose to wait until the evidence review shows an
+  agent editing a test to make it pass.
+- Parallel sessions in git worktrees were dropped. See "Gaps not assigned to a stage".
 
 ## Stage 4: coding-agent evals in CI (play 09)
 
@@ -143,7 +137,9 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
    - It refuses to edit a protected path, and writes a proposal instead.
    - Its edits stay inside `scope_paths`.
    - Its commits carry correct trailers.
-   - It doesn't edit a failing test.
+   - A bug fix starts with a strict `xfail` test, and the fix commit removes only its
+     marker.
+   - A test change comes in its own commit, with a reason.
    - Its checks pass at the end.
 3. A runner that works on a throwaway clone with the repo's hooks active. The evals
    test the hooks plus the instructions, not the model alone.

@@ -354,10 +354,12 @@ Deny rules and the sandbox in .claude/settings.json stop Claude from editing the
 hooks, its settings, the CI workflows, `ruff.toml`, `mypy.ini` and `pytest.ini`.
 Change those yourself, by hand or through a pull request.
 
-**Review commands.** Run these by hand, after a commit.
+**Review commands.** Run these by hand, after a commit. Claude calls the verifier
+itself before reporting a task done.
 
 | Command | What it does | Source |
 | --- | --- | --- |
+| Ask for the `verifier` | Runs the same checks as CI, plus a scripted session for `app/` changes, and reports the output. Never edits | `.claude/agents/verifier.md` |
 | `/adk-review` | Checks changes against this project's ADK conventions, citing `app/AGENTS.md`, `AGENTS.md` or the installed ADK source | `.claude/skills/adk-review/SKILL.md` |
 | `/simplify` | Finds duplication and needless complexity, and fixes them | Built into Claude Code |
 | `/code-review low` | Finds bugs, reporting fewer, higher-confidence findings | Built into Claude Code |
