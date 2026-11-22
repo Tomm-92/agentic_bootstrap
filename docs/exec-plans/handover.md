@@ -4,15 +4,18 @@ The owner has made the
 [AI-native SDLC playbook](https://claude.com/resources/articles/the-ai-native-sdlc-playbook)
 this repo's default development process. A gap analysis (19 Nov 2026) compared its 15
 "plays" with the repo and split the work into six stages, built one at a time. This
-file hands the remaining five to the sessions that will build them.
+file hands the remaining four to the sessions that will build them.
 
 Keep this file current. When a stage's plan completes, mark its row and correct
 anything in its section that turned out to be wrong.
 
+**Next:** stage 3, as plan 0019. Stage 3 doesn't need a COST-001 approval, and stage 4
+depends on it.
+
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
 | 1 | Process docs: intent → spec → plan, plan mode by default | 01, 02, 03, 04 | Done (plan 0017) |
-| 2 | PR review rubric | 10 | Done (plan 0018), proposal to apply |
+| 2 | PR review rubric | 10 | Done (plan 0018) |
 | 3 | Verifier subagent, failing test first, parallel sessions | 07, 08 | Not started |
 | 4 | Coding-agent evals in CI | 09 | Not started, needs a COST-001 approval |
 | 5 | Policy skills, starting with security | 05, 02 | Not started |
@@ -21,12 +24,19 @@ anything in its section that turned out to be wrong.
 ## How to pick up a stage
 
 - **One stage, one plan, one session (GOV-006).** Take the next free plan ID. IDs
-  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker.
-- **Once plan 0017 is applied, follow its process.** Write an intent in
-  `docs/exec-plans/intent/` from the template, using the stage's section below. The
-  owner accepts it, then you write the spec, then plan in plan mode. Read the README's
-  "Development process" section first. If 0017 has been changed or isn't applied yet,
-  that section wins over this file.
+  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker, and 0019 is
+  the next free ID.
+- **Follow plan 0017's process.** Read the README's "Development process" section
+  first. Where it and this file disagree, the README wins.
+  - Write an intent in `docs/exec-plans/intent/` from the template, using the stage's
+    section below.
+  - The owner accepts it, then you write the spec.
+  - The owner accepts the spec, then you plan in plan mode.
+  - Plan 0018 followed this end to end. Its intent, spec and plan are a worked
+    example.
+- **Acceptance is two header lines.** `Status: accepted` and `Accepted by:` are both
+  the owner's to set. Check both before moving on, and ask if either is missing.
+  Spec 0018's `Accepted by:` was still the placeholder when its plan was built.
 - **Protected paths go through proposals (GOV-002).** Most stages touch `AGENTS.md`,
   `.claude/settings.json`, `.claude/hooks/` or `.github/`. Write the new version to
   `proposals/<plan ID>/` at the same relative path. Each section lists the files it
@@ -37,6 +47,15 @@ anything in its section that turned out to be wrong.
   Check this at the start rather than assuming.
 - **Plan mode's own plan file** (`~/.claude/plans/*.md`) is exempt from the
   governance gate, so a plan can be drafted in plan mode before any plan is active.
+  On approval, copy it to `docs/exec-plans/active/` and commit it with the intent and
+  spec.
+- **A protected file the owner edits during a plan must be in its `scope_paths`.**
+  `scripts/check_scope.py` reads the plan's scope as of each commit, and the owner's
+  commits are checked too. Add the path to the plan before the owner commits the
+  edit. In plan 0018, the owner's `governance_gate.sh` fix failed the check, and the
+  commit had to be amended.
+- **A stage that adds a CI check also updates `REVIEW.md`.** Its "Do not report"
+  section lists what CI already enforces, so the reviewer doesn't repeat it.
 - **Paid calls need the owner's approval first (COST-001).** That covers anything
   that runs a real model in a session or in CI.
 - **Read the playbook again for the play you're building.** The notes below are a
@@ -124,7 +143,7 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 **Build.**
 1. An eval format and check script, run from Python rather than shell, to match the
    repo.
-2. Tasks taken from this repo's own history. Completed plans 0001 to 0017 are real
+2. Tasks taken from this repo's own history. Completed plans 0001 to 0018 are real
    tasks. The richest checks are governance behaviour:
    - It writes a plan before editing.
    - It refuses to edit a protected path, and writes a proposal instead.
@@ -147,6 +166,11 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
   exists.
 
 **Depends on.** Stage 3's rules, so the evals can check them. Stage 2 is independent.
+
+**Also revisit** the tech-debt row for the `@claude` fix-on-comment loop, which plan
+0018 deferred. Running Claude Code in CI under the repo's hooks is the question both
+need answered. A non-interactive start also needs its own `--permission-mode`,
+because the default mode is `plan` (tech-debt tracker).
 
 ## Stage 5: policy skills, starting with security (plays 05, 02)
 
