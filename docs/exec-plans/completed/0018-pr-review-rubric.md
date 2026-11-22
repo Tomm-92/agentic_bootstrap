@@ -178,9 +178,12 @@ This is stage 2 of the handover (playbook play 10).
 
 ## Owner actions
 
-- Fill in the spec's "Accepted by" line. It still holds the placeholder.
-- Commit your `governance_gate.sh` change.
-- Review and apply `proposals/0018/`: the workflow and the two implementation docs.
-- Optionally add `ANTHROPIC_API_KEY` as a repo secret to see the first review
+- [x] Fill in the spec's "Accepted by" line. Done on 2026-11-22, dated 2026-11-19,
+      the day it was accepted.
+- [x] Commit your `governance_gate.sh` change. It's in `4af19e8`, with the hook added
+      to `scope_paths`.
+- [x] Review and apply `proposals/0018/`: the workflow and the two implementation
+      docs. Applied in `4af19e8`.
+- [ ] Optionally add `ANTHROPIC_API_KEY` as a repo secret to see the first review
   (COST-001). The first PR after the proposal is applied is the first one reviewed
   under the rubric.

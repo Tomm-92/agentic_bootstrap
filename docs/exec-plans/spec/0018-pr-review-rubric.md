@@ -2,7 +2,7 @@
 
 Intent: [0018-pr-review-rubric](../intent/0018-pr-review-rubric.md)
 Status: accepted
-Accepted by: <owner>, <YYYY-MM-DD>
+Accepted by: Tom Wilkinson, 2026-11-19
 
 <!-- Copy to docs/exec-plans/spec/<ID>-<name>.md. Only the owner sets Status: accepted.
 Acceptance starts plan mode. -->
