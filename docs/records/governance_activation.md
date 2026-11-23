@@ -31,7 +31,7 @@ rewritten to start with `Confirmed`.
 | SEC-002 | secrets stage of verify.sh (A02) | A02 | phase A02 builds this | pending | none |
 | DATA-001 | test that collector exporters match the allowlist (S08) | S08 | tests/governance/test_observability.py::test_collector_exporters_match_the_allowlist | pass | none |
 | DATA-001 | sandbox containers run without a TTY or exec access (A02) | A02 | phase A02 builds this | pending | none |
-| DATA-001 | ORR data-handling sign-off (S09) | S09 | docs/records/security.md | deferred | Sign off docs/records/security.md, After the run step 9 in docs/bootstrap-implementation/agent_governance.md |
+| DATA-001 | ORR data-handling sign-off (S09) | S09 | docs/records/security.md | deferred | Sign off docs/records/security.md, After the run step 8 in docs/bootstrap-implementation/agent_governance.md |
 | DEP-001 | allowlist and registry existence check (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | confirmation on non-allowlisted dependencies (A01) | A01 | phase A01 builds this | pending | none |
 | DEP-001 | vulnerability audit and osv-scanner (S05, A02) | S05, A02 | proposals/0001/.github/workflows/governance.yml, actionlint; pip-audit and osv-scanner found nothing locally; A02 adds output scanning | pass | Confirmed by the owner, 2026-11-11 |

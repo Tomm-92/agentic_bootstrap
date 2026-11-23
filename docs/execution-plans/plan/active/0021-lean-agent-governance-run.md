@@ -12,6 +12,7 @@ scope_paths:
   - docs/records/evidence_review.md
   - scripts/evidence_report.py
   - tests/governance/test_evidence_report.py
+  - docs/records/governance_activation.md
 ---
 
 # Plan 0021: lean agent governance run
@@ -150,7 +151,7 @@ Three protected files change, all by proposal in `proposals/0021/`.
 | Req | Section |
 | --- | --- |
 | 1 | Section order: Purpose and prerequisites, How to run, Rules, Design session, Build session, A01 to A05, After the run, Appendices |
-| 2 | Pointers to `project_governance.md` and `AGENTS.md` in "Rules for the run". The size target is missed: see Decisions |
+| 2 | Pointers to `project_governance.md` and `AGENTS.md` in "Rules for the run". The size target is missed, and the owner accepted it (see Decisions) |
 | 3 | Design session 1 to 3, and the interview table's "Agent tree" row |
 | 4 | How to run, step 2 |
 | 5 | Nothing mentions the proving repo. "Build the simplest working version" names `governed_repo` |
@@ -218,7 +219,11 @@ git diff HEAD --name-only -- app     exit 0, no output (so no scripted session)
 - **The size target is missed.** The rewrite is 92% of today's bytes. The new design
   session, build session, hook probe, minimums and agent tree add about 150 lines that
   today's file doesn't have. Cutting further means dropping content, not wording. The
-  spec's Concerns call the target a guide, so the owner decides.
+  spec's Concerns call the target a guide. **The owner accepted 92% on 2026-11-23.**
+- **The ledger is in scope (owner, 2026-11-23).** The "After the run" step that holds the
+  `security.md` sign-off is now step 8, because the rules-additions step was dropped. The
+  DATA-001 ORR row named step 9. It now names step 8, which matches the file only once
+  proposal 0021 is applied.
 - **The README's apply command was broken.** Its two `-m` trailer paragraphs fail
   `commit-msg`, which needs both trailers in one final paragraph. This plan's own first
   commit failed the same way. The new README and `agent_governance.md` use a single
