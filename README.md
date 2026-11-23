@@ -67,14 +67,17 @@ and skips the parts that depend on it. It never guesses.
 
 ### 3. Check the prerequisites
 
-- A container runtime, such as Docker, is reachable from the session. The run
-  verifies generated output in a disposable sandbox.
+- A container runtime, such as Docker, is reachable from your terminal. The run
+  verifies generated output in a disposable sandbox. The Claude Code sandbox blocks
+  Docker, so the session never runs those checks itself.
 - `ANTHROPIC_API_KEY` is set in your environment.
-- **Neither session is in auto mode or `bypassPermissions` mode.** Auto mode hasn't
-  been shown to ask before paid model calls every time (COST-001).
+- **Neither session is in `bypassPermissions` or `dontAsk` mode.** Manual and auto mode
+  are both fine. `branch_guard.sh` denies paid model calls outside manual mode
+  (COST-001), so an auto-mode session makes none.
 
-Without the first two the run still finishes, but the checks that need them are
-recorded as `deferred`, with the exact command for you to run later.
+The run still finishes without Docker, without the key, or in auto mode. Each check it
+can't run is recorded as `deferred`, and the final report lists them all as one batch
+of commands for you to run.
 
 ### 4. Run the agent governance implementation
 

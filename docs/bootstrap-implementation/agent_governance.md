@@ -15,20 +15,32 @@ The user does these before the run, because the coding agent must not:
 
 - [ ] Stages 1 to 11 of `project_governance.md` and its "After the run" are done.
 - [ ] The user can say in a sentence each what the agent is for and what it produces.
-- [ ] A container runtime is reachable and `ANTHROPIC_API_KEY` is set. Without them, the
-      checks that need them are `deferred`.
-- [ ] **No session of this run is in auto mode or `bypassPermissions` mode.** Auto mode
-      hasn't been shown to raise the paid-model prompt every time (COST-001). Every run
-      the owner watched did prompt, but too few runs have been watched to rely on it.
+- [ ] A container runtime is reachable from the user's terminal, and `ANTHROPIC_API_KEY`
+      is set there. The Claude Code sandbox blocks the container runtime, so the session
+      never runs a Docker check. Don't loosen the sandbox to allow it: the Docker socket
+      gives host access. Every check that needs Docker goes to the owner batch.
+- [ ] **No session of this run is in `bypassPermissions` or `dontAsk` mode.** Manual and
+      auto mode are both fine.
+      - `branch_guard.sh` denies every paid-model command unless `permission_mode` is
+        `default`, which is manual mode (COST-001).
+      - In manual mode, the `ask` rules prompt before each paid command.
+      - In auto mode, every paid check is `deferred` to the owner batch.
+
+**The owner batch** is the list of checks the session couldn't run: Docker checks, paid
+checks in auto mode, and anything else `deferred`. A05's final report gives it as one
+ordered block of commands for the user's terminal. "After the run" step 6 runs it.
 
 ## How to run this file
 
 ```text
 Session 1, design:  interview → intent A00 ⏸ → spec A00 ⏸ → plan A00 ⏸ → first proposal → commit
 User:               apply the first proposal (profile, tools, allowlists) → commit
-Session 2, build:   hook probe → subagent A01 → A02 → A03 → A04 → A05
-User:               "After the run": apply the final proposal → pull request → merge
+Session 2, build:   hook check → subagent A01 → A02 → A03 → A04 → A05
+User:               "After the run": apply the final proposal → owner batch → pull request → merge
 ```
+
+Both sessions can run in manual or auto mode. A session in auto mode makes no paid call,
+and asks the user only when a part stops.
 
 1. **Design session.** At the repo root, say: *"Run the design session in
    docs/bootstrap-implementation/agent_governance.md."* If some purpose inputs are
@@ -95,8 +107,9 @@ planned control. The "Code style" section of `AGENTS.md` applies in full.
 **When a part can't finish:**
 
 - **A check needs something the session can't reach** (a sandbox-blocked container
-  runtime, an API key or a paid approval). Record it as `deferred`, with the exact
-  command, and continue. Don't ask to loosen the sandbox.
+  runtime, an API key, a paid approval, or manual mode for a paid call). Record it as
+  `deferred`, with the exact command, add it to the owner batch, and continue. Don't ask
+  to loosen the sandbox.
 - **A part is blocked, or fails after a reasonable attempt.** Record it, and mark the
   parts that depend on it `blocked`. Continue with the rest.
 - **Finishing seems to need a weaker control, an invented value or an unapproved paid
@@ -131,7 +144,7 @@ an open question, and the parts that depend on it are `blocked`.
 | Packages | `package_ecosystems`, `packages.yaml` | The output's registries and a short starting list, or none. |
 | External targets | `external_targets`, `services.yaml` | None, unless the purpose acts on another system. |
 | Reviewer model | `models.yaml` | The `use: reviewer` model. Its ID must differ from the executor's (REV-001). |
-| Paid-model approval | Intent A00 | None. Ask separately about A03's end-to-end run and A04's eval gate, which costs `eval_runs` runs per case. Unapproved checks are `deferred`. |
+| Paid-model approval | Intent A00 | None. Ask separately about A03's end-to-end run and A04's eval gate, which costs `eval_runs` runs per case. Unapproved checks are `deferred`. An approved check still goes to the owner batch if it needs Docker, or if the session is in auto mode. |
 
 ### The agent tree
 
@@ -159,9 +172,14 @@ and again after the spec, stop until the user sets both `Status: accepted` and
 2. **`docs/execution-plans/spec/A00-agent-purpose.md`.** It fixes:
    - the tree, and each agent's tools with their tiers, `paths` and `targets`
    - each verification stage and its one tool
+   - the intent artifact's fields, each marked required or optional, with the default
+     for each optional one. A02's stages and A03's `propose_intent` both follow this list.
    - the fixtures, eval cases and output specs, at the minimums below, giving the reason
      for each category skipped
-   - the exact files for each part, A01 to A05
+   - the exact files for each part, A01 to A05. A part's list also holds every test that
+     reads or counts a file the part changes. Find them with `git grep -l <file name>
+     tests/`. For example, A05's list names `tests/governance/test_quality_score.py`,
+     whose count of quality areas rises by four.
 
    Its "Policies checked" names every rule ID in this file.
 3. **`docs/execution-plans/plan/active/A00-agent-purpose.md`,** made in plan mode. It
@@ -178,7 +196,8 @@ and again after the spec, stop until the user sets both `Status: accepted` and
 - **Fixtures (A02).** One good output per output type. One planted failure for each gate
   outcome: a critical finding (`block`), a high finding (`acknowledge`) and an intent
   mismatch (conformance). A planted secret or vulnerable dependency is one of these, not
-  an extra fixture.
+  an extra fixture. The good fixture's intent artifact leaves out every optional field,
+  so each stage is shown to apply its default.
 - **Eval cases (A04).** At most one per category, which makes at most 6 × `eval_runs`
   runs:
   - the happy path
@@ -207,6 +226,23 @@ Write these from spec A00, inventing no values:
   - `approve_intent`, which is always `confirm`
   - `run_verify`
   - `add_dependency`, when `package_ecosystems` isn't empty
+  - the tools the framework adds to the tree. `GovernancePlugin` denies any tool without
+    an entry, so a missing one stops A03 and costs a proposal and a new session. Check
+    the installed ADK for every tool name the tree will expose. In ADK 2.14.0 these are:
+    - **One entry per delegated sub-agent, named after it** (`free`). ADK wraps a
+      `single_turn` sub-agent as a tool of that name (`agents/llm_agent.py:1365`,
+      `tools/agent_tool.py:191`). The delegation writes nothing itself. The sub-agent's
+      own tools keep their tiers.
+    - **`set_model_response`** (`free`), for an agent with both `output_schema` and
+      tools, on a model that doesn't declare `output_schema_and_tools`. `AnthropicLlm`
+      doesn't (`flows/llm_flows/prompt/_schema.py:61-90`,
+      `models/base_llm.py:97-125`). It writes only the agent's structured reply into
+      state.
+- **`proposals/A00/.claude/settings.json`.** The live settings, keeping every rule and
+  hook, plus one `ask` rule for each paid-model command the run adds (COST-001). For
+  A04's eval script, that's `Bash(*eval_pass_rate*)`. `branch_guard.sh` already denies
+  `eval_pass_rate` outside manual mode, so keep that name for the script. A paid command
+  with any other name also needs a `branch_guard.sh` change, through the same proposal.
 
 Commit the intent, spec, plan and first proposal together, with the trailers
 `Governance: <git rev-parse HEAD:governance>` and `Plan: A00`. Then stop, and tell the
@@ -217,18 +253,18 @@ user to apply the first proposal.
 The build session orchestrates. Each part runs in a fresh subagent with a clean
 context, and the build session keeps only each part's short report.
 
-1. **Hook probe.** One `general-purpose` subagent tries each of these once and reports
-   the literal results:
-   - writing `probe.txt` at the repo root: the SCOPE-002 hook must deny it
-   - writing `governance/probe.txt`: a deny rule must refuse it
-   - `git push --dry-run`: the GOV-002 hook must deny it
-   - `.venv/bin/python -m scripts.local_session --real --help`: it must raise a COST-001
-     prompt. The command only prints help, so approving costs nothing.
-
-   Ask the user whether the prompt appeared, because a subagent can't tell. Record the
-   results in plan A00's Proof.
-   - If any of the first three is allowed, stop.
-   - If no prompt appeared, record every paid check as `deferred`.
+1. **Hook check.** Don't attempt a denied action live. The auto-mode classifier rightly
+   blocks a deliberate attempt to get past a control, and the tests below cover each
+   one.
+   - Check that the SessionStart message names the governance hash and plan A00. That
+     shows the hooks load in this session.
+   - Run `.venv/bin/pytest -q tests/governance/test_hooks.py
+     tests/governance/test_settings.py`. These cover:
+     - the SCOPE-002 and GOV-002 denials
+     - the deny rules for protected paths
+     - the COST-001 paid-command deny
+     - the hook wiring
+   - Record the output in plan A00's Proof. If any test fails, stop.
 2. **Parts.** For each unticked part, in order, start one fresh `general-purpose`
    subagent. Its prompt names the part, plan A00 and spec A00, and nothing else. Run one
    part at a time.
@@ -248,12 +284,16 @@ context, and the build session keeps only each part's short report.
    rule IDs.
 2. Builds only that part, within its file list.
 3. Before committing, runs the verifier's check command and puts its output in the
-   report. The Stop hook doesn't fire when a subagent ends, so this replaces it:
+   report. The Stop hook doesn't fire when a subagent ends, so this replaces it.
+   `force` runs the checks even when the hook's fingerprint matches, so no hook state is
+   deleted:
 
    ```bash
-   rm -f .claude/.checks_fingerprint
-   echo '{}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh
+   echo '{"force": true}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh
    ```
+
+   Run it as its own command. Commit only after it exits 0 with no output, never chained
+   after it with `;`.
 
 4. Ticks the part, updates its ledger rows, and commits with the trailers
    `Governance: <git rev-parse HEAD:governance>` and `Plan: A00`.
@@ -333,6 +373,11 @@ sandbox shell).
    report_path}`. A failed sandbox returns an error status the model can retry, and never
    crashes the session.
 5. **Fixtures** under `tests/fixtures/`, at the minimums.
+6. **A free unit test for each stage script** that runs on the host, without the
+   container. The integration tests need Docker, so they're usually in the owner batch,
+   and without these a stage has no test the session can run. Each one runs the stage
+   on an intent artifact with only the required fields. Where a stage reads the
+   container's paths at import, patch the read.
 
 **Acceptance criteria:**
 - [ ] Integration tests (`-m integration`, which need the container runtime) show that:
@@ -341,6 +386,8 @@ sandbox shell).
   - network access outside the allowlist fails
   - no credential variables are visible in the sandbox
 - [ ] A unit test with a mocked sandbox covers the `run_verify` error path.
+- [ ] Each stage script's unit test passes, including on an artifact with only its
+      required fields.
 
 **Ledger:** SBX-001, SEC-002 runtime, DEP-001 SCA, DATA-001 sandbox, VER-001 gate (verify
 half).
@@ -374,7 +421,19 @@ verifies the output, has it reviewed independently and records what happened.
      - On `block`, the findings go back to the executor, up to `max_fix_iterations`
        times, and then the agent stops and reports.
      - On `acknowledge`, the user confirms the high findings, and the confirmation is
-       recorded.
+       recorded. ADK 2.14.0 doesn't show a second `request_confirmation` made inside a
+       resumed tool call, so build it like this:
+       - `run_verify` returns the high findings and records them as pending.
+       - The executor calls `run_verify` again. That call's own `confirm` confirmation
+         lists the pending findings. An executor `after_tool_callback` sets that text
+         with `tool_context.request_confirmation(hint=...)`.
+       - On approval, that call sets `state.acknowledged`. It doesn't run the sandbox
+         again, and it doesn't count toward the cap.
+       - A rejection leaves `acknowledged` unset, so the reviewer is refused.
+     - **Any write to the work item clears the gate** and the acknowledgement. The
+       reviewer runs only on a gate from a `run_verify` after the last write, so code
+       changed after a `pass` or an acknowledgement is verified again. The run cap
+       doesn't reset.
    - **The reviewer** checks the output against the approved intent, its scope and
      security patterns. Only the root agent and the reviewer set `model`, so narrow the
      convention exactly that far:
@@ -385,6 +444,17 @@ verifies the output, has it reviewed independently and records what happened.
      - `fake_llm` replaces the reviewer's model too.
      - `proposals/A00/.claude/skills/adk-review/SKILL.md` lists the new convention. The
        sandbox blocks `.claude/skills/`.
+   - **Verified in ADK 2.14.0.** Check these against the installed version:
+     - A resumed executor loses its injected input event. So the `intent_sha` check
+       reads the args of the planner's latest call to the executor in
+       `callback_context.session.events`.
+     - ADK validates a `single_turn` agent's reply against its `output_schema`
+       (`workflow/_llm_agent_wrapper.py`). So a callback's refusal from the reviewer
+       must itself be a valid `output_schema` object, or the node fails with no reason.
+     - With `output_key`, the reviewer's reply is in state in its
+       `after_agent_callback`, so the run record is written there.
+     - Set `disallow_transfer_to_parent` and `disallow_transfer_to_peers` on every
+       sub-agent, so none gets `transfer_to_agent`.
 3. **`<profile.output_root>/<work item>/RUN_RECORD.md`.** It holds:
    - the approved intent, `intent_sha` and governance hash
    - assumptions and decisions
@@ -403,14 +473,16 @@ verifies the output, has it reviewed independently and records what happened.
    - the convention test fails for another sub-agent's model, and for an unlisted
      reviewer
    - the fix loop stops at `max_fix_iterations`
-   - `acknowledge` needs confirmation
+   - `acknowledge` needs confirmation, both approved and rejected
+   - a write after a `pass` or an acknowledgement closes the gate
    - the run record has every field
    - a second work item in the session is refused
 
 **Acceptance criteria:**
 - [ ] All unit tests pass.
 - [ ] One end-to-end integration run per output type passes `verify.sh`, under the
-      paid-model approval (COST-001). Keep the run records for A05.
+      paid-model approval (COST-001). Keep the run records for A05. It needs Docker, so
+      it's usually `deferred` to the owner batch.
 
 **Ledger:** SPEC-001 (both rows), VER-001 (both rows), REV-001.
 
@@ -426,7 +498,8 @@ and every trace carries the intent it served.
    overrides `<profile.output_root>` keeps eval output apart from real output. ADK
    doesn't do this.
 2. **`scripts/eval_pass_rate.py`.** Runs each case `eval_runs` times, and fails below
-   `eval_pass_rate_floor`.
+   `eval_pass_rate_floor`. Add its ask rule, from the first proposal, to
+   `test_paid_model_runs_ask_first` in `tests/governance/test_settings.py`.
 3. **`proposals/A00/.github/workflows/evals.yml`.** An advisory workflow:
    - It runs nightly, and on PRs that change the agent's prompts, `governance/**`,
      `docs/output-specs/**` or `allowlists/models.yaml`.
@@ -442,9 +515,10 @@ and every trace carries the intent it served.
 
 **Acceptance criteria:**
 - [ ] The eval gate reports a pass rate for each case, under the paid-model approval
-      (COST-001).
+      (COST-001), or is `deferred` to the owner batch.
 - [ ] The workflow passes actionlint, without running its paid calls.
 - [ ] The extended span test passes.
+- [ ] The eval script's ask rule is in `test_paid_model_runs_ask_first`, and passes.
 
 **Ledger:** MODEL-001 eval gate.
 
@@ -469,7 +543,8 @@ user gets one statement of what is proven and what isn't.
    records.
 5. **`docs/agent_tech_debt_tracker.md`.** Add one row naming the Project CodeGuard (CoSAI)
    risk classes that fit the output, as candidate rules for the evidence review.
-6. **Run everything:** the unit and integration suites, and the repo's checks. Fix this
+6. **Run everything the session can run:** the unit suites and the repo's checks. The
+   integration suites go to the owner batch unless the session can run them. Fix this
    run's breakage, and never weaken a control or a test.
 7. **Complete the ledger.** Every control this file builds has a result, and evidence that
    exists.
@@ -489,10 +564,14 @@ user gets one statement of what is proven and what isn't.
   - every ledger item that isn't `pass`
   - the parts completed, deferred and blocked
   - the controls proposed `active`, and why the others stay `planned`
+  - the owner batch, as one block of commands in this order: the sandbox integration
+    tests, the end-to-end run, the eval gate, then the evidence report against the
+    end-to-end run's record
   - the user's actions, in order
 
-**Ledger:** QUAL-001 with the new areas. EVID-001 review and DATA-001 ORR stay `deferred`
-until the user holds the review and signs off.
+**Ledger:** QUAL-001 with the new areas. DATA-001 ORR stays `deferred` until the user
+signs off. The EVID-001 review is already `active` from S09 of `project_governance.md`,
+so leave it `active`. `check_activation.py` refuses to move a control back to `planned`.
 
 ## After the run
 
@@ -513,10 +592,11 @@ For the user, in this order. The run lists these steps and doesn't attempt them.
    stays `planned`, and running the gate by hand when a model changes is the check.
 4. **Push, open a pull request and merge.** Confirm that the evals workflow validates.
 5. **Start a new session**, and rerun the real-tree tests.
-6. **Clear what was deferred.** Run each deferred check. Set a control to `active`, in a
-   governance commit, only when its check passes.
-7. **Hold the first evidence review**, covering an agent run. Then set EVID-001 review to
-   `active`.
+6. **Run the owner batch** from A05's final report, in your terminal, in manual mode.
+   Set a control to `active`, in a governance commit, only when its check passes.
+7. **Hold the first evidence review that covers an agent run.** Add the run records,
+   verification reports and eval results to its inputs. The EVID-001 review is already
+   `active`, so no status changes.
 8. **Sign off `docs/records/security.md`** before the first release. Then set DATA-001 ORR
    to `active`.
 

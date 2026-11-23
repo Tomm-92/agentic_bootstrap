@@ -3,6 +3,9 @@
 # must never commit straight to main, push, skip the git hooks or repoint them.
 # Matches anywhere in a compound command, through `git -C <dir>` and `git -c <x=y>`,
 # because a permission deny rule matches only the command's literal start.
+# COST-001. Paid-model commands run only in manual mode, where the ask rules prompt.
+# Auto mode's classifier isn't a cost control, and a subagent's input may carry no
+# mode, so anything but `default` is denied.
 input=$(cat)
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
 deny() {
@@ -16,6 +19,10 @@ git="git($s-[cC]$s[^[:space:]]+)*$s"
 plain=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$cmd")
 
 [[ $plain =~ ${git}push([[:space:]]|$) ]] && deny 'GOV-002: agents never push; the owner pushes.'
+
+paid='pytest.*-m[[:space:]]*integration|local_session.*--real|adk[[:space:]]+(run|web)|eval_pass_rate'
+[[ $(jq -r '.permission_mode // empty' <<<"$input") != default && $plain =~ $paid ]] &&
+  deny "COST-001: paid-model commands run only in manual mode; record the check as deferred for the owner's terminal."
 
 shopt -s nocasematch
 key="['\"]?core\.hookspath"

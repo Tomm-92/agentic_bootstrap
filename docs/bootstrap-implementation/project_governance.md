@@ -529,6 +529,9 @@ SCOPE-001, SCOPE-002, EVID-001 (commit evidence).
    - `git commit` with `--no-verify` or `-n`, including combined flags such as `-nm`
    - `git config` changes to `core.hooksPath` (reading it stays allowed)
    - `git -c core.hooksPath=...`
+   - a paid-model command, unless the input's `permission_mode` is `default` (manual
+     mode, where the COST-001 `ask` rules prompt). A missing mode counts as not manual.
+     The commands are the ones the `ask` rules list, plus `eval_pass_rate`.
 
    Quoted text is an argument, so `git commit -m "explain -n"` stays allowed.
 8. **Claude Code sandbox (GOV-002).** Read
@@ -1121,7 +1124,8 @@ rules, plus:
   `Bash(*pytest* -m integration*)`, `Bash(*local_session*--real*)`,
   `Bash(*adk run*)` and `Bash(*adk web*)`. An `ask` rule applies to every part of a
   compound command and prompts even in auto mode. It matches command text, so it
-  is a prompt for the usual forms, not a security boundary.
+  is a prompt for the usual forms, not a security boundary. Outside manual mode,
+  `branch_guard.sh` denies these commands instead.
 - Hooks: SessionStart and UserPromptSubmit → `governance_gate.sh`.
   PreToolUse `Edit|Write|NotebookEdit` → `governance_gate.sh`.
   PreToolUse `Bash` → `branch_guard.sh`.
@@ -1800,6 +1804,9 @@ esac
 # must never commit straight to main, push, skip the git hooks or repoint them.
 # Matches anywhere in a compound command, through `git -C <dir>` and `git -c <x=y>`,
 # because a permission deny rule matches only the command's literal start.
+# COST-001. Paid-model commands run only in manual mode, where the ask rules prompt.
+# Auto mode's classifier isn't a cost control, and a subagent's input may carry no
+# mode, so anything but `default` is denied.
 input=$(cat)
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
 deny() {
@@ -1813,6 +1820,10 @@ git="git($s-[cC]$s[^[:space:]]+)*$s"
 plain=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$cmd")
 
 [[ $plain =~ ${git}push([[:space:]]|$) ]] && deny 'GOV-002: agents never push; the owner pushes.'
+
+paid='pytest.*-m[[:space:]]*integration|local_session.*--real|adk[[:space:]]+(run|web)|eval_pass_rate'
+[[ $(jq -r '.permission_mode // empty' <<<"$input") != default && $plain =~ $paid ]] &&
+  deny "COST-001: paid-model commands run only in manual mode; record the check as deferred for the owner's terminal."
 
 shopt -s nocasematch
 key="['\"]?core\.hookspath"

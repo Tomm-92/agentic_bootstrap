@@ -2,7 +2,10 @@
 # Stop: if the working tree changed since the last check, block finishing while
 # lint, format, dead-code, type or unit-test checks fail. After one blocked
 # attempt, tell the user instead, and don't re-check until something changes again.
-active=$(jq -r '.stop_hook_active // false')
+# `{"force": true}` runs the checks anyway, for the verifier and the build subagents.
+input=$(cat)
+active=$(jq -r '.stop_hook_active // false' <<<"$input")
+force=$(jq -r '.force // false' <<<"$input")
 cd "$CLAUDE_PROJECT_DIR" || exit 0
 src=(app tests scripts)          # vulture targets
 paths=(. ':!output')
@@ -11,7 +14,7 @@ now=$({
   git diff HEAD -- "${paths[@]}"
   git ls-files -z --others --exclude-standard -- "${paths[@]}" | xargs -0 cat
 } | shasum)
-[[ "$now" == "$(cat "$saved" 2>/dev/null)" ]] && exit 0
+[[ $force != true && "$now" == "$(cat "$saved" 2>/dev/null)" ]] && exit 0
 fail() {
   if [[ "$active" == true ]]; then
     echo "$now" >"$saved"

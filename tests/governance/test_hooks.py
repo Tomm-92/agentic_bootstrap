@@ -65,10 +65,9 @@ class Repo:
   def edit(self, path):
     return self.gate('PreToolUse', tool_input={'file_path': str(path)})
 
-  def guard(self, command):
-    return self.run(
-      HOOKS / 'branch_guard.sh', stdin=json.dumps({'tool_input': {'command': command}})
-    )
+  def guard(self, command, mode=None):
+    payload = {'tool_input': {'command': command}} | ({'permission_mode': mode} if mode else {})
+    return self.run(HOOKS / 'branch_guard.sh', stdin=json.dumps(payload))
 
   def commit_msg(self, message):
     file = self.path.parent / 'COMMIT_EDITMSG'
@@ -299,6 +298,34 @@ def test_guard_denies_on_any_branch(repo, command):
 def test_guard_allows_lookalikes(repo, command):
   repo.git('switch', '-q', '-c', 'work')
   assert not denied(repo.guard(command))
+
+
+PAID = [
+  '.venv/bin/pytest -q -m integration tests/integration/test_end_to_end.py',
+  '.venv/bin/python -m scripts.local_session --real --help',
+  'cd app && adk run .',
+  'adk web',
+  '.venv/bin/python -m scripts.eval_pass_rate',
+]
+
+
+@pytest.mark.parametrize('mode', ['auto', 'bypassPermissions', 'dontAsk', 'acceptEdits', None])
+@pytest.mark.parametrize('command', PAID)
+def test_guard_denies_paid_commands_outside_manual_mode(repo, command, mode):
+  assert denied(repo.guard(command, mode))
+
+
+@pytest.mark.parametrize('command', PAID)
+def test_guard_leaves_paid_commands_to_the_ask_rules_in_manual_mode(repo, command):
+  assert not denied(repo.guard(command, 'default'))
+
+
+@pytest.mark.parametrize(
+  'command', ['.venv/bin/pytest -q', "git commit -m 'run eval_pass_rate later'", 'ls adk']
+)
+def test_guard_allows_unpaid_commands_in_auto_mode(repo, command):
+  repo.git('switch', '-q', '-c', 'work')
+  assert not denied(repo.guard(command, 'auto'))
 
 
 # --- commit-msg, check_trailers and pre-push -------------------------------------------
