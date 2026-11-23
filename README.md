@@ -70,8 +70,8 @@ and skips the parts that depend on it. It never guesses.
 - A container runtime, such as Docker, is reachable from the session. The run
   verifies generated output in a disposable sandbox.
 - `ANTHROPIC_API_KEY` is set in your environment.
-- **Neither session is in auto mode or `bypassPermissions` mode.** Auto mode doesn't
-  reliably ask before paid model calls (COST-001).
+- **Neither session is in auto mode or `bypassPermissions` mode.** Auto mode hasn't
+  been shown to ask before paid model calls every time (COST-001).
 
 Without the first two the run still finishes, but the checks that need them are
 recorded as `deferred`, with the exact command for you to run later.

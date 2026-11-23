@@ -287,6 +287,12 @@ Requirement 6b bans auto mode for the run, and the hook probe checks for the pro
 start of every build session (requirement 6a). On 2026-11-16 the owner confirmed in the
 activation ledger that the ask rule prompts in a session that isn't in auto mode.
 
+**Correction, 2026-11-23 (plan 0022).** The "no prompt" result in the first session
+came from the agent, which can't see permission prompts. The owner didn't observe it.
+Every run the owner watched prompted, including three in auto mode. Requirement 6b
+stands, because auto mode hasn't been shown to prompt every time, not because it was
+seen to fail.
+
 **Why the verifier is called in each part.** The Stop hook (`checks_on_stop.sh`) fires
 when the main session's turn ends, not when a subagent finishes. Without the verifier
 call, a part could commit with failing checks, and the failure would show up only when
@@ -378,6 +384,8 @@ default, and gives M3 a place to grow.
   a PreToolUse hook that denies paid commands unless approved, is protected work. It is
   recorded as a tech-debt row and belongs to the handover's "Auto mode policy" and
   "Managed settings" gaps (TMW-19).
+  - **Correction, 2026-11-23 (plan 0022):** no auto-mode session was seen to skip the
+    prompt. See the correction under Design's "Probe 0021".
 - **A failed prompt probe.** If, in some build session, the hook probe shows that a
   subagent doesn't raise the COST-001 prompt, the build session refuses to run any part
   that needs a paid call. That part's check is recorded as `deferred`, with the command
