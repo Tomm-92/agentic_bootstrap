@@ -19,7 +19,8 @@ framework's conventions.
 - Keep each session to one plan. Start a new session for the next plan, or when the
   governance hash changes (GOV-006).
 - Record assumptions, decisions and risks in the plan. Add deferred gaps to
-  `docs/tech_debt_tracker.md`.
+  `docs/bootstrapper_tech_debt_tracker.md`, or to `docs/agent_tech_debt_tracker.md` when
+  the gap wouldn't exist with a different agent.
 - Never read, print or commit `.env` files (SEC-001).
 - Never set `Status: accepted` on an intent or spec. Only the owner accepts them.
 
@@ -118,7 +119,8 @@ docs/
   execution-plans/      intents, specs, plans, their templates and the handover
   records/              evidence review, quality score, security sign-off and activation ledger
   diagrams/             governance controls diagram
-  tech_debt_tracker.md  deferred gaps
+  bootstrapper_tech_debt_tracker.md  deferred gaps in the bootstrap
+  agent_tech_debt_tracker.md         deferred gaps in the agent it builds
 governance/             rules, profile, thresholds, allowlists and tool tiers
 scripts/                local session, evidence report, activation and scope checks; not a package
 observability/          local telemetry stack

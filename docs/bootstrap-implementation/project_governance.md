@@ -250,7 +250,7 @@ governance file is written.
    then `git switch -c governance_bootstrap`. If the tree isn't
    clean, the changes come with you: leave them unchanged, include them in the
    Stage 1 checkpoint commit, and list them in the plan for the owner's review.
-3. **`docs/execution-plans/plan/active/`, `plan/completed/` and `docs/tech_debt_tracker.md`.** Put a
+3. **`docs/execution-plans/plan/active/`, `plan/completed/` and `docs/bootstrapper_tech_debt_tracker.md`.** Put a
    `.gitkeep` in both folders, because git drops an empty folder when the plan
    moves. Seed the tracker from "Known gaps".
 4. **`docs/execution-plans/plan/active/0001-bootstrap.md`.** The run's one plan:
@@ -2175,7 +2175,7 @@ otherwise. Re-check any you rely on after an upgrade.
 
 ## Known gaps
 
-Seed `docs/tech_debt_tracker.md` with these:
+Seed `docs/bootstrapper_tech_debt_tracker.md` with these:
 
 | Gap | Rule | Close by |
 | --- | --- | --- |
@@ -2189,7 +2189,7 @@ Seed `docs/tech_debt_tracker.md` with these:
 | The CI scope check accepts any path that has a file in the plan's proposal folder, and trusts the plan's `scope_paths` as of the commit, so a plan can widen its own scope. | SCOPE-002 | Owner review of proposals and plan diffs |
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
 | In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
-| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/bootstrap-implementation/agent_governance.md` |
+| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A05 in `docs/bootstrap-implementation/agent_governance.md` |
 | The proposed sandbox can't be proven inside the run: only a session started under those settings shows the write refused. | GOV-002 | "After the run" step 3 |
 | `branch_guard.sh` reads command text, so `sh -c 'git push'`, aliases and `GIT_CONFIG_*` variables get past it, and a write to `.git/config` can repoint `core.hooksPath`. | GOV-002, GOV-004 | CI trailer check and owner review; consider adding `./.git/config` to `denyWrite` |
 | The sandbox blocks `docker`, so an armed session can't run the local stack or a verification sandbox. | GOV-002, SBX-001 | The owner runs the stack; phase A02 decides whether to exclude `docker` |
