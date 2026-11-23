@@ -36,15 +36,15 @@ land before TMW-24.
 
 ## Order of work
 
-- [ ] Commit intent 0022, spec 0022 and this plan together on `ai_sdlc` (the commit-msg
+- [x] Commit intent 0022, spec 0022 and this plan together on `ai_sdlc` (the commit-msg
       hook needs a `Plan:` trailer naming an existing plan).
-- [ ] Edit `README.md`, the tech-debt row and spec 0021. Commit.
-- [ ] Write `proposals/0022/` (copy each protected file, then edit the copy). Check with
+- [x] Edit `README.md`, the tech-debt row and spec 0021. Commit.
+- [x] Write `proposals/0022/` (copy each protected file, then edit the copy). Check with
       `diff` that each copy differs from its original only in the spec's lines. Commit.
-- [ ] `grep -rn "one auto-mode session prompted"` finds only intent 0022, spec 0022,
+- [x] `grep -rn "one auto-mode session prompted"` finds only intent 0022, spec 0022,
       plan 0021 and spec 0021's original text.
-- [ ] ruff, mypy, vulture, and the unit and governance tests pass (verifier subagent).
-- [ ] Move this plan to `completed/`. Commit.
+- [x] ruff, mypy, vulture, and the unit and governance tests pass (verifier subagent).
+- [x] Move this plan to `completed/`. Commit.
 
 ## Risks
 
@@ -59,8 +59,33 @@ land before TMW-24.
   `PYTHONPATH=. .venv/bin/python scripts/local_session.py --real --help` prompted.
 - Transcript `201c5890`: the agent wrote "Step 5 ran without the COST-001 prompt"
   after seeing only the command's output; no owner message reports a missing prompt.
-- `diff` output for each proposal file, the grep above and the verifier's output go
-  here at build time.
+- `diff docs/bootstrap-implementation/agent_governance.md proposals/0022/docs/bootstrap-implementation/agent_governance.md`:
+
+  ```text
+  21,22c21,22
+  <       doesn't reliably raise the paid-model prompt (COST-001). In probe 0021, one
+  <       auto-mode session prompted and another didn't.
+  ---
+  >       hasn't been shown to raise the paid-model prompt every time (COST-001). Every run
+  >       the owner watched did prompt, but too few runs have been watched to rely on it.
+  ```
+
+- `diff AGENTS.md proposals/0022/AGENTS.md`:
+
+  ```text
+  30a31,34
+  > - You can't see permission prompts. A command the user approved and one that ran
+  >   without a prompt return the same result. Ask the user whether a prompt appeared;
+  >   never report it yourself.
+  >
+  ```
+
+- `grep -rn "one auto-mode session prompted"` (excluding `.venv`, `.git`): only intent
+  0022 and this plan. Plan 0021 and spec 0021 word it differently, and the protected
+  original splits it across lines; the proposal replaces that text.
+- Verifier: `rm -f .claude/.checks_fingerprint && echo '{}' |
+  CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh` exited 0 with no output (all
+  checks passed). `app/` is unchanged, so no scripted session ran. No paid calls.
 
 ## Decisions
 
