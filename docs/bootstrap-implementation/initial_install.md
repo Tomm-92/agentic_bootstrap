@@ -9,7 +9,7 @@ in the project's setup:
 | 1 | `docs/bootstrap-implementation/initial_install.md` | Git, Python, Google ADK, first commit | *"Implement initial_install.md."* |
 | 2 | `docs/bootstrap-implementation/codequality.md` | Lint, type and test gates | *"Implement docs/bootstrap-implementation/codequality.md."* |
 | 3 | `docs/bootstrap-implementation/project_governance.md` | Every control that doesn't depend on the agent's purpose | *"Implement docs/bootstrap-implementation/project_governance.md in one run, from Stage 1 to Stage 11."* |
-| 4 | `docs/bootstrap-implementation/agent_governance.md` | The controls that do, once the purpose is known | *"Implement docs/bootstrap-implementation/agent_governance.md in one run, from A01 to A06."* |
+| 4 | `docs/bootstrap-implementation/agent_governance.md` | The controls that do, once the purpose is known | *"Run the design session in docs/bootstrap-implementation/agent_governance.md."*, then *"Build plan A00."* |
 
 Use a new session, opened at the repo root, for each file. Do only step 1 here.
 

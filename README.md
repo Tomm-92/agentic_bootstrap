@@ -53,6 +53,7 @@ own words:
 | Choice | What it decides |
 | --- | --- |
 | Intent artifact | What your users approve before the agent builds anything, such as an OpenAPI document |
+| Agent tree | How many agents do the work. The default is one planner, one executor and a reviewer |
 | Tools | What the agent can do, and which actions need the user's confirmation |
 | Verification | Which checks every output must pass, such as secret scanning or tests |
 | Packages | Which package registries and packages the output may use |
@@ -69,66 +70,79 @@ and skips the parts that depend on it. It never guesses.
 - A container runtime, such as Docker, is reachable from the session. The run
   verifies generated output in a disposable sandbox.
 - `ANTHROPIC_API_KEY` is set in your environment.
+- **Neither session is in auto mode or `bypassPermissions` mode.** Auto mode doesn't
+  reliably ask before paid model calls (COST-001).
 
-Without these the run still finishes, but the checks that need them are recorded as
-`deferred`, with the exact command for you to run later.
+Without the first two the run still finishes, but the checks that need them are
+recorded as `deferred`, with the exact command for you to run later.
 
 ### 4. Run the agent governance implementation
 
-Start one Claude Code session at the repo root and say:
+The run takes two Claude Code sessions, with one step of yours in between.
 
-> *"Implement docs/bootstrap-implementation/agent_governance.md in one run, from A01 to
-> A06."*
+**Design session.** Start Claude Code at the repo root and say:
 
-It starts with the questions from step 2. Once you confirm your answers, it needs
-nothing more from you until it ends. It:
+> *"Run the design session in docs/bootstrap-implementation/agent_governance.md."*
 
-- creates the branch `governance-agent-purpose` and the plan
-  `docs/execution-plans/plan/active/A00-agent-purpose.md`, and commits there after each part
-  (A01 to A06). It never commits on `main` and never pushes.
-- builds the agent's tools, sandbox, intent approval, review and evals in `app/`,
-  `scripts/` and `tests/`.
-- writes every change to governance files, such as `governance/profile.yaml`,
-  `governance/tools.yaml` and `app/AGENTS.md`, to `proposals/A00/` instead. Agents
-  can't edit those files, so you apply them.
-- ends with a report listing what passed, what was deferred and what you need to do.
+It asks the questions from step 2. Then it writes three documents on the branch
+`governance-agent-purpose`, and stops after each one for you:
 
-Until you apply the proposal, your agent's new tools are denied when it runs. That
-is expected: the live `governance/tools.yaml` has no entry for them yet.
+1. **The agent's intent** (`docs/execution-plans/intent/A00-agent-purpose.md`). Set
+   `Status: accepted` and `Accepted by:` when you agree with it.
+2. **The spec** (`docs/execution-plans/spec/A00-agent-purpose.md`). It fixes the agent
+   tree, the tools and tiers, the checks, and the exact files each part may touch.
+   Accept it the same way.
+3. **Plan A00,** in plan mode. Approve it as Claude leaves plan mode.
 
-### 5. Apply the proposal
+It ends with a small first proposal in `proposals/A00/` (the profile, `tools.yaml` and
+the allowlists), all in one commit.
+
+**Apply the first proposal.** Review it, then run:
+
+```bash
+cp -R proposals/A00/. . && rm -rf proposals/A00
+git add -A && git commit -m "Apply proposal A00: profile, tools and allowlists" \
+  -m "Governance: $(git rev-parse HEAD:governance)
+Plan: A00"
+```
+
+**Build session.** Start a new session and say:
+
+> *"Build plan A00."*
+
+It first checks that the guardrails hold inside subagents. Approve the one permission
+prompt it raises: the command only prints help text. Then it builds each part, A01 to
+A05, in its own fresh subagent, and checks each part before starting the next. It
+asks you something only when a part needs a file, a tier change or a paid call that
+the spec didn't cover. It never commits on `main` and never pushes. It ends with a
+report of what passed, what was deferred and what you need to do.
+
+### 5. Apply the final proposal
 
 Do these yourself, on the `governance-agent-purpose` branch. The full list is in
 "After the run" in `docs/bootstrap-implementation/agent_governance.md`.
 
-1. **Review** everything in `proposals/A00/`, especially `governance/profile.yaml`,
-   `governance/tools.yaml` and the allowlists. Check that each tool's tier matches
-   what it can do.
-2. **Choose the extra rules.** The run suggests new rules in
-   `proposals/A00/governance/rules-additions.yaml`. Copy the ones you want into
-   `proposals/A00/governance/rules.yaml`, add a row for each to
-   `docs/records/governance_activation.md`, then delete the additions file.
-3. **Check and apply** the proposal, then commit it:
+1. **Review** `proposals/A00/` and `docs/records/governance_activation.md`.
+2. **Check and apply** the proposal, then commit it:
 
    ```bash
    .venv/bin/python scripts/check_activation.py proposals/A00/governance/rules.yaml
    cp -R proposals/A00/. . && rm -rf proposals/A00
    git add -A && git commit -m "Apply proposal A00" \
-     -m "Governance: $(git rev-parse HEAD:governance)" -m "Plan: A00"
+     -m "Governance: $(git rev-parse HEAD:governance)
+   Plan: A00"
    ```
 
-4. **Decide on eval spending.** The evals workflow makes paid model calls nightly
+3. **Decide on eval spending.** The evals workflow makes paid model calls nightly
    and on matching pull requests. Add `ANTHROPIC_API_KEY` as a repo secret only if
    you approve that cost.
-5. **Push, open a pull request and merge.** Any open Claude Code session stops at
-   its next prompt, because the governance hash has changed.
-6. **Start a new session.** The new tools now have tiers, so they run under the
-   policy.
-7. **Run the deferred checks** listed in the report, and mark each control
+4. **Push, open a pull request and merge.**
+5. **Start a new session,** and rerun the tests.
+6. **Run the deferred checks** listed in the report, and mark each control
    `active` in `docs/records/governance_activation.md` once its check passes.
 
 Before your first release, also hold the first evidence review and sign off
-`docs/records/security.md`, as items 8 and 9 of "After the run" describe.
+`docs/records/security.md`, as items 7 and 8 of "After the run" describe.
 
 From then on, build your agent one change at a time, with one execution plan per
 session, as described in [How it works](#how-it-works).
