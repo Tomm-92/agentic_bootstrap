@@ -31,6 +31,15 @@ def test_report_says_what_is_missing(tmp_path):
   assert 'No activation ledger' in text
 
 
+def test_report_counts_each_tracker(tmp_path):
+  repo = _repo(tmp_path)
+  (repo / 'docs').mkdir()
+  for name in ('bootstrapper', 'agent'):
+    table = '# T\n\n| Gap | Rule | Close by |\n| --- | --- | --- |\n| g | R | c |\n'
+    (repo / f'docs/{name}_tech_debt_tracker.md').write_text(table)
+  assert 'Tech-debt entries: bootstrapper 1, agent 1.' in report(repo)
+
+
 def test_report_summarises_sessions_and_decisions(tmp_path):
   repo = _repo(tmp_path)
   (repo / '.sessions').mkdir()

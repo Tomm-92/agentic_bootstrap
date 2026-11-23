@@ -1,6 +1,9 @@
-# Tech-debt tracker
+# Bootstrapper tech-debt tracker
 
-Gaps deferred on purpose, and what closes them.
+Gaps in the bootstrap itself, deferred on purpose, and what closes them: the governance
+machinery, hooks, CI, the coding-agent process and the bootstrap instruction files. Gaps
+specific to the agent the bootstrap builds go in `agent_tech_debt_tracker.md`. The test:
+would the gap still exist with a different agent? If yes, it belongs here.
 
 | Gap | Rule | Close by |
 | --- | --- | --- |
@@ -14,7 +17,7 @@ Gaps deferred on purpose, and what closes them.
 | The CI scope check accepts any path that has a file in the plan's proposal folder, and trusts the plan's `scope_paths` as of the commit, so a plan can widen its own scope. | SCOPE-002 | Owner review of proposals and plan diffs |
 | CODEOWNERS, branch protection and required checks are unavailable on private GitHub Free with one author. | GOV-002, DEP-001 | See "When the repo changes" |
 | In Claude-only dev mode the reviewer has a different model ID but may be the same family as the planner and executor, so they can share blind spots. | REV-001 | Before production: move the reviewer to a different model family and run the eval suite (MODEL-001) |
-| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A06 in `docs/bootstrap-implementation/agent_governance.md` |
+| All runtime rules are planned until the owner applies the activation proposal. | GOV-005 to QUAL-001 | Stages 6 to 10, then A01 to A05 in `docs/bootstrap-implementation/agent_governance.md` |
 | The proposed sandbox can't be proven inside the run: only a session started under those settings shows the write refused. | GOV-002 | "After the run" step 3 |
 | `branch_guard.sh` reads command text, so `sh -c 'git push'`, aliases and `GIT_CONFIG_*` variables get past it, and a write to `.git/config` can repoint `core.hooksPath`. | GOV-002, GOV-004 | CI trailer check and owner review; consider adding `./.git/config` to `denyWrite` |
 | The sandbox blocks `docker`, so an armed session can't run the local stack or a verification sandbox. | GOV-002, SBX-001 | The owner runs the stack; phase A02 decides whether to exclude `docker` |
@@ -32,3 +35,4 @@ Gaps deferred on purpose, and what closes them.
 | Nothing checks that a plan stays in sync with the diff as the build departs from it. | SCOPE-001 | A hook that flags a diff the plan doesn't describe; `ai_review.py` already flags departures at the pull request |
 | With `defaultMode: plan`, a tool that starts Claude Code non-interactively starts in plan mode unless it passes its own `--permission-mode`. | GOV-002 | Pass `--permission-mode` in any such tool |
 | No `@claude` fix-on-comment loop on pull requests (playbook play 10). It would be a coding agent in CI that pushes commits, outside the session controls (push and protected-path deny rules, sandbox, edit gate), holding a write token while reading untrusted PR text. Deferred by intent 0018. | GOV-002, SCOPE-002, COST-001, DEP-001 | Its own intent, once: COST-001 approves a CI budget, DEP-001 approves the action or GitHub App, the CI agent is shown to run under the repo's hooks (or an equivalent), and ideally branch protection exists. Revisit with stage 4, which brings Claude Code into CI |
+| Auto mode doesn't reliably prompt for commands that match the paid-model ask rules: in probe 0021 one auto-mode session prompted and another didn't. Any auto-mode session can make paid calls unprompted. | COST-001 | `disableAutoMode` in managed settings, or a PreToolUse hook that denies paid commands unless approved (handover "Auto mode policy" and "Managed settings", TMW-19); until then `agent_governance.md` bans auto mode for its run |

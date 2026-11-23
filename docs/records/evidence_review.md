@@ -9,7 +9,7 @@ Held each sprint by the owner (EVID-001). Start from `.venv/bin/python -m script
 - Product-agent session logs and governance logs (`.sessions/*.db` from `scripts/local_session.py`, and
   `app/.adk/session.db` from `adk web`)
 - Traces and alerts (`observability/`)
-- `docs/tech_debt_tracker.md`
+- `docs/bootstrapper_tech_debt_tracker.md` and `docs/agent_tech_debt_tracker.md`
 - PR review findings: the ai-review comments and their `ai-review` artifacts. A recurring
   Important finding is a candidate rule or `AGENTS.md` change.
 

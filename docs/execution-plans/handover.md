@@ -24,7 +24,7 @@ Stage 5 doesn't depend on it.
 ## How to pick up a stage
 
 - **One stage, one plan, one session (GOV-006).** Take the next free plan ID. IDs
-  aren't reserved per stage. 0013 is spoken for by the tech-debt tracker. Check
+  aren't reserved per stage. 0013 is spoken for by the bootstrapper tech-debt tracker. Check
   `docs/execution-plans/` for the highest ID in use.
 - **Follow plan 0017's process.** Read the README's "Development process" section
   first. Where it and this file disagree, the README wins.
@@ -89,7 +89,7 @@ original notes:
   job holding the API key never runs PR code.
 - The review ends with `Tally: important=<n> nit=<n>`, or `Tally: unavailable` when
   the model's last line isn't one. Nothing gates on it yet.
-- The `@claude` fix-on-comment loop is deferred, with a row in the tech-debt tracker.
+- The `@claude` fix-on-comment loop is deferred, with a row in the bootstrapper tech-debt tracker.
   Revisit it with stage 4.
 
 ## Stage 3: verifier subagent, failing test first (plays 07, 08)
@@ -166,7 +166,7 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 **Also revisit** the tech-debt row for the `@claude` fix-on-comment loop, which plan
 0018 deferred. Running Claude Code in CI under the repo's hooks is the question both
 need answered. A non-interactive start also needs its own `--permission-mode`,
-because the default mode is `plan` (tech-debt tracker).
+because the default mode is `plan` (bootstrapper tech-debt tracker).
 
 ## Stage 5: policy skills, starting with security (plays 05, 02)
 
@@ -184,7 +184,7 @@ policy change needs the policy owner's sign-off before the skill changes.
   review), not coding guidance.
 - The security policy an agent needs at design time is spread across
   `governance/rules.yaml` (SEC-001, SEC-002, DATA-001, DEP-001, TOOL-001, FS-001 and
-  SBX-001), `governance/allowlists/` and the tech-debt tracker.
+  SBX-001), `governance/allowlists/` and the bootstrapper tech-debt tracker.
 
 **Build.**
 1. A `security-review` skill drawn from those sources. It cites rule IDs, and it
@@ -222,7 +222,7 @@ obvious next two. Also who signs off a skill change. It's the owner today, but t
   intents.
 
 **Blocked because** the product agent has no real workload yet. The README's step 4
-(phases A01 to A06) hasn't run, so no product metric has a baseline.
+(phases A01 to A05) hasn't run, so no product metric has a baseline.
 
 **An option that isn't blocked.** The playbook's own example metrics include CI test
 failure rate and PR cycle time. Both exist now, in the GitHub Actions history and PR

@@ -34,12 +34,14 @@ def _plans(repo: Path) -> list[str]:
   plans = repo / 'docs/execution-plans/plan'
   active = sorted(p.name for p in plans.glob('active/*.md'))
   completed = sorted(p.name for p in plans.glob('completed/*.md'))
-  tracker = repo / 'docs/tech_debt_tracker.md'
-  gaps = tracker.read_text().count('\n| ') - 2 if tracker.exists() else 0
+  gaps = []
+  for name in ('bootstrapper', 'agent'):
+    tracker = repo / f'docs/{name}_tech_debt_tracker.md'
+    gaps.append(f'{name} {tracker.read_text().count("\n| ") - 2 if tracker.exists() else 0}')
   return [
     f'Active plans: {active}.',
     f'Completed plans: {completed}.',
-    f'Tech-debt entries: {gaps}.',
+    f'Tech-debt entries: {", ".join(gaps)}.',
   ]
 
 
