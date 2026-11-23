@@ -18,8 +18,8 @@ The user does these before the run, because the coding agent must not:
 - [ ] A container runtime is reachable and `ANTHROPIC_API_KEY` is set. Without them, the
       checks that need them are `deferred`.
 - [ ] **No session of this run is in auto mode or `bypassPermissions` mode.** Auto mode
-      doesn't reliably raise the paid-model prompt (COST-001). In probe 0021, one
-      auto-mode session prompted and another didn't.
+      hasn't been shown to raise the paid-model prompt every time (COST-001). Every run
+      the owner watched did prompt, but too few runs have been watched to rely on it.
 
 ## How to run this file
 

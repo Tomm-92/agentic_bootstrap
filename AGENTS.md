@@ -28,6 +28,10 @@ framework's conventions.
 
 When an agent makes the same mistake twice, propose a line for it here.
 
+- You can't see permission prompts. A command the user approved and one that ran
+  without a prompt return the same result. Ask the user whether a prompt appeared;
+  never report it yourself.
+
 ## Protected paths
 
 Never write to these, and never do so indirectly through a script or command (GOV-002):
