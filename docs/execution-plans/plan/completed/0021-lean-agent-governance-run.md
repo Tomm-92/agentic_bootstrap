@@ -17,7 +17,7 @@ scope_paths:
 
 # Plan 0021: lean agent governance run
 
-Status: in progress. The owner approved it in plan mode on 2026-11-23.
+Status: done. The owner approved it in plan mode on 2026-11-23.
 
 <!-- Written to docs/execution-plans/plan/active/<ID>-<name>.md when the owner approves it
 in plan mode. Moved to docs/execution-plans/plan/completed/ when done. -->
@@ -129,7 +129,7 @@ Three protected files change, all by proposal in `proposals/0021/`.
 - [x] Update `README.md` and `initial_install.md`. Commit.
 - [x] Ask the `verifier` subagent to run ruff, mypy, vulture, and the unit and governance
       tests. Paste its output into Proof.
-- [ ] Finish every edit, then move this plan to `completed/` and commit. With no active
+- [x] Finish every edit, then move this plan to `completed/` and commit. With no active
       plan, the gate blocks later edits.
 
 ## Risks
