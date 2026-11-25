@@ -64,9 +64,9 @@ project, and Claude can start them itself. `/spec` always runs `spec-security`.
 
 ## Order of work
 
-- [ ] Write this plan to `docs/execution-plans/plan/active/0025-spec-security-skill.md`.
+- [x] Write this plan to `docs/execution-plans/plan/active/0025-spec-security-skill.md`.
       Commit it with the intent and spec.
-- [ ] Write the five `proposals/0025/` files. Commit them.
+- [x] Write the five `proposals/0025/` files. Commit them.
 - [ ] **Pause for the owner:** apply `proposals/0025/`, delete it, and commit.
 - [ ] Commit the `test_ai_review.py` change on its own, giving the plan as the reason. Then
       commit the `ai_review.py` change. Both go in one turn, so the checks pass at the
@@ -102,6 +102,9 @@ project, and Claude can start them itself. `/spec` always runs `spec-security`.
   `test_settings.py`, so no existing test changes for it.
 - The checklist covers spec and diff in one file, so `REVIEW.md` holds no security list
   (spec requirement 1).
+- The path check covers only backticked paths that contain a `/` and end in a file
+  extension. Bare names such as `checklist.md` (beside its skill), `__init__.py` (cited
+  by `adk-review`) and `verify.sh` (planned in A02) aren't repo-root paths.
 
 ## Owner actions
 
