@@ -94,7 +94,7 @@ Protected, written to `proposals/0026/` at the same path:
 - [x] Owner: review the proposals, approve the pip-audit pin (DEP-001), and apply them
       in one commit that deletes `proposals/0026/`, with `Plan: 0026`.
 - [x] Tests for requirements 7, 14 and 15 against the real paths. Commit.
-- [ ] Owner: the bypass test in a new terminal session (requirement 16), with the result
+- [x] Owner: the bypass test in a new terminal session (requirement 16), with the result
       recorded under Proof. If a flag wins: the managed settings proposal and README step,
       the owner installs it, and the test is repeated.
 - [x] ruff, mypy, vulture, and the unit and governance tests pass, through the
@@ -129,7 +129,14 @@ Protected, written to `proposals/0026/` at the same path:
   - `.githooks/check_trailers.sh main..HEAD`: exit 0, no output.
 - The owner's `AGENTS.md` edit went in through the `proposals/0026/AGENTS.md` apply,
   so it had no separate commit.
-- Bypass test (requirement 16): waiting on the owner.
+- Bypass test (requirement 16), run by the owner on 2026-11-25 with Claude Code 2.1.332
+  in a new terminal session in this repo, after the apply commit:
+  - `claude --dangerously-skip-permissions`: started in plan mode (`⏸ plan mode on`),
+    and cycling modes with Shift+Tab never offered bypass permissions.
+  - `claude --permission-mode bypassPermissions`: showed "Bypass permissions mode was
+    disabled by settings" and started in plan mode.
+  - Neither flag reaches bypass mode, so the project setting is enough. Requirement 17's
+    managed settings file isn't needed and wasn't shipped.
 
 ## Decisions
 
