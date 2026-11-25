@@ -75,6 +75,11 @@ def test_sandbox_has_no_escape():
   assert 'excludedCommands' not in sandbox
 
 
+def test_bypass_mode_is_disabled():
+  # Bypass mode lets a sandboxed command reach any host without a prompt.
+  assert SETTINGS['permissions']['disableBypassPermissionsMode'] == 'disable'
+
+
 @pytest.mark.parametrize('rule', [*CODE_QUALITY_DENY, 'Bash(git push:*)'])
 def test_other_deny_rules_are_kept(rule):
   assert rule in SETTINGS['permissions']['deny']

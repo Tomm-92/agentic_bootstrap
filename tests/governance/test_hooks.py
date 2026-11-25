@@ -62,8 +62,8 @@ class Repo:
     payload = {'hook_event_name': event, 'session_id': session, **fields}
     return self.run(HOOKS / 'governance_gate.sh', stdin=json.dumps(payload))
 
-  def edit(self, path):
-    return self.gate('PreToolUse', tool_input={'file_path': str(path)})
+  def edit(self, path, **tool_input):
+    return self.gate('PreToolUse', tool_input={'file_path': str(path), **tool_input})
 
   def guard(self, command, mode=None):
     payload = {'tool_input': {'command': command}} | ({'permission_mode': mode} if mode else {})
@@ -230,6 +230,54 @@ def test_scope_path_cannot_borrow_the_plan_exemption(repo):
   assert denied(repo.edit(f'{repo.path}/docs/execution-plans/../../x'))
 
 
+# --- PreToolUse: only the owner accepts an intent or spec ------------------------------
+
+INTENT = 'docs/execution-plans/intent/0002-x.md'
+DRAFT = '# Intent\n\nStatus: draft\nAccepted by: <owner>, <YYYY-MM-DD>\n\n## Problem\n\nx\n'
+ACCEPTED = '# Intent\n\nStatus: accepted\nAccepted by: Owner, 2026-11-25\n\n## Problem\n\nx\n'
+ACCEPTANCE_LINES = ['Status: accepted', 'Accepted by: Owner, 2026-11-25']
+
+
+@pytest.mark.parametrize('line', ACCEPTANCE_LINES)
+def test_an_edit_adding_an_acceptance_line_is_denied(repo, line):
+  repo.write(INTENT, DRAFT)
+  result = repo.edit(repo.path / INTENT, old_string='Status: draft', new_string=line)
+  assert denied(result)
+  assert 'only the owner' in result.stdout
+
+
+@pytest.mark.parametrize('line', ACCEPTANCE_LINES)
+def test_a_write_adding_an_acceptance_line_is_denied(repo, line):
+  repo.write(INTENT, DRAFT)
+  assert denied(repo.edit(repo.path / INTENT, content=f'{DRAFT}{line}\n'))
+
+
+@pytest.mark.parametrize('folder', ['intent', 'spec'])
+def test_a_new_accepted_intent_or_spec_is_denied(repo, folder):
+  assert denied(repo.edit(repo.path / f'docs/execution-plans/{folder}/0002-x.md', content=ACCEPTED))
+
+
+def test_an_edit_elsewhere_in_an_accepted_file_is_allowed(repo):
+  repo.write(INTENT, ACCEPTED)
+  assert not denied(repo.edit(repo.path / INTENT, old_string='x', new_string='y'))
+
+
+def test_a_write_keeping_an_accepted_header_is_allowed(repo):
+  repo.write(INTENT, ACCEPTED)
+  assert not denied(repo.edit(repo.path / INTENT, content=f'{ACCEPTED}more\n'))
+
+
+def test_setting_draft_is_allowed(repo):
+  repo.write(INTENT, ACCEPTED)
+  edit = {'old_string': 'Status: accepted', 'new_string': 'Status: draft'}
+  assert not denied(repo.edit(repo.path / INTENT, **edit))
+
+
+def test_plans_are_not_checked_for_acceptance_lines(repo):
+  plan = repo.path / 'docs/execution-plans/plan/active/0002-x.md'
+  assert not denied(repo.edit(plan, content='Status: accepted\n'))
+
+
 # --- Branch guard ----------------------------------------------------------------------
 
 
@@ -367,6 +415,20 @@ def test_commit_msg_rejects_bad_trailers(repo, make_message, expected):
 def test_commit_msg_ignores_a_plan_outside_active_and_completed(repo):
   repo.write('docs/execution-plans/plan/abandoned/0001-a.md', PLAN)
   assert repo.commit_msg(trailers(repo)).returncode != 0
+
+
+@pytest.mark.parametrize('folder', ['intent', 'spec'])
+def test_commit_msg_accepts_an_intent_or_spec_before_its_plan(repo, folder):
+  repo.write(f'docs/execution-plans/{folder}/0002-x.md', DRAFT)
+  result = repo.commit_msg(trailers(repo, '0002'))
+  assert result.returncode == 0, result.stderr
+
+
+def test_commit_msg_ignores_an_id_found_only_in_other_folders(repo):
+  repo.write('docs/execution-plans/templates/0002-x.md', DRAFT)
+  result = repo.commit_msg(trailers(repo, '0002'))
+  assert result.returncode != 0
+  assert 'intent/ or spec/' in result.stderr
 
 
 def test_commit_msg_allows_the_root_commit(tmp_path):
