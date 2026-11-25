@@ -86,18 +86,18 @@ Protected, written to `proposals/0026/` at the same path:
 
 - [x] Copy this plan to `docs/execution-plans/plan/active/0026-unassigned-gaps-decision.md`.
       Commit the intent, spec and plan together, since the old trailer rule is still live.
-- [ ] Owner: commit the `AGENTS.md` edit with `Plan: 0026`, wrapped to the file's width.
+- [x] Owner: commit the `AGENTS.md` edit with `Plan: 0026`, wrapped to the file's width.
 - [x] `scripts/check_chain.py` and its tests. Run them, then commit.
 - [x] Write the proposals, except `managed-settings.json`. Run the new gate cases
       against `HOOKS_DIR=proposals/0026/.claude/hooks` from a scratch test file. Commit.
 - [x] README, `REVIEW.md`, handover and tracker. Commit.
-- [ ] Owner: review the proposals, approve the pip-audit pin (DEP-001), and apply them
+- [x] Owner: review the proposals, approve the pip-audit pin (DEP-001), and apply them
       in one commit that deletes `proposals/0026/`, with `Plan: 0026`.
-- [ ] Tests for requirements 7, 14 and 15 against the real paths. Commit.
+- [x] Tests for requirements 7, 14 and 15 against the real paths. Commit.
 - [ ] Owner: the bypass test in a new terminal session (requirement 16), with the result
       recorded under Proof. If a flag wins: the managed settings proposal and README step,
       the owner installs it, and the test is repeated.
-- [ ] ruff, mypy, vulture, and the unit and governance tests pass, through the
+- [x] ruff, mypy, vulture, and the unit and governance tests pass, through the
       `verifier` subagent, with output pasted under Proof.
 - [ ] Comment the decisions on TMW-19, and move it to Done.
 - [ ] Move this plan to `completed/`. Make every edit before this step.
@@ -117,7 +117,19 @@ Protected, written to `proposals/0026/` at the same path:
 
 ## Proof
 
-(filled in while building)
+- `.venv/bin/pytest -q tests/governance/test_hooks.py tests/governance/test_settings.py tests/governance/test_check_chain.py`:
+  `172 passed in 9.09s`, after the owner's apply commit `65c9608`. `ruff check` and
+  `ruff format --check` on `tests/governance`: `All checks passed!`, `12 files already
+  formatted`.
+- The `verifier` subagent, from the repo root on `agent-governance-rerun`:
+  - `echo '{"force": true}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh`
+    (ruff lint and format, vulture, mypy, unit and governance tests): exit 0, no output.
+  - No changes under `app/`, so no scripted session.
+  - `.venv/bin/python scripts/check_chain.py main..HEAD`: exit 0, no output.
+  - `.githooks/check_trailers.sh main..HEAD`: exit 0, no output.
+- The owner's `AGENTS.md` edit went in through the `proposals/0026/AGENTS.md` apply,
+  so it had no separate commit.
+- Bypass test (requirement 16): waiting on the owner.
 
 ## Decisions
 
