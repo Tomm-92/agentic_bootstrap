@@ -46,8 +46,9 @@ anything in its section that turned out to be wrong.
   Check this at the start rather than assuming.
 - **Plan mode's own plan file** (`~/.claude/plans/*.md`) is exempt from the
   governance gate, so a plan can be drafted in plan mode before any plan is active.
-  On approval, copy it to `docs/execution-plans/plan/active/` and commit it with the intent and
-  spec.
+  On approval, copy it to `docs/execution-plans/plan/active/` and commit it. Since plan
+  0026, the intent and spec can each be committed at their own gate, with `Plan: <ID>`
+  naming them.
 - **A protected file the owner edits during a plan must be in its `scope_paths`.**
   `scripts/check_scope.py` reads the plan's scope as of each commit, and the owner's
   commits are checked too. Add the path to the plan before the owner commits the
@@ -167,6 +168,10 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 need answered. A non-interactive start also needs its own `--permission-mode`,
 because the default mode is `plan` (bootstrapper tech-debt tracker).
 
+**Then add play 12's CI failure triage** (plan 0026): `claude -p`, read-only, on a CI
+failure, writing a `triage.md`. It reuses this stage's runner, pin and model, and needs
+its own COST-001 approval for runs triggered by failures.
+
 ## Stage 5: policy skills, starting with security (plays 05, 02)
 
 **Why.** The playbook writes knowledge that should be applied the same way every time
@@ -261,27 +266,19 @@ Needs a COST-001 approval for the diagnosis calls.
 
 ## Gaps not assigned to a stage
 
-These came out of the gap analysis but aren't in stages 2 to 6. Fold them into a
-stage when they fit, or give them their own plan.
+Decided in plan 0026 (Linear TMW-19, intent 0026). None became a tech-debt row or a new
+Linear issue. Play 11, deploy approval gates, is TMW-21.
 
-- **Play 12, CI integration.** Run `claude -p` read-only on CI failures to write a
-  `triage.md`, and draft changelogs. Paid.
-- **Play 14, scheduled scans.** A full-repo security scan on a schedule, not just
-  per-diff gitleaks and osv-scanner.
-- **Play 11, deploy approval gates.** Not applicable until there's a deploy target.
-  Then add a PreToolUse hook that requires a release approval, and make rollback a
-  single rehearsed command.
-- **Managed settings.** Enforce the sandbox and deny rules through managed settings,
-  add `disableBypassPermissionsMode`, and add a network allowlist for the sandbox.
-- **Auto mode policy.** Write down when auto mode is acceptable: a tight spec, a small
-  blast radius, and tested code.
-- **Separate commits per gate.** Plan 0017 commits the intent, spec and plan together,
-  because `check_trailers.sh` needs a `Plan:` trailer that names an existing plan.
-- **Play 08, parallel sessions in git worktrees.** Dropped from stage 3 by the owner
-  (intent 0019): the owner accepts and applies every artifact, so more sessions mostly
-  lengthen the review queue. If it's revisited, a new worktree has no `.venv`, which
-  the gate and checks need, and the owner must create worktrees because the sandbox
-  makes `.git/worktrees` read-only.
-- **Checking the chain.** Check in CI that every new plan links an accepted intent and
-  spec, or gives an exemption reason. Plan 0017's tech-debt entries cover this and the
-  plan–diff sync check.
+| Gap | Result | Why |
+| --- | --- | --- |
+| Play 14: scheduled full-repo scans | Built: `.github/workflows/scheduled-scans.yml` | Weekly, plus a manual trigger. gitleaks over the full history, redacted, and pip-audit and osv-scanner over the lockfiles. The PR jobs miss a leak older than the scan and a vulnerability published since the last PR. |
+| Separate commits per gate | Built: `check_trailers.sh` | A `Plan: <ID>` trailer may name an intent or spec, so each gate is its own commit. |
+| Checking the chain | Built: `scripts/check_chain.py` in `governance.yml` | Each plan a PR adds, from 0026 on, links an accepted intent and an accepted spec carrying the `spec-security` report, or gives `Intent: none (<reason>)`. Earlier plans predate the chain or the report. |
+| Agents accepting their own intent or spec | Built: `governance_gate.sh` | CI can't tell the owner's commits from the agent's, so the session gate refuses an edit that adds an acceptance line. A shell command can still write one (tracker, shell-write row). |
+| Bypass mode | Built: `disableBypassPermissionsMode` in `.claude/settings.json` | Bypass mode keeps deny rules, ask prompts and the sandbox's write limits, but lets a sandboxed command reach any host without a prompt. |
+| Managed settings file | Built only if the owner's test shows a bypass flag still wins | It adds no behaviour of its own, and with one owner it matters only for that case. Plan 0026's Proof records the result. |
+| Sandbox network allowlist | Not needed | In project settings it only removes the prompt for listed hosts. Unlisted hosts prompt in manual mode and are refused in auto mode. Refusing them everywhere needs `strictAllowlist`, which the repo can't set. |
+| Auto mode policy | Built: README, "When to use auto mode" | An accepted spec or an exempt small change, inside `scope_paths`, with tests covering the code. |
+| Play 12: CI failure triage | After stage 4, noted in its section | Needs Claude Code in CI and a COST-001 approval. |
+| Play 12: changelogs | Not needed | There are no releases. |
+| Play 08: parallel sessions in worktrees | Not needed | The owner reviews every artifact, so more sessions mostly lengthen the queue (intent 0019). If it's ever raised again: a new worktree has no `.venv`, and the sandbox makes `.git/worktrees` read-only, so the owner creates worktrees. |

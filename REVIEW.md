@@ -35,7 +35,7 @@ Report at most five Nits per review. Summarise the rest as a count.
 - Anything CI already enforces:
   - ruff lint and format, vulture, mypy and the unit tests
   - the rule and profile schema tests
-  - commit trailers and the plan scope check
+  - commit trailers, the plan scope check and the intent, spec and plan chain check
   - the security checks in the checklist's "Already enforced, don't report" list
 
 ## Output

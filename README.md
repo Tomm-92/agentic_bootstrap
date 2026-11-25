@@ -247,9 +247,23 @@ doc corrections and dependency bumps start at the plan, whose Goal says
 `Intent: none (<reason>)`. Everything else starts with an intent, including changes to
 governance and to this process.
 
-**One commit holds all three.** Commits need a `Plan:` trailer naming a plan in
-`active/` or `completed/`, so an intent can't be committed on its own. Acceptance is
-recorded in each file's header, and the intent, spec and plan are committed together.
+**Each gate can be its own commit.** A commit's `Plan:` trailer may name the ID of an
+intent or spec as well as a plan, so the intent can be committed before the spec
+exists, and each acceptance as it happens. Acceptance is recorded in each file's
+header. In CI, `scripts/check_chain.py` checks that every plan a pull request adds, from
+0026 on, links an accepted intent and an accepted spec with the `spec-security`
+report, or gives `Intent: none (<reason>)`. In a session, the edit gate refuses an
+agent edit that adds `Status: accepted` or fills in `Accepted by:`.
+
+**When to use auto mode.** Auto mode is acceptable when all three hold:
+
+- the change has an accepted spec, or is a small change the rule above exempts;
+- it stays inside the active plan's `scope_paths`;
+- tests cover the code it changes.
+
+Otherwise use manual mode. In auto mode, `branch_guard.sh` refuses paid-model commands
+(COST-001), so those checks are left for the owner to run in manual mode. Bypass mode
+is disabled in `.claude/settings.json`.
 
 **Not the product agent's intent artifact.** An `intent.md` here describes a change to
 this repo. The product agent's intent artifact (`intent_artifact` in
