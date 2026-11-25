@@ -26,7 +26,8 @@
       "Bash(*local_session*--real*)",
       "Bash(*adk run*)",
       "Bash(*adk web*)"
-    ]
+    ],
+    "disableBypassPermissionsMode": "disable"
   },
   "sandbox": {
     "enabled": true,

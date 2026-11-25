@@ -5,7 +5,8 @@
 # changed since the pin, and otherwise restates the hash and plan, because
 # rules injected once fade as the context grows. PreToolUse denies edits
 # unless exactly one plan is active and the path is inside its scope_paths (plan
-# files are exempt so a plan can be drafted).
+# files are exempt so a plan can be drafted), and denies an edit that accepts an
+# intent or spec, which only the owner does.
 input=$(cat)
 cd "$CLAUDE_PROJECT_DIR" || exit 0
 event=$(jq -r .hook_event_name <<<"$input")
@@ -78,6 +79,23 @@ case $event in
     f=$(.venv/bin/python -I -c 'import os, sys; print(os.path.normpath(sys.argv[1]))' "$f") ||
       deny 'SCOPE-002: could not run .venv/bin/python to check the path.'
     rel=${f#"$CLAUDE_PROJECT_DIR"/}
+    # Only lines the edit adds count, so an accepted file can still be edited elsewhere.
+    if [[ $rel == docs/execution-plans/intent/* || $rel == docs/execution-plans/spec/* ]]; then
+      jq -r '.tool_input.new_string // .tool_input.content // empty' <<<"$input" |
+        .venv/bin/python -I -c '
+import sys
+new = sys.stdin.read().splitlines()
+try:
+    old = open(sys.argv[1]).read().splitlines()
+except FileNotFoundError:
+    old = []
+sys.exit(any(
+    line.strip() == "Status: accepted"
+    or (line.startswith("Accepted by:") and line.strip() != "Accepted by: <owner>, <YYYY-MM-DD>")
+    for line in set(new) - set(old)
+))' "$f" ||
+        deny 'AGENTS.md: only the owner sets Status: accepted or fills in Accepted by: on an intent or spec.'
+    fi
     [[ $rel == docs/execution-plans/* ]] && exit 0
     # Plan mode's own plan file, which is written before any plan is active.
     [[ $f == "$HOME"/.claude/plans/*.md ]] && exit 0

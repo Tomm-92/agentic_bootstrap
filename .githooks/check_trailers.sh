@@ -15,8 +15,11 @@ check() {
     fi
   fi
   plan=$(sed -n 's/^Plan: *//p' <<<"$trailers")
-  if [[ ! $plan =~ ^[[:alnum:]]+$ ]] || ! compgen -G "docs/execution-plans/plan/*/$plan-*.md" | grep -qE '/(active|completed)/'; then
-    echo "$label: needs a 'Plan: <ID>' trailer naming a plan in docs/execution-plans/plan/active/ or completed/" >&2
+  # An intent or spec counts, so each gate can be its own commit before the plan exists.
+  if [[ ! $plan =~ ^[[:alnum:]]+$ ]] ||
+    ! { compgen -G "docs/execution-plans/plan/*/$plan-*.md"; compgen -G "docs/execution-plans/*/$plan-*.md"; } |
+    grep -qE '/(plan/active|plan/completed|intent|spec)/'; then
+    echo "$label: needs a 'Plan: <ID>' trailer naming a file in docs/execution-plans/plan/active/, plan/completed/, intent/ or spec/" >&2
     problems=1
   fi
 }

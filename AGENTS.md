@@ -18,11 +18,18 @@ framework's conventions.
 - On a conflict with governance or the plan, stop and ask.
 - Keep each session to one plan. Start a new session for the next plan, or when the
   governance hash changes (GOV-006).
-- Record assumptions, decisions and risks in the plan. Add deferred gaps to
-  `docs/bootstrapper_tech_debt_tracker.md`, or to `docs/agent_tech_debt_tracker.md` when
-  the gap wouldn't exist with a different agent.
+- Record assumptions, decisions and risks in the plan.
+- Add a row to a tech-debt tracker only when both are true: resolving the gap would
+  add real value now, and it can't be resolved in the current plan. If it can,
+  resolve it there. If it isn't needed, record that in the plan, not the tracker. If
+  it waits on a stage the handover already plans, note it in that stage's section. A
+  row goes in `docs/bootstrapper_tech_debt_tracker.md`, or in
+  `docs/agent_tech_debt_tracker.md` when the gap is specific to the product agent in
+  `app/` and would go away with a different one.
 - Never read, print or commit `.env` files (SEC-001).
 - Never set `Status: accepted` on an intent or spec. Only the owner accepts them.
+- Use auto mode only when the README's "When to use auto mode" allows it. Otherwise
+  use manual mode.
 
 ## Things agents get wrong
 
@@ -126,7 +133,7 @@ docs/
   bootstrapper_tech_debt_tracker.md  deferred gaps in the bootstrap
   agent_tech_debt_tracker.md         deferred gaps in the agent it builds
 governance/             rules, profile, thresholds, allowlists and tool tiers
-scripts/                local session, evidence report, activation and scope checks; not a package
+scripts/                local session, evidence report, activation, scope and chain checks; not a package
 observability/          local telemetry stack
 proposals/              owner-applied changes to protected paths
 ```

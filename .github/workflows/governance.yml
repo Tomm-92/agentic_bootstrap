@@ -33,6 +33,9 @@ jobs:
         # SCOPE-002 for every coding agent, not only those the session hooks govern.
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: .venv/bin/python scripts/check_scope.py "$BASE_SHA..$HEAD_SHA" 2>&1 | tee governance-report/scope.txt; exit "${PIPESTATUS[0]}"
+      - name: Intent, spec and plan chain
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        run: .venv/bin/python scripts/check_chain.py "$BASE_SHA..$HEAD_SHA" 2>&1 | tee governance-report/chain.txt; exit "${PIPESTATUS[0]}"
       - name: Changed protected paths
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: |
@@ -82,7 +85,7 @@ jobs:
           python-version: '3.14'
       - name: Install scanners
         run: |
-          python -m pip install pip-audit
+          python -m pip install pip-audit==2.10.1
           curl -fsSL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64
           chmod +x osv-scanner
       - name: pip-audit
