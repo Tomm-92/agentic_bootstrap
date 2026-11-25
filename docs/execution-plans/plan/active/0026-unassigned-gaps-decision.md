@@ -84,13 +84,13 @@ Protected, written to `proposals/0026/` at the same path:
 
 ## Order of work
 
-- [ ] Copy this plan to `docs/execution-plans/plan/active/0026-unassigned-gaps-decision.md`.
+- [x] Copy this plan to `docs/execution-plans/plan/active/0026-unassigned-gaps-decision.md`.
       Commit the intent, spec and plan together, since the old trailer rule is still live.
 - [ ] Owner: commit the `AGENTS.md` edit with `Plan: 0026`, wrapped to the file's width.
-- [ ] `scripts/check_chain.py` and its tests. Run them, then commit.
-- [ ] Write the proposals, except `managed-settings.json`. Run the new gate cases
+- [x] `scripts/check_chain.py` and its tests. Run them, then commit.
+- [x] Write the proposals, except `managed-settings.json`. Run the new gate cases
       against `HOOKS_DIR=proposals/0026/.claude/hooks` from a scratch test file. Commit.
-- [ ] README, `REVIEW.md`, handover and tracker. Commit.
+- [x] README, `REVIEW.md`, handover and tracker. Commit.
 - [ ] Owner: review the proposals, approve the pip-audit pin (DEP-001), and apply them
       in one commit that deletes `proposals/0026/`, with `Plan: 0026`.
 - [ ] Tests for requirements 7, 14 and 15 against the real paths. Commit.
@@ -121,6 +121,18 @@ Protected, written to `proposals/0026/` at the same path:
 
 ## Decisions
 
+- **The chain check starts at plan 0026** (`FIRST_CHECKED` in `scripts/check_chain.py`).
+  Spec requirement 8 relied on renames to skip old plans, but `main` predates the docs
+  move (plan 0020), so this branch's pull request adds every plan as a new path. Plans
+  0017 to 0025 also predate the `spec-security` report, and 0018 and 0019 link with
+  the old folder depth. A run on `main..HEAD` flagged 21 plans and two `.gitkeep` files before the cutoff, and
+  none after it.
+- **pip-audit is pinned at 2.10.1**, the current PyPI release (published 2026-06-10),
+  pending the owner's DEP-001 approval.
+- **The proposed hooks were tested before the handover.** The 37 existing gate tests
+  passed with `HOOKS_DIR=proposals/0026/.claude/hooks`. A throwaway test file ran 14 new
+  cases against the proposed gate and `check_trailers.sh`, all passing, and was deleted.
+  The same cases go into `test_hooks.py` after the apply.
 - No memory file for the tech-debt bar. The owner put it in `AGENTS.md`, and the gate
   denies writes outside the repo in any case.
 - Tests that read protected paths land after the owner's apply commit, as in plan 0025.
