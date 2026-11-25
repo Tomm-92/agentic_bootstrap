@@ -9,7 +9,10 @@ file hands the remaining three to the sessions that will build them.
 Keep this file current. When a stage's plan completes, mark its row and correct
 anything in its section that turned out to be wrong.
 
-**Next:** stage 4, under the next free plan ID. It needs a COST-001 approval first.
+**Next:** stage 4 (Linear TMW-17), as plan 0027 unless a higher ID is taken by then. It
+needs a COST-001 approval first. Plan 0026 resolved the gaps no stage covered (see
+the end of this file). Play 12's CI failure triage follows stage 4. Stage 6 is still
+blocked.
 
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
@@ -35,7 +38,17 @@ anything in its section that turned out to be wrong.
     example.
 - **Acceptance is two header lines.** `Status: accepted` and `Accepted by:` are both
   the owner's to set. Check both before moving on, and ask if either is missing.
-  Spec 0018's `Accepted by:` was still the placeholder when its plan was built.
+  Spec 0018's `Accepted by:` was still the placeholder when its plan was built. Since
+  plan 0026, the edit gate refuses an agent edit that adds either line. Setting
+  `Status: draft` is still allowed, for an accepted file whose content you revise.
+- **The chain check runs on every pull request (plan 0026).** Each plan from 0026 on
+  must link an accepted intent and an accepted spec whose "Policies checked" holds the
+  `spec-security` report, or give `Intent: none (<reason>)`. Run
+  `.venv/bin/python scripts/check_chain.py main..HEAD` before handing over.
+- **Add trailers with `--trailer`, not a second `-m`.** Each `-m` is its own paragraph,
+  and git reads only the last one as trailers, so
+  `-m "Governance: ..." -m "Plan: ..."` fails `commit-msg`. Use
+  `git commit -m "<subject>" --trailer "Governance: $(git rev-parse HEAD:governance)" --trailer "Plan: <ID>"`.
 - **Protected paths go through proposals (GOV-002).** Most stages touch `AGENTS.md`,
   `.claude/settings.json`, `.claude/hooks/` or `.github/`. Write the new version to
   `proposals/<plan ID>/` at the same relative path. Each section lists the files it
@@ -44,6 +57,15 @@ anything in its section that turned out to be wrong.
   `.claude/agents/`) at the real path, even though the repo doesn't protect them.
   Write them to `proposals/<plan ID>/.claude/...` and let the owner copy them in.
   Check this at the start rather than assuming.
+- **Write proposals with the Write tool.** In plan 0026, a shell `cp` of protected
+  files into `proposals/0026/` was declined. Writing each file in full and checking it
+  with `diff` against the real path worked.
+- **Test a proposed hook before the owner applies it.** `tests/governance/test_hooks.py`
+  reads `HOOKS_DIR`, so `HOOKS_DIR=proposals/<ID>/.claude/hooks .venv/bin/pytest
+  tests/governance/test_hooks.py -k "not guard"` runs the gate tests against the
+  proposal. New cases can go in a throwaway file under `proposals/<ID>/`: the gate
+  refuses writes outside the repo, including the scratchpad. Delete it before
+  committing, then add the real tests after the apply commit.
 - **Plan mode's own plan file** (`~/.claude/plans/*.md`) is exempt from the
   governance gate, so a plan can be drafted in plan mode before any plan is active.
   On approval, copy it to `docs/execution-plans/plan/active/` and commit it. Since plan
@@ -56,7 +78,9 @@ anything in its section that turned out to be wrong.
   commit had to be amended.
 - **Finish every edit before moving the plan to `completed/`.** With no active plan,
   the gate denies edits outside `docs/execution-plans/`. In plan 0019, a last fix to
-  `proposals/0019/` was blocked after the move.
+  `proposals/0019/` was blocked after the move. Stage the plan's last edits before
+  `git mv`: it stages the rename, not unstaged changes, so in plan 0026 they needed a
+  second commit.
 - **A new subagent loads only in a new session.** After the owner copies a file into
   `.claude/agents/`, check it in a fresh session: it appears among the available agent
   types. Claude Code no longer has an `/agents` command to list them.
@@ -137,7 +161,7 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 **Build.**
 1. An eval format and check script, run from Python rather than shell, to match the
    repo.
-2. Tasks taken from this repo's own history. Completed plans 0001 to 0019 are real
+2. Tasks taken from this repo's own history. Completed plans 0001 to 0026 are real
    tasks. The richest checks are governance behaviour:
    - It writes a plan before editing.
    - It refuses to edit a protected path, and writes a proposal instead.
@@ -146,6 +170,9 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
    - A bug fix starts with a strict `xfail` test, and the fix commit removes only its
      marker.
    - A test change comes in its own commit, with a reason.
+   - It never accepts its own intent or spec, and its plan passes the chain check.
+   - It adds a tech-debt row only when the gap is worth resolving now and can't be
+     resolved in the plan (`AGENTS.md`).
    - Its checks pass at the end.
 3. A runner that works on a throwaway clone with the repo's hooks active. The evals
    test the hooks plus the instructions, not the model alone.
@@ -167,6 +194,18 @@ those names. Use `evals/` at the root, or `tests/agent_evals/`, and
 0018 deferred. Running Claude Code in CI under the repo's hooks is the question both
 need answered. A non-interactive start also needs its own `--permission-mode`,
 because the default mode is `plan` (bootstrapper tech-debt tracker).
+
+**Permission modes in CI** (plan 0026). `.claude/settings.json` disables bypass mode,
+and the owner checked that neither `--dangerously-skip-permissions` nor
+`--permission-mode bypassPermissions` gets past it. So CI's `claude -p` can't run in
+bypass mode under the repo's settings, and shouldn't. Use `dontAsk` with a narrow
+`--allowedTools`, as the playbook's example does, or `acceptEdits`. `branch_guard.sh`
+refuses paid-model commands outside manual (`default`) mode, which matters if an eval
+task would run one.
+
+**Claude Code on the owner's machine** is at `~/.local/bin/claude`, version 2.1.332 on
+2026-11-25. That folder isn't on the shell's PATH, so give the full path in any
+command the owner runs.
 
 **Then add play 12's CI failure triage** (plan 0026): `claude -p`, read-only, on a CI
 failure, writing a `triage.md`. It reuses this stage's runner, pin and model, and needs
