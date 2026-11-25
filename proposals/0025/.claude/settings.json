@@ -1,0 +1,124 @@
+{
+  "permissions": {
+    "defaultMode": "plan",
+    "deny": [
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/settings.local.json)",
+      "Edit(/.claude/hooks/**)",
+      "Edit(/ruff.toml)",
+      "Edit(/pytest.ini)",
+      "Edit(/mypy.ini)",
+      "Edit(/.github/workflows/**)",
+      "Read(**/.env)",
+      "Edit(/governance/**)",
+      "Edit(/docs/bootstrap-implementation/project_governance.md)",
+      "Edit(/docs/bootstrap-implementation/agent_governance.md)",
+      "Edit(/.github/**)",
+      "Edit(/.githooks/**)",
+      "Edit(/AGENTS.md)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/app/AGENTS.md)",
+      "Edit(/app/CLAUDE.md)",
+      "Bash(git push:*)"
+    ],
+    "ask": [
+      "Bash(*pytest* -m integration*)",
+      "Bash(*local_session*--real*)",
+      "Bash(*adk run*)",
+      "Bash(*adk web*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./governance",
+        "./docs/bootstrap-implementation/project_governance.md",
+        "./docs/bootstrap-implementation/agent_governance.md",
+        "./.claude/settings.json",
+        "./.claude/settings.local.json",
+        "./.claude/hooks",
+        "./.github",
+        "./.githooks",
+        "./AGENTS.md",
+        "./CLAUDE.md",
+        "./app/AGENTS.md",
+        "./app/CLAUDE.md",
+        "./ruff.toml",
+        "./pytest.ini",
+        "./mypy.ini"
+      ]
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/governance_gate.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/governance_gate.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/governance_gate.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/branch_guard.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint_on_edit.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/checks_on_stop.sh",
+            "timeout": 300,
+            "statusMessage": "Running lint, format, dead-code, type and tests"
+          }
+        ]
+      }
+    ]
+  },
+  "skillOverrides": {
+    "security-review": "off"
+  }
+}
