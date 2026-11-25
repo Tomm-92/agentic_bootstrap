@@ -15,6 +15,7 @@ FILES = {
     'AGENTS.md': 'AGENTS',
     'app/AGENTS.md': 'APP_AGENTS',
     'ARCHITECTURE.md': 'ARCHITECTURE',
+    '.claude/skills/spec-security/checklist.md': 'SECURITY',
     'docs/execution-plans/spec/0001-x.md': 'BASE_SPEC',
   },
   'head': {
@@ -75,7 +76,7 @@ def test_instructions_come_from_base_and_the_pr_from_head(monkeypatch):
   ai_review.review(client, 'base', 'head')
   system = client.calls[0]['system']
   content = client.calls[0]['messages'][0]['content']
-  for text in ('RUBRIC', 'AGENTS', 'APP_AGENTS', 'ARCHITECTURE'):
+  for text in ('RUBRIC', 'AGENTS', 'APP_AGENTS', 'ARCHITECTURE', 'SECURITY'):
     assert text in system
   assert 'HEAD_RUBRIC' not in system
   for text in ('PLAN', 'INTENT', 'SPEC', 'a.py', 'DIFF'):
