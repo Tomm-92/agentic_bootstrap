@@ -10,8 +10,9 @@ block a PR on their own.
 Run three passes and tag each finding with its pass:
 
 - **Bugs:** logic errors, broken edge cases, regressions.
-- **Security:** injection risks, authentication and authorisation gaps, secrets or
-  personal data in code, logs or telemetry, and prompt injection reaching a tool.
+- **Security:** apply the Diff line of each rule in the security checklist,
+  `.claude/skills/spec-security/checklist.md`, and cite the rule ID. The checklist is
+  the only list of security checks: don't add others here.
 - **Compliance:** the change matches its intent, spec and plan, the design principles,
   and the rules in `governance/rules.yaml`. Flag a plan that widens its own
   `scope_paths`, and a build that departs from its plan without updating it. The
@@ -35,7 +36,7 @@ Report at most five Nits per review. Summarise the rest as a count.
   - ruff lint and format, vulture, mypy and the unit tests
   - the rule and profile schema tests
   - commit trailers and the plan scope check
-  - gitleaks, pip-audit and osv-scanner
+  - the security checks in the checklist's "Already enforced, don't report" list
 
 ## Output
 

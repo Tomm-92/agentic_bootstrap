@@ -21,7 +21,8 @@ What this change deliberately does not do.
 
 ## Policies checked
 
-- `governance/rules.yaml`: the rule IDs that apply, and how the design meets each.
+- `spec-security`: its report on this spec, pasted in. `/spec` runs it.
+- `governance/rules.yaml`: the other rule IDs that apply, and how the design meets each.
 - `docs/records/security.md`: data, secrets and access the change touches.
 - `app/AGENTS.md`: the ADK conventions that apply, where `app/` changes.
 

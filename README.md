@@ -371,15 +371,26 @@ Deny rules and the sandbox in .claude/settings.json stop Claude from editing the
 hooks, its settings, the CI workflows, `ruff.toml`, `mypy.ini` and `pytest.ini`.
 Change those yourself, by hand or through a pull request.
 
-**Review commands.** Run these by hand, after a commit. Claude calls the verifier
-itself before reporting a task done.
+**Review commands.** Run the review commands by hand, after a commit. `/intent`, `/spec`
+and `/spec-security` run earlier, before the plan. Claude calls the verifier itself
+before reporting a task done.
 
 | Command | What it does | Source |
 | --- | --- | --- |
 | Ask for the `verifier` | Runs the same checks as CI, plus a scripted session for `app/` changes, and reports the output. Never edits | `.claude/agents/verifier.md` |
 | `/adk-review` | Checks changes against this project's ADK conventions, citing `app/AGENTS.md`, `AGENTS.md` or the installed ADK source | `.claude/skills/adk-review/SKILL.md` |
+| `/intent` | Drafts a new intent from the template, under the next free ID. Claude also uses it whenever it drafts one | `.claude/skills/intent/SKILL.md` |
+| `/spec` | Drafts a spec from an accepted intent and runs `/spec-security` on it. Claude also uses it whenever it drafts one | `.claude/skills/spec/SKILL.md` |
+| `/spec-security` | Checks a spec, not code, against the security checklist, citing rule IDs | `.claude/skills/spec-security/SKILL.md` |
 | `/simplify` | Finds duplication and needless complexity, and fixes them | Built into Claude Code |
 | `/code-review low` | Finds bugs, reporting fewer, higher-confidence findings | Built into Claude Code |
+
+**One security checklist, one reviewer per stage.** `.claude/skills/spec-security/checklist.md`
+is the only list of security checks. `/spec-security` applies it to specs, and the CI
+review applies it to pull requests through `REVIEW.md`. Claude Code's built-in
+`/security-review` is switched off in `.claude/settings.json` (`skillOverrides`), because
+it would review the same diffs without this repo's rules. The owner signs off every
+change to the checklist.
 
 **CI.** The `checks` workflow runs the Stop hook's checks on every pull request
 and every push to `main`, for any agent or person. Merging needs it to pass once

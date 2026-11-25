@@ -10,7 +10,6 @@ Keep this file current. When a stage's plan completes, mark its row and correct
 anything in its section that turned out to be wrong.
 
 **Next:** stage 4, under the next free plan ID. It needs a COST-001 approval first.
-Stage 5 doesn't depend on it.
 
 | Stage | What | Playbook plays | Status |
 | --- | --- | --- | --- |
@@ -18,7 +17,7 @@ Stage 5 doesn't depend on it.
 | 2 | PR review rubric | 10 | Done (plan 0018) |
 | 3 | Verifier subagent, failing test first | 07, 08 | Done (plan 0019) |
 | 4 | Coding-agent evals in CI | 09 | Not started, needs a COST-001 approval |
-| 5 | Policy skills, starting with security | 05, 02 | Not started |
+| 5 | Policy skills, starting with security | 05, 02 | Done (plan 0025) |
 | 6 | Closing the loop: bands, detection, breach → intent | 13 | Blocked, see its section |
 
 ## How to pick up a stage
@@ -202,6 +201,27 @@ policy change needs the policy owner's sign-off before the skill changes.
 **Owner decisions.** Which policies come next: data handling and dependencies are the
 obvious next two. Also who signs off a skill change. It's the owner today, but treat
 `.claude/skills/` like a policy file in review.
+
+**As built (plan 0025).** The owner ruled out any overlap between reviewers, which
+changed the design:
+- **One checklist.** `.claude/skills/spec-security/checklist.md` is the only list of
+  security checks, with Spec and Diff lines per rule. The skill is `spec-security`, not
+  `security-review`, which is Claude Code's built-in name.
+- **One reviewer per stage.** `spec-security` checks specs only. The CI review applies
+  the checklist to diffs: `scripts/ai_review.py` loads it at the base commit, and
+  `REVIEW.md`'s Security pass points to it.
+- **The built-in `/security-review` is off,** by `skillOverrides` in
+  `.claude/settings.json`. The setting needs a recent Claude Code: 2.1.19 lacks it, and
+  2.1.330 has it.
+- **`/intent` and `/spec` serve the whole project,** and Claude starts them itself.
+  `/spec` runs `spec-security`.
+- **Triggering is tested structurally** in `tests/governance/test_skills.py`. Model-based
+  trigger evals wait for stage 4. A check that `spec-security` ran on each spec waits
+  for "Checking the chain".
+- **Owner decisions taken:** the owner signs off every checklist and skill change, which
+  the sandbox enforces because agents can't write `.claude/skills/`. Data handling and
+  dependencies come next, each in its own plan, adding to a checklist rather than a new
+  reviewer.
 
 ## Stage 6: closing the loop (play 13)
 
