@@ -19,7 +19,7 @@ scope_paths:
 
 # Plan 0026: decide on the gaps not assigned to a stage
 
-Status: active. The owner approved it in plan mode on 2026-11-25.
+Status: done. The owner approved it in plan mode on 2026-11-25.
 
 <!-- Written to docs/execution-plans/plan/active/<ID>-<name>.md when the owner approves it
 in plan mode. Moved to docs/execution-plans/plan/completed/ when done. -->
@@ -99,8 +99,8 @@ Protected, written to `proposals/0026/` at the same path:
       the owner installs it, and the test is repeated.
 - [x] ruff, mypy, vulture, and the unit and governance tests pass, through the
       `verifier` subagent, with output pasted under Proof.
-- [ ] Comment the decisions on TMW-19, and move it to Done.
-- [ ] Move this plan to `completed/`. Make every edit before this step.
+- [x] Comment the decisions on TMW-19, and move it to Done.
+- [x] Move this plan to `completed/`. Make every edit before this step.
 
 ## Risks
 
