@@ -11,7 +11,7 @@ scope_paths:
 
 # Plan 0025: spec-security skill, and /intent and /spec
 
-Status: in progress. The owner approved it in plan mode on 2026-11-25.
+Status: done. The owner approved it in plan mode on 2026-11-25.
 
 <!-- Written to docs/execution-plans/plan/active/<ID>-<name>.md when the owner approves it
 in plan mode. Moved to docs/execution-plans/plan/completed/ when done. -->
@@ -67,15 +67,15 @@ project, and Claude can start them itself. `/spec` always runs `spec-security`.
 - [x] Write this plan to `docs/execution-plans/plan/active/0025-spec-security-skill.md`.
       Commit it with the intent and spec.
 - [x] Write the five `proposals/0025/` files. Commit them.
-- [ ] **Pause for the owner:** apply `proposals/0025/`, delete it, and commit.
-- [ ] Commit the `test_ai_review.py` change on its own, giving the plan as the reason. Then
+- [x] **Pause for the owner:** apply `proposals/0025/`, delete it, and commit.
+- [x] Commit the `test_ai_review.py` change on its own, giving the plan as the reason. Then
       commit the `ai_review.py` change. Both go in one turn, so the checks pass at the
       turn's end.
-- [ ] Commit `tests/governance/test_skills.py`, which is a new test.
-- [ ] Commit `REVIEW.md`, the spec template, the README and the handover.
-- [ ] ruff, mypy, vulture, and the unit and governance tests pass. The `verifier` reports
+- [x] Commit `tests/governance/test_skills.py`, which is a new test.
+- [x] Commit `REVIEW.md`, the spec template, the README and the handover.
+- [x] ruff, mypy, vulture, and the unit and governance tests pass. The `verifier` reports
       the output.
-- [ ] Move this plan to `completed/`, after every other edit.
+- [x] Move this plan to `completed/`, after every other edit.
 
 ## Risks
 
@@ -90,6 +90,18 @@ project, and Claude can start them itself. `/spec` always runs `spec-security`.
   `output/` and the `.venv` folder that `adk-review` cites.
 
 ## Proof
+
+Results, 2026-11-25:
+- The `verifier` ran CI's check command,
+  `echo '{"force": true}' | CLAUDE_PROJECT_DIR=$PWD .claude/hooks/checks_on_stop.sh`:
+  exit code 0, no output. No `app/` change, so no scripted session.
+- The scope check, `.venv/bin/python scripts/check_scope.py "579bdea..HEAD"`: exit code
+  0, no output.
+- `.venv/bin/pytest tests/governance/test_skills.py -q`: 11 passed.
+  `tests/governance/test_ai_review.py`: 5 passed.
+- Outstanding: the owner's fresh-session check below.
+
+Planned:
 
 - The `verifier` output after the last commit.
 - `.venv/bin/pytest tests/governance/test_skills.py tests/governance/test_ai_review.py -q`.
@@ -108,6 +120,7 @@ project, and Claude can start them itself. `/spec` always runs `spec-security`.
 
 ## Owner actions
 
-- Review `proposals/0025/`. Copy each file to its real path, delete `proposals/0025/`,
-  and commit with the `Governance:` and `Plan: 0025` trailers.
+- Done, 2026-11-25: the owner applied `proposals/0025/` (commit "Apply proposal 0025",
+  amended to add the skills and settings after the first `git add` failed on the deleted
+  proposal path).
 - Open a fresh session and confirm the skills listing described under Proof.
